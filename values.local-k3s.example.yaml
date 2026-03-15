@@ -1,0 +1,109 @@
+namespace:
+  create: false
+  name: llm-observability
+
+nvidia:
+  runtimeClassName: nvidia
+  gpuResourceName: nvidia.com/gpu
+  gpuCount: 1
+
+langsmith:
+  tracing: true
+  project: k3s-ollama-gemma-local
+  apiKey: "replace-me"
+
+ollamaModel:
+  name: gemma3-1b-it-gguf-local
+  gguf:
+    enabled: true
+    hostPath: /media/waqasm86/External1/Project-Nvidia-Office/models
+    filename: gemma-3-1b-it-gguf.gguf
+    mountPath: /models/gguf
+  modelfile:
+    content: |
+      FROM __GGUF_PATH__
+      TEMPLATE """{{- $systemPromptAdded := false }}
+      {{- range $i, $_ := .Messages }}
+      {{- $last := eq (len (slice $.Messages $i)) 1 }}
+      {{- if eq .Role "user" }}<start_of_turn>user
+      {{- if (and (not $systemPromptAdded) $.System) }}
+      {{- $systemPromptAdded = true }}
+      {{ $.System }}
+      {{ end }}
+      {{ .Content }}<end_of_turn>
+      {{ if $last }}<start_of_turn>model
+      {{ end }}
+      {{- else if eq .Role "assistant" }}<start_of_turn>model
+      {{ .Content }}{{ if not $last }}<end_of_turn>
+      {{ end }}
+      {{- end }}
+      {{- end }}"""
+      PARAMETER min_p 0.01
+      PARAMETER repeat_penalty 1
+      PARAMETER top_k 64
+      PARAMETER top_p 0.95
+      PARAMETER num_predict 32768
+      PARAMETER stop <end_of_turn>
+      PARAMETER stop <eos>
+      PARAMETER temperature 1
+      PARAMETER num_ctx 1024
+
+ollama:
+  runtimeClassName: nvidia
+  image:
+    repository: ollama/ollama
+    tag: latest
+    pullPolicy: IfNotPresent
+  ollama:
+    gpu:
+      enabled: true
+      type: nvidia
+      number: 1
+      nvidiaResource: nvidia.com/gpu
+    models:
+      create:
+        - name: gemma3-1b-it-gguf-local
+          configMapRef: ollama-local-modelfile
+          configMapKeyRef: Modelfile
+  persistentVolume:
+    enabled: true
+    size: 20Gi
+    storageClass: local-path
+  service:
+    type: LoadBalancer
+    port: 11434
+  volumeMounts:
+    - name: local-gguf-model
+      mountPath: /models/gguf
+      readOnly: true
+  volumes:
+    - name: local-gguf-model
+      hostPath:
+        path: /media/waqasm86/External1/Project-Nvidia-Office/models
+        type: Directory
+
+openWebUI:
+  webuiSecretKey: "replace-with-a-32-plus-char-secret"
+  service:
+    type: LoadBalancer
+    port: 8080
+
+open-webui:
+  service:
+    type: LoadBalancer
+    port: 8080
+    containerPort: 8080
+  ollamaUrls:
+    - http://ollama:11434
+  extraEnvVars:
+    - name: OLLAMA_BASE_URL
+      value: http://ollama:11434
+    - name: ENABLE_PERSISTENT_CONFIG
+      value: "False"
+    - name: WEBUI_AUTH
+      value: "False"
+    - name: WEBUI_SECRET_KEY
+      valueFrom:
+        secretKeyRef:
+          name: open-webui-secrets
+          key: WEBUI_SECRET_KEY

@@ -1,0 +1,96 @@
+{{- if .Values.langchainDemo.enabled }}
+{{- $langsmithConfigured := and .Values.langsmith.enabled (or (ne (trim .Values.langsmith.apiKey) "") (ne (trim .Values.langsmith.existingSecret) "")) -}}
+{{- $langsmithTracing := and $langsmithConfigured (default false .Values.langsmith.tracing) -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: langchain-demo
+  namespace: {{ include "llm-observability-stack.namespace" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: langchain-demo
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: langchain-demo
+    spec:
+      containers:
+        - name: app
+          image: {{ .Values.langchainDemo.image.repository }}:{{ .Values.langchainDemo.image.tag }}
+          imagePullPolicy: {{ .Values.langchainDemo.image.pullPolicy }}
+          workingDir: /app
+          command: ["/bin/sh", "-lc"]
+          args:
+            - |
+              set -eu
+              if [ "{{ ternary "true" "false" .Values.langchainDemo.installPackagesOnStartup }}" = "true" ]; then
+                python -m pip install --no-cache-dir -r /app/requirements.txt
+              fi
+              python -m uvicorn app:app --host {{ .Values.langchainDemo.app.host | quote }} --port {{ .Values.langchainDemo.app.port }} --workers {{ .Values.langchainDemo.app.workers }}
+          env:
+            - name: OLLAMA_BASE_URL
+              value: http://ollama:11434
+            - name: OLLAMA_MODEL
+              value: {{ .Values.ollamaModel.name | quote }}
+            - name: LANGSMITH_TRACING
+              value: {{ ternary "true" "false" $langsmithTracing | quote }}
+            - name: LANGCHAIN_TRACING_V2
+              value: {{ ternary "true" "false" $langsmithTracing | quote }}
+            - name: LANGSMITH_ENDPOINT
+              value: {{ .Values.langsmith.endpoint | quote }}
+            - name: LANGCHAIN_ENDPOINT
+              value: {{ .Values.langsmith.endpoint | quote }}
+            - name: LANGSMITH_PROJECT
+              value: {{ .Values.langsmith.project | quote }}
+            - name: LANGCHAIN_PROJECT
+              value: {{ .Values.langsmith.project | quote }}
+{{- if $langsmithConfigured }}
+            - name: LANGSMITH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "llm-observability-stack.langsmithSecretName" . }}
+                  key: {{ .Values.langsmith.existingSecretKey }}
+            - name: LANGCHAIN_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "llm-observability-stack.langsmithSecretName" . }}
+                  key: {{ .Values.langsmith.existingSecretKey }}
+{{- end }}
+{{- range .Values.langchainDemo.extraEnv }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+{{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.langchainDemo.app.port }}
+          resources:
+{{ toYaml .Values.langchainDemo.resources | indent 12 }}
+          volumeMounts:
+            - name: app-code
+              mountPath: /app
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 36
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 40
+            periodSeconds: 20
+      volumes:
+        - name: app-code
+          configMap:
+            name: langchain-demo-app
+{{- end }}

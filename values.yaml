@@ -1,0 +1,207 @@
+nameOverride: ""
+fullnameOverride: ""
+
+namespace:
+  create: false
+  name: llm-observability
+
+notes:
+  requireNvidiaDevicePlugin: true
+
+nvidia:
+  runtimeClassName: nvidia
+  gpuResourceName: nvidia.com/gpu
+  gpuCount: 1
+
+langsmith:
+  enabled: true
+  tracing: true
+  endpoint: https://api.smith.langchain.com
+  project: k3s-ollama-gemma-local
+  apiKey: ""
+  existingSecret: ""
+  existingSecretKey: LANGSMITH_API_KEY
+
+ollamaModel:
+  enabled: true
+  # Final Ollama model name visible from `ollama list`
+  name: gemma3-1b-it-gguf-local
+  createAtStartup: true
+  warmupPrompt: Say hello in one short sentence.
+  gguf:
+    enabled: true
+    # IMPORTANT: change this to the absolute path of the directory that contains the GGUF file on your Xubuntu host.
+    # Example:
+    # hostPath: /media/waqasm86/External1/Project-Nvidia-Office/models
+    hostPath: /absolute/path/on/your/xubuntu22-host/gguf-models
+    filename: gemma-3-1b-it-gguf.gguf
+    mountPath: /models/gguf
+  modelfile:
+    # This template is rendered into a ConfigMap and consumed by the vendored Ollama chart.
+    content: |
+      FROM __GGUF_PATH__
+      TEMPLATE """{{- $systemPromptAdded := false }}
+      {{- range $i, $_ := .Messages }}
+      {{- $last := eq (len (slice $.Messages $i)) 1 }}
+      {{- if eq .Role "user" }}<start_of_turn>user
+      {{- if (and (not $systemPromptAdded) $.System) }}
+      {{- $systemPromptAdded = true }}
+      {{ $.System }}
+      {{ end }}
+      {{ .Content }}<end_of_turn>
+      {{ if $last }}<start_of_turn>model
+      {{ end }}
+      {{- else if eq .Role "assistant" }}<start_of_turn>model
+      {{ .Content }}{{ if not $last }}<end_of_turn>
+      {{ end }}
+      {{- end }}
+      {{- end }}"""
+      PARAMETER min_p 0.01
+      PARAMETER repeat_penalty 1
+      PARAMETER top_k 64
+      PARAMETER top_p 0.95
+      PARAMETER num_predict 32768
+      PARAMETER stop <end_of_turn>
+      PARAMETER stop <eos>
+      PARAMETER temperature 1
+      PARAMETER num_ctx 1024
+
+ollama:
+  enabled: true
+  fullnameOverride: ollama
+  replicaCount: 1
+  runtimeClassName: nvidia
+  image:
+    pullPolicy: IfNotPresent
+  ollama:
+    gpu:
+      enabled: true
+      type: nvidia
+      number: 1
+      nvidiaResource: nvidia.com/gpu
+    models:
+      pull: []
+      run: []
+      create:
+        - name: gemma3-1b-it-gguf-local
+          configMapRef: ollama-local-modelfile
+          configMapKeyRef: Modelfile
+  persistentVolume:
+    enabled: true
+    size: 20Gi
+    storageClass: local-path
+  service:
+    type: ClusterIP
+    port: 11434
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+  volumeMounts:
+    - name: local-gguf-model
+      mountPath: /models/gguf
+      readOnly: true
+  volumes:
+    - name: local-gguf-model
+      hostPath:
+        path: /absolute/path/on/your/xubuntu22-host/gguf-models
+        type: Directory
+
+openWebUI:
+  enabled: true
+  fullnameOverride: open-webui
+  ollamaBaseUrl: http://ollama:11434
+  webuiSecretKey: "change-this-to-at-least-32-characters"
+  existingSecret: ""
+  existingSecretKey: WEBUI_SECRET_KEY
+  auth: false
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: local-path
+  service:
+    type: ClusterIP
+    port: 8080
+  ingress:
+    enabled: false
+
+open-webui:
+  enabled: true
+  fullnameOverride: open-webui
+  ollama:
+    enabled: false
+  pipelines:
+    enabled: false
+  tika:
+    enabled: false
+  websocket:
+    enabled: true
+    redis:
+      enabled: true
+  ollamaUrls:
+    - http://ollama:11434
+  enableOpenaiApi: false
+  openaiBaseApiUrl: ""
+  openaiApiKey: ""
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: local-path
+  service:
+    type: ClusterIP
+    port: 8080
+    containerPort: 8080
+  runtimeClassName: ""
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1500m
+      memory: 2Gi
+  extraEnvVars:
+    - name: OLLAMA_BASE_URL
+      value: http://ollama:11434
+    - name: ENABLE_PERSISTENT_CONFIG
+      value: "False"
+    - name: WEBUI_AUTH
+      value: "False"
+    - name: WEBUI_SECRET_KEY
+      valueFrom:
+        secretKeyRef:
+          name: open-webui-secrets
+          key: WEBUI_SECRET_KEY
+
+langchainDemo:
+  enabled: true
+  nameOverride: langchain-demo
+  image:
+    repository: python
+    tag: 3.11-slim
+    pullPolicy: IfNotPresent
+  installPackagesOnStartup: true
+  packages:
+    - fastapi==0.115.12
+    - uvicorn[standard]==0.34.0
+    - pydantic==2.10.6
+    - langchain==0.3.21
+    - langchain-ollama==0.3.0
+    - langsmith==0.3.18
+  app:
+    host: 0.0.0.0
+    port: 8000
+    workers: 1
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  extraEnv: []

@@ -1,0 +1,35 @@
+# Local secrets and machine-specific overrides
+values.local-k3s.yaml
+.webui_secret_key
+.env
+.env.*
+*.pem
+*.key
+*.crt
+
+# Generated render/debug artifacts
+rendered.yaml
+*.log
+*.tmp
+.cache/
+
+# Helm build outputs
+charts/*.tgz
+
+# Large model/data artifacts (keep out of git)
+*.gguf
+*.safetensors
+*.pt
+*.pth
+*.bin
+models/
+data/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Editor/OS
+.DS_Store
+.idea/
+.vscode/

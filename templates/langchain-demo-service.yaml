@@ -1,0 +1,15 @@
+{{- if .Values.langchainDemo.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: langchain-demo
+  namespace: {{ include "llm-observability-stack.namespace" . }}
+spec:
+  type: {{ .Values.langchainDemo.service.type }}
+  selector:
+    app.kubernetes.io/name: langchain-demo
+  ports:
+    - name: http
+      port: {{ .Values.langchainDemo.service.port }}
+      targetPort: http
+{{- end }}

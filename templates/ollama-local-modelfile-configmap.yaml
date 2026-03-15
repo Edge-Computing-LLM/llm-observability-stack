@@ -1,0 +1,12 @@
+{{- if and .Values.ollama.enabled .Values.ollamaModel.enabled .Values.ollamaModel.createAtStartup }}
+{{- $ggufPath := printf "%s/%s" .Values.ollamaModel.gguf.mountPath .Values.ollamaModel.gguf.filename -}}
+{{- $modelfile := replace "__GGUF_PATH__" $ggufPath .Values.ollamaModel.modelfile.content -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ollama-local-modelfile
+  namespace: {{ include "llm-observability-stack.namespace" . }}
+data:
+  Modelfile: |
+{{ $modelfile | indent 4 }}
+{{- end }}
