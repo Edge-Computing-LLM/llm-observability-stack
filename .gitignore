@@ -12,10 +12,8 @@ rendered.yaml
 *.log
 *.tmp
 .cache/
-
 # Helm build outputs
 charts/*.tgz
-
 # Large model/data artifacts (keep out of git)
 *.gguf
 *.safetensors
@@ -24,12 +22,13 @@ charts/*.tgz
 *.bin
 models/
 data/
-
 # Python cache
 __pycache__/
 *.pyc
-
 # Editor/OS
 .DS_Store
 .idea/
 .vscode/
+rendered-with-etcd.yaml
+*.secret.yaml
+*.private.yaml

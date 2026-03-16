@@ -29,3 +29,11 @@ langsmith-secrets
 open-webui-secrets
 {{- end -}}
 {{- end -}}
+
+{{- define "llm-observability-stack.etcdFullname" -}}
+{{- if .Values.etcd.fullnameOverride -}}
+{{- .Values.etcd.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-etcd" (include "llm-observability-stack.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}

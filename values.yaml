@@ -205,3 +205,30 @@ langchainDemo:
       cpu: 1000m
       memory: 1Gi
   extraEnv: []
+
+
+etcd:
+  enabled: false
+  fullnameOverride: etcd
+  replicaCount: 1
+  image:
+    repository: quay.io/coreos/etcd
+    tag: v3.5.21
+    pullPolicy: IfNotPresent
+  auth:
+    enabled: false
+  service:
+    clientPort: 2379
+    peerPort: 2380
+  persistence:
+    enabled: true
+    storageClass: local-path
+    size: 8Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  extraEnv: []

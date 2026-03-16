@@ -46,6 +46,10 @@ spec:
               value: {{ .Values.langsmith.project | quote }}
             - name: LANGCHAIN_PROJECT
               value: {{ .Values.langsmith.project | quote }}
+{{- if .Values.etcd.enabled }}
+            - name: ETCD_ENDPOINTS
+              value: http://{{ include "llm-observability-stack.etcdFullname" . }}:{{ .Values.etcd.service.clientPort }}
+{{- end }}
 {{- if $langsmithConfigured }}
             - name: LANGSMITH_API_KEY
               valueFrom:
@@ -74,7 +78,7 @@ spec:
             httpGet:
               path: /healthz
               port: http
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 36
           readinessProbe:

@@ -1,0 +1,117 @@
+{{- if .Values.etcd.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "llm-observability-stack.etcdFullname" . }}
+  namespace: {{ include "llm-observability-stack.namespace" . }}
+spec:
+  serviceName: {{ include "llm-observability-stack.etcdFullname" . }}-headless
+  replicas: {{ .Values.etcd.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: etcd
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: etcd
+    spec:
+      enableServiceLinks: false
+{{- if not .Values.etcd.persistence.enabled }}
+      volumes:
+        - name: data
+          emptyDir: {}
+{{- end }}
+      containers:
+        - name: etcd
+          image: {{ .Values.etcd.image.repository }}:{{ .Values.etcd.image.tag }}
+          imagePullPolicy: {{ .Values.etcd.image.pullPolicy }}
+          command:
+            - /usr/local/bin/etcd
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: ETCD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: ETCD_DATA_DIR
+              value: /etcd-data
+            - name: ETCD_AUTO_COMPACTION_MODE
+              value: revision
+            - name: ETCD_AUTO_COMPACTION_RETENTION
+              value: "1000"
+            - name: ETCD_SNAPSHOT_COUNT
+              value: "10000"
+            - name: ETCD_LISTEN_CLIENT_URLS
+              value: http://0.0.0.0:{{ .Values.etcd.service.clientPort }}
+            - name: ETCD_ADVERTISE_CLIENT_URLS
+              value: http://$(MY_POD_NAME).{{ include "llm-observability-stack.etcdFullname" . }}-headless.$(MY_NAMESPACE).svc.cluster.local:{{ .Values.etcd.service.clientPort }}
+            - name: ETCD_LISTEN_PEER_URLS
+              value: http://0.0.0.0:{{ .Values.etcd.service.peerPort }}
+            - name: ETCD_INITIAL_ADVERTISE_PEER_URLS
+              value: http://$(MY_POD_NAME).{{ include "llm-observability-stack.etcdFullname" . }}-headless.$(MY_NAMESPACE).svc.cluster.local:{{ .Values.etcd.service.peerPort }}
+            - name: ETCD_INITIAL_CLUSTER_TOKEN
+              value: llm-observability-etcd
+{{- if eq (int .Values.etcd.replicaCount) 1 }}
+            - name: ETCD_INITIAL_CLUSTER
+              value: {{ include "llm-observability-stack.etcdFullname" . }}-0=http://{{ include "llm-observability-stack.etcdFullname" . }}-0.{{ include "llm-observability-stack.etcdFullname" . }}-headless.{{ include "llm-observability-stack.namespace" . }}.svc.cluster.local:{{ .Values.etcd.service.peerPort }}
+            - name: ETCD_INITIAL_CLUSTER_STATE
+              value: new
+{{- else }}
+            - name: ETCD_INITIAL_CLUSTER
+              value: {{- range $i, $e := until (.Values.etcd.replicaCount | int) }}{{ if $i }},{{ end }}{{ include "llm-observability-stack.etcdFullname" $ }}-{{ $i }}=http://{{ include "llm-observability-stack.etcdFullname" $ }}-{{ $i }}.{{ include "llm-observability-stack.etcdFullname" $ }}-headless.{{ include "llm-observability-stack.namespace" $ }}.svc.cluster.local:{{ $.Values.etcd.service.peerPort }}{{- end }}
+            - name: ETCD_INITIAL_CLUSTER_STATE
+              value: new
+{{- end }}
+{{- range .Values.etcd.extraEnv }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+{{- end }}
+          ports:
+            - name: client
+              containerPort: {{ .Values.etcd.service.clientPort }}
+            - name: peer
+              containerPort: {{ .Values.etcd.service.peerPort }}
+          volumeMounts:
+            - name: data
+              mountPath: /etcd-data
+          readinessProbe:
+            exec:
+              command:
+                - /usr/local/bin/etcdctl
+                - --endpoints=http://127.0.0.1:{{ .Values.etcd.service.clientPort }}
+                - endpoint
+                - health
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - /usr/local/bin/etcdctl
+                - --endpoints=http://127.0.0.1:{{ .Values.etcd.service.clientPort }}
+                - endpoint
+                - health
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+{{ toYaml .Values.etcd.resources | indent 12 }}
+{{- if .Values.etcd.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if .Values.etcd.persistence.storageClass }}
+        storageClassName: {{ .Values.etcd.persistence.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.etcd.persistence.size }}
+{{- end }}
+{{- end }}
