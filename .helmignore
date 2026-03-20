@@ -1,0 +1,21 @@
+# Local secret-bearing override files
+values.local-k3s.yaml
+.webui_secret_key
+.env
+.env.*
+*.secret.yaml
+*.private.yaml
+
+# Local planning/debug artifacts
+.planning/
+.local-backups/
+files/
+rendered.yaml
+rendered-with-etcd.yaml
+*.log
+*.tmp
+
+# Local model artifacts (prevent Helm chart load failures)
+*.gguf
+gguf-models/
+models/

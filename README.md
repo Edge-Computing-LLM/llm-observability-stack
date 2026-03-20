@@ -12,6 +12,14 @@ This repository is tuned for local Xubuntu/k3s workflows and GGUF models mounted
 
 GitHub repository: https://github.com/waqasm86/llm-observability-stack
 
+## Project documentation
+
+- Contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Security policy: [SECURITY.md](SECURITY.md)
+- Support guide: [SUPPORT.md](SUPPORT.md)
+- Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- Publishing notes: [docs/GITHUB-PUBLISHING.md](docs/GITHUB-PUBLISHING.md)
+
 ## What this deploys
 
 - Vendored `ollama` chart (`charts/ollama`)
@@ -61,6 +69,12 @@ Edit `values.local-k3s.yaml` and set:
 - LangSmith credentials (or existing secret reference)
 - Open WebUI secret key (32+ chars)
 
+### Values file strategy
+
+- `values.yaml`: git-tracked defaults, no secrets.
+- `values.local-k3s.yaml`: local machine overrides + secrets (gitignored).
+- `values.local-k3s.example.yaml`: safe template for onboarding and CI render checks.
+
 ### Build the local LangChain demo image
 
 ```bash
@@ -83,11 +97,13 @@ For local browser/API access, set service type to `LoadBalancer` in your local v
 
 - `ollama.service.type: LoadBalancer`
 - `open-webui.service.type: LoadBalancer`
+- `langchainDemo.service.type: LoadBalancer`
 
 Endpoints:
 
 - Open WebUI: `http://localhost:8080/`
 - Ollama API: `http://localhost:11434/`
+- LangChain demo API: `http://localhost:8000/`
 - LangChain demo (cluster service): `http://langchain-demo.llm-observability.svc.cluster.local:8000`
 
 
@@ -159,6 +175,13 @@ helm template llm-observability-stack . -f values.local-k3s.example.yaml > /tmp/
 
 CI validation is included in `.github/workflows/helm-validate.yaml`.
 
+## GitHub workflow
+
+1. Create a feature branch from `main`.
+2. Run local validation commands listed above.
+3. Open a PR with change summary and validation evidence.
+4. Keep secret-bearing changes out of git-tracked files.
+
 ## Repository hygiene
 
 This repository intentionally excludes local secrets and generated files via `.gitignore`, including:
@@ -173,7 +196,7 @@ Use only `values.local-k3s.example.yaml` in git.
 ## Troubleshooting
 
 - If browser access fails on localhost, check service types:
-  - `kubectl get svc -n llm-observability open-webui ollama`
+  - `kubectl get svc -n llm-observability open-webui ollama langchain-demo`
 - If pods are healthy but services are `ClusterIP`, switch to `LoadBalancer` or use `kubectl port-forward`.
 - If GPU scheduling fails, verify:
   - `kubectl get nodes -o json | jq '.items[0].status.allocatable'`

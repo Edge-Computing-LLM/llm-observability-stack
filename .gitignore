@@ -9,12 +9,15 @@ values.local-k3s.yaml
 
 # Generated render/debug artifacts
 rendered.yaml
+rendered-*.yaml
 *.log
 *.tmp
 .cache/
 /.local-backups/
+/.planning/
 /files/pre-change-snapshots/
 /files/post-change-snapshots/
+llm-observability-files-folders.txt
 # Helm build outputs
 charts/*.tgz
 # Large model/data artifacts (keep out of git)

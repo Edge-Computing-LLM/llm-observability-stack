@@ -20,6 +20,7 @@ langsmith:
   tracing: true
   endpoint: https://api.smith.langchain.com
   project: k3s-ollama-gemma-local
+  # Keep empty in git-tracked defaults. Set real value only in values.local-k3s.yaml.
   apiKey: ""
   existingSecret: ""
   existingSecretKey: LANGSMITH_API_KEY
@@ -119,6 +120,7 @@ openWebUI:
   enabled: true
   fullnameOverride: open-webui
   ollamaBaseUrl: http://ollama:11434
+  # Keep placeholder in git-tracked defaults. Set a strong value in values.local-k3s.yaml.
   webuiSecretKey: "change-this-to-at-least-32-characters"
   existingSecret: ""
   existingSecretKey: WEBUI_SECRET_KEY
@@ -148,6 +150,9 @@ open-webui:
     enabled: false
   websocket:
     enabled: true
+    # Keep empty to use chart-generated default (`open-webui-redis`).
+    # Set in environment-specific values when using a custom Redis URL.
+    url: ""
     redis:
       enabled: true
   ollamaUrls:
@@ -183,6 +188,46 @@ open-webui:
         secretKeyRef:
           name: open-webui-secrets
           key: WEBUI_SECRET_KEY
+
+redis:
+  # Custom internal Redis for Open WebUI websocket manager.
+  # Keep disabled by default. Enable in local override when you want to use `templates/redis-deployment.yaml`.
+  enabled: false
+  fullnameOverride: redis
+  replicaCount: 1
+  image:
+    repository: redis
+    tag: 7-alpine
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 6379
+  persistence:
+    enabled: true
+    storageClass: local-path
+    size: 5Gi
+  config:
+    maxmemory: 256mb
+    maxmemoryPolicy: allkeys-lru
+    saveRules:
+      - "900 1"
+      - "300 10"
+      - "60 10000"
+  auth:
+    # When enabled=true, set credentials only in environment-specific values (not here).
+    enabled: false
+    existingSecret: ""
+    usernameKey: REDIS_USERNAME
+    passwordKey: REDIS_PASSWORD
+    username: ""
+    password: ""
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
 
 langchainDemo:
   enabled: true

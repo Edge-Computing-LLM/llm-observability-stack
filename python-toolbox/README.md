@@ -10,3 +10,9 @@ Included examples:
 
 The image is intentionally small and does not include JupyterLab.
 Use `kubectl exec` into the pod and run scripts directly.
+
+Quick shell access:
+
+```bash
+kubectl exec -it -n llm-observability deploy/python-toolbox -- bash
+```

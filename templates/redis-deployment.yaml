@@ -1,0 +1,131 @@
+{{- if .Values.redis.enabled }}
+{{- $redisName := default "redis" .Values.redis.fullnameOverride -}}
+{{- $redisSecretName := default (printf "%s-auth" $redisName) .Values.redis.auth.existingSecret -}}
+{{- $redisNamespace := include "llm-observability-stack.namespace" . -}}
+{{- $redisAuthEnabled := default false .Values.redis.auth.enabled -}}
+{{- $redisUsernameKey := default "REDIS_USERNAME" .Values.redis.auth.usernameKey -}}
+{{- $redisPasswordKey := default "REDIS_PASSWORD" .Values.redis.auth.passwordKey -}}
+{{- if and $redisAuthEnabled (not .Values.redis.auth.existingSecret) }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $redisSecretName }}
+  namespace: {{ $redisNamespace }}
+type: Opaque
+stringData:
+  {{ $redisUsernameKey }}: {{ required "redis.auth.username is required when redis.auth.enabled=true and redis.auth.existingSecret is empty" .Values.redis.auth.username | quote }}
+  {{ $redisPasswordKey }}: {{ required "redis.auth.password is required when redis.auth.enabled=true and redis.auth.existingSecret is empty" .Values.redis.auth.password | quote }}
+---
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $redisName }}-config
+  namespace: {{ $redisNamespace }}
+data:
+  redis.conf: |
+    bind 0.0.0.0
+    protected-mode yes
+    port {{ .Values.redis.service.port | default 6379 }}
+    maxmemory {{ .Values.redis.config.maxmemory | default "256mb" }}
+    maxmemory-policy {{ .Values.redis.config.maxmemoryPolicy | default "allkeys-lru" }}
+{{- range .Values.redis.config.saveRules }}
+    save {{ . }}
+{{- end }}
+---
+{{- if .Values.redis.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $redisName }}-data
+  namespace: {{ $redisNamespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+{{- if .Values.redis.persistence.storageClass }}
+  storageClassName: {{ .Values.redis.persistence.storageClass | quote }}
+{{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.redis.persistence.size | default "5Gi" }}
+---
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $redisName }}
+  namespace: {{ $redisNamespace }}
+spec:
+  replicas: {{ .Values.redis.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ $redisName }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ $redisName }}
+    spec:
+      containers:
+        - name: redis
+          image: {{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}
+          imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              if [ "${REDIS_AUTH_ENABLED}" = "true" ]; then
+                printf 'user default off\nuser %s on >%s ~* &* +@all\n' "${REDIS_USERNAME}" "${REDIS_PASSWORD}" > /tmp/users.acl
+                exec redis-server /usr/local/etc/redis/redis.conf --aclfile /tmp/users.acl
+              fi
+              exec redis-server /usr/local/etc/redis/redis.conf
+          env:
+            - name: REDIS_AUTH_ENABLED
+              value: {{ ternary "true" "false" $redisAuthEnabled | quote }}
+{{- if $redisAuthEnabled }}
+            - name: REDIS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $redisSecretName }}
+                  key: {{ $redisUsernameKey }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $redisSecretName }}
+                  key: {{ $redisPasswordKey }}
+{{- end }}
+          ports:
+            - containerPort: {{ .Values.redis.service.port | default 6379 }}
+              name: redis
+          volumeMounts:
+            - name: config
+              mountPath: /usr/local/etc/redis
+            - name: data
+              mountPath: /data
+          resources:
+{{ toYaml .Values.redis.resources | indent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ $redisName }}-config
+        - name: data
+{{- if .Values.redis.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ $redisName }}-data
+{{- else }}
+          emptyDir: {}
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $redisName }}
+  namespace: {{ $redisNamespace }}
+spec:
+  selector:
+    app.kubernetes.io/name: {{ $redisName }}
+  ports:
+    - port: {{ .Values.redis.service.port | default 6379 }}
+      targetPort: redis
+      name: redis
+  type: {{ .Values.redis.service.type | default "ClusterIP" }}
+{{- end }}
