@@ -87,8 +87,10 @@ ollama:
 langchainDemo:
   image:
     repository: langchain-demo
-    tag: 0.1.0
+    tag: 0.1.1
     pullPolicy: IfNotPresent
+  appFromConfigMap:
+    enabled: true
   service:
     type: LoadBalancer
     port: 8000
@@ -97,6 +99,7 @@ etcd:
   enabled: false
 
 openWebUI:
+  ollamaBaseUrl: http://langchain-demo:8000/ollama
   webuiSecretKey: "replace-with-a-32-plus-char-secret"
   service:
     type: LoadBalancer
@@ -108,10 +111,10 @@ open-webui:
     port: 8080
     containerPort: 8080
   ollamaUrls:
-    - http://ollama:11434
+    - http://langchain-demo:8000/ollama
   extraEnvVars:
     - name: OLLAMA_BASE_URL
-      value: http://ollama:11434
+      value: http://langchain-demo:8000/ollama
     - name: ENABLE_PERSISTENT_CONFIG
       value: "False"
     - name: WEBUI_AUTH
@@ -131,3 +134,6 @@ pythonToolbox:
   command:
     - sleep
     - infinity
+
+langsmithDashboardSeeder:
+  enabled: false

@@ -1,2 +1,10 @@
-{{/* Intentionally empty.
-The langchain-demo app is now baked into a local image and is no longer injected via ConfigMap. */}}
+{{- if and .Values.langchainDemo.enabled .Values.langchainDemo.appFromConfigMap.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: langchain-demo-app
+  namespace: {{ include "llm-observability-stack.namespace" . }}
+data:
+  app.py: |
+{{ .Files.Get "langchain-demo/app.py" | indent 4 }}
+{{- end }}

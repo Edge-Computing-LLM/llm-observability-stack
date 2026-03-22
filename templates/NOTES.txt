@@ -7,3 +7,7 @@ Endpoints after install:
 - Ollama:      http://ollama:11434
 - Open WebUI:  http://open-webui:8080
 - LangChain:   http://langchain-demo:8000
+- Open WebUI traced proxy path: http://langchain-demo:8000/ollama/api/*
+{{- if .Values.langsmithDashboardSeeder.enabled }}
+- LangSmith seeder CronJob: langsmith-dashboard-seeder (schedule: {{ .Values.langsmithDashboardSeeder.schedule }})
+{{- end }}

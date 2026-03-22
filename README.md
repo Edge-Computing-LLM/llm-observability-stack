@@ -69,6 +69,14 @@ Edit `values.local-k3s.yaml` and set:
 - LangSmith credentials (or existing secret reference)
 - Open WebUI secret key (32+ chars)
 
+Current local runtime profile in this repository:
+
+- `open-webui` is exposed on `LoadBalancer` (`localhost:8080`)
+- `ollama` and `langchain-demo` are internal `ClusterIP` services
+- `pythonToolbox.enabled: false`
+- `langsmithDashboardSeeder.enabled: false`
+- LangSmith traces are generated on-demand from Open WebUI traffic via `langchain-demo` proxy
+
 ### Values file strategy
 
 - `values.yaml`: git-tracked defaults, no secrets.
@@ -78,8 +86,8 @@ Edit `values.local-k3s.yaml` and set:
 ### Build the local LangChain demo image
 
 ```bash
-./hack/build-local-image.sh langchain-demo 0.1.0 ./langchain-demo
-./hack/import-local-image-to-k3s.sh langchain-demo 0.1.0
+./hack/build-local-image.sh langchain-demo 0.1.1 ./langchain-demo
+./hack/import-local-image-to-k3s.sh langchain-demo 0.1.1
 ```
 
 ### Install or upgrade
@@ -93,52 +101,39 @@ helm upgrade --install llm-observability-stack . \
 
 ## Local browser/API access
 
-For local browser/API access, set service type to `LoadBalancer` in your local values file:
-
-- `ollama.service.type: LoadBalancer`
-- `open-webui.service.type: LoadBalancer`
-- `langchainDemo.service.type: LoadBalancer`
-
-Endpoints:
-
 - Open WebUI: `http://localhost:8080/`
-- Ollama API: `http://localhost:11434/`
-- LangChain demo API: `http://localhost:8000/`
-- LangChain demo (cluster service): `http://langchain-demo.llm-observability.svc.cluster.local:8000`
+- Ollama API and LangChain demo API are internal by default; use port-forward when needed:
+
+```bash
+kubectl port-forward -n llm-observability svc/ollama 11434:11434
+kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000
+```
+
+## LangSmith tracing for Open WebUI chats
+
+Open WebUI now routes Ollama traffic through a traced proxy path in `langchain-demo`:
+
+- Open WebUI Ollama base URL: `http://langchain-demo:8000/ollama`
+- Proxy forwards to upstream Ollama: `http://ollama:11434`
+- Proxy endpoint shape: `/ollama/api/*`
+
+This keeps Open WebUI behavior Ollama-compatible while emitting LangSmith runs for chat requests.
 
 
 ## Python toolbox for interview triage
 
-This chart now also supports an optional `python-toolbox` deployment for live debugging inside the cluster.
+`python-toolbox` is optional and currently disabled in the local profile to reduce RAM usage.
 
-Why it helps:
-
-- run Python scripts against in-cluster services
-- check service DNS and TCP connectivity from inside Kubernetes
-- test `langsmith` API credentials without leaving the cluster
-- keep a clean shell for `curl`, `nslookup`, `ping`, and quick Python REPL work
-
-Build and import the toolbox image the same way as the demo image:
+Enable it only when needed:
 
 ```bash
-./hack/build-local-image.sh python-toolbox 0.2.0 ./python-toolbox
-./hack/import-local-image-to-k3s.sh python-toolbox 0.2.0
+helm upgrade --install llm-observability-stack . \
+  -n llm-observability --create-namespace \
+  -f values.local-k3s.yaml \
+  --set pythonToolbox.enabled=true
 ```
 
-After deploy, open a shell:
-
-```bash
-kubectl exec -it -n llm-observability deploy/python-toolbox -- bash
-```
-
-Run the built-in examples:
-
-```bash
-python /workspace/examples/service_dns_check.py
-python /workspace/examples/ollama_smoke.py
-python /workspace/examples/redis_ping.py
-python /workspace/examples/langsmith_healthcheck.py
-```
+The 5-minute LangSmith seeder job is also disabled in this profile to avoid continuous background inference load.
 
 ### Jupyter note
 
@@ -190,6 +185,7 @@ This repository intentionally excludes local secrets and generated files via `.g
 - `.webui_secret_key`
 - `rendered.yaml`
 - model binaries like `*.gguf`
+- local screenshots in `pictures/`
 
 Use only `values.local-k3s.example.yaml` in git.
 
@@ -197,7 +193,7 @@ Use only `values.local-k3s.example.yaml` in git.
 
 - If browser access fails on localhost, check service types:
   - `kubectl get svc -n llm-observability open-webui ollama langchain-demo`
-- If pods are healthy but services are `ClusterIP`, switch to `LoadBalancer` or use `kubectl port-forward`.
+- If pods are healthy but services are `ClusterIP`, use `kubectl port-forward`.
 - If GPU scheduling fails, verify:
   - `kubectl get nodes -o json | jq '.items[0].status.allocatable'`
   - `kubectl get pods -n nvidia-device-plugin`
@@ -207,6 +203,7 @@ Use only `values.local-k3s.example.yaml` in git.
   - `kubectl -n nvidia-device-plugin logs pod/$(kubectl -n nvidia-device-plugin get pod -l app.kubernetes.io/component=device-plugin -o jsonpath='{.items[0].metadata.name}') -c nvidia-device-plugin-ctr | grep -A8 '"mps"'`
 - To confirm real GPU compute, run a chat request and sample host GPU:
   - `watch -n 0.5 nvidia-smi`
+  - `kubectl port-forward -n llm-observability svc/ollama 11434:11434`
   - `curl -s http://localhost:11434/api/chat -d '{"model":"gemma3-1b-it-gguf-local","stream":false,"messages":[{"role":"user","content":"explain kubernetes rollout strategy"}]}' -H 'Content-Type: application/json'`
 - If `langchain-demo` does not start, confirm the local image exists in k3s containerd:
   - `sudo k3s ctr images ls | grep langchain-demo`

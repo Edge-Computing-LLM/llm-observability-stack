@@ -32,7 +32,7 @@ Commit and push:
 
 ```bash
 git add README.md .gitignore values.yaml values.local-k3s.example.yaml templates/ \
-  .github/ docs/ CONTRIBUTING.md SECURITY.md SUPPORT.md CODE_OF_CONDUCT.md .helmignore
+  .github/ docs/ python-toolbox/ CONTRIBUTING.md SECURITY.md SUPPORT.md CODE_OF_CONDUCT.md .helmignore
 git commit -m "docs: refresh GitHub guidance and harden local values workflow"
 git push origin main
 ```
@@ -54,6 +54,7 @@ Do not commit:
 - `.env*`
 - `*.pem`, `*.key`, `*.crt`
 - rendered local artifacts and private debug dumps
+- local screenshots in `pictures/`
 
 These are blocked by `.gitignore` and `.helmignore`.
 

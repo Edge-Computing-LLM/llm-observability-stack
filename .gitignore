@@ -18,6 +18,7 @@ rendered-*.yaml
 /files/pre-change-snapshots/
 /files/post-change-snapshots/
 llm-observability-files-folders.txt
+pictures/
 # Helm build outputs
 charts/*.tgz
 # Large model/data artifacts (keep out of git)

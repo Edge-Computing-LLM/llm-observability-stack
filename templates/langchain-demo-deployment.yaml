@@ -35,8 +35,16 @@ spec:
           env:
             - name: OLLAMA_BASE_URL
               value: http://ollama:11434
+            - name: OLLAMA_UPSTREAM_BASE_URL
+              value: http://ollama:11434
             - name: OLLAMA_MODEL
               value: {{ .Values.ollamaModel.name | quote }}
+            - name: OLLAMA_PROXY_PATH_PREFIX
+              value: "/ollama"
+            - name: OLLAMA_PROXY_TRACE_LANGSMITH
+              value: {{ ternary "true" "false" $langsmithTracing | quote }}
+            - name: OLLAMA_PROXY_TIMEOUT_SECONDS
+              value: "180"
             - name: LANGSMITH_TRACING
               value: {{ ternary "true" "false" $langsmithTracing | quote }}
             - name: LANGCHAIN_TRACING_V2
@@ -93,4 +101,15 @@ spec:
               port: http
             initialDelaySeconds: 40
             periodSeconds: 20
+{{- if .Values.langchainDemo.appFromConfigMap.enabled }}
+          volumeMounts:
+            - name: app-code
+              mountPath: /app/app.py
+              subPath: app.py
+              readOnly: true
+      volumes:
+        - name: app-code
+          configMap:
+            name: langchain-demo-app
+{{- end }}
 {{- end }}

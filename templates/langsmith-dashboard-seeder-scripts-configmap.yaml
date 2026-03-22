@@ -1,0 +1,12 @@
+{{- if .Values.langsmithDashboardSeeder.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: langsmith-dashboard-seeder-scripts
+  namespace: {{ include "llm-observability-stack.namespace" . }}
+data:
+  langsmith_inference_traces.py: |
+{{ .Files.Get "python-toolbox/examples/langsmith_inference_traces.py" | indent 4 }}
+  langsmith_dashboard_seed_every_5m.py: |
+{{ .Files.Get "python-toolbox/examples/langsmith_dashboard_seed_every_5m.py" | indent 4 }}
+{{- end }}
