@@ -516,6 +516,15 @@ openaiApiKeys: []
 
 databaseUrl: ""
 
+# -- Controls WEBUI_SECRET_KEY env injection from a Kubernetes Secret.
+webuiSecret:
+  # -- Enable automatic WEBUI_SECRET_KEY env var injection in workload template.
+  enabled: true
+  # -- Secret name to read WEBUI secret from.
+  existingSecretName: open-webui-secrets
+  # -- Secret key containing the WEBUI secret value.
+  existingSecretKey: WEBUI_SECRET_KEY
+
 # -- Env vars added to the Open WebUI deployment. Most up-to-date environment variables can be found here: https://docs.openwebui.com/getting-started/env-configuration. Variables can be defined as list or map style.
 extraEnvVars: []
   # - name: OPENAI_API_KEY

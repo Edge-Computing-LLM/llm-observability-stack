@@ -26,3 +26,14 @@ jobs:
 
       - name: Render local example values
         run: helm template llm-observability-stack . -f values.local-k3s.example.yaml >/tmp/rendered-local.yaml
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install smoke test dependencies
+        run: python -m pip install --upgrade pip && pip install -r requirements-test.txt
+
+      - name: Run smoke tests
+        run: pytest -q tests/test_langchain_demo_smoke.py tests/test_helm_smoke.py

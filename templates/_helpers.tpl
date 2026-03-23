@@ -23,10 +23,38 @@ langsmith-secrets
 {{- end -}}
 
 {{- define "llm-observability-stack.webuiSecretName" -}}
-{{- if .Values.openWebUI.existingSecret -}}
+{{- $openWebUISubchart := (get .Values "open-webui") | default dict -}}
+{{- $webuiSecret := (get $openWebUISubchart "webuiSecret") | default dict -}}
+{{- $subchartSecretName := (get $webuiSecret "existingSecretName") | default "" -}}
+{{- if $subchartSecretName -}}
+{{- $subchartSecretName -}}
+{{- else if .Values.openWebUI.existingSecret -}}
 {{- .Values.openWebUI.existingSecret -}}
 {{- else -}}
 open-webui-secrets
+{{- end -}}
+{{- end -}}
+
+{{- define "llm-observability-stack.webuiSecretKey" -}}
+{{- $openWebUISubchart := (get .Values "open-webui") | default dict -}}
+{{- $webuiSecret := (get $openWebUISubchart "webuiSecret") | default dict -}}
+{{- $subchartSecretKey := (get $webuiSecret "existingSecretKey") | default "" -}}
+{{- if $subchartSecretKey -}}
+{{- $subchartSecretKey -}}
+{{- else if .Values.openWebUI.existingSecretKey -}}
+{{- .Values.openWebUI.existingSecretKey -}}
+{{- else -}}
+WEBUI_SECRET_KEY
+{{- end -}}
+{{- end -}}
+
+{{- define "llm-observability-stack.manageWebuiSecret" -}}
+{{- $openWebUISubchart := (get .Values "open-webui") | default dict -}}
+{{- $webuiSecret := (get $openWebUISubchart "webuiSecret") | default dict -}}
+{{- $subchartSecretName := (trim ((get $webuiSecret "existingSecretName") | default "")) -}}
+{{- $legacySecretName := (trim (.Values.openWebUI.existingSecret | default "")) -}}
+{{- if and (eq $subchartSecretName "") (eq $legacySecretName "") -}}
+true
 {{- end -}}
 {{- end -}}
 

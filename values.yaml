@@ -121,9 +121,12 @@ openWebUI:
   fullnameOverride: open-webui
   # Route Open WebUI through langchain-demo proxy so requests can be traced in LangSmith.
   ollamaBaseUrl: http://langchain-demo:8000/ollama
-  # Keep placeholder in git-tracked defaults. Set a strong value in values.local-k3s.yaml.
-  webuiSecretKey: "change-this-to-at-least-32-characters"
+  # Leave empty to auto-generate a strong value when chart-managed secret mode is used.
+  # If you provide a value here, it is used as-is.
+  webuiSecretKey: ""
+  # Legacy wrapper field retained for compatibility. If set, it must match open-webui.webuiSecret.existingSecretName.
   existingSecret: ""
+  # Legacy wrapper field retained for compatibility. If set, it must match open-webui.webuiSecret.existingSecretKey.
   existingSecretKey: WEBUI_SECRET_KEY
   auth: false
   persistence:
@@ -161,6 +164,14 @@ open-webui:
   enableOpenaiApi: false
   openaiBaseApiUrl: ""
   openaiApiKey: ""
+  webuiSecret:
+    enabled: true
+    # Set this to consume a pre-created secret and disable chart-managed secret generation.
+    # Must match openWebUI.existingSecret when legacy field is used.
+    existingSecretName: ""
+    # Secret key for WEBUI secret value.
+    # Must match openWebUI.existingSecretKey when legacy field is used.
+    existingSecretKey: WEBUI_SECRET_KEY
   persistence:
     enabled: true
     size: 5Gi
@@ -184,11 +195,6 @@ open-webui:
       value: "False"
     - name: WEBUI_AUTH
       value: "False"
-    - name: WEBUI_SECRET_KEY
-      valueFrom:
-        secretKeyRef:
-          name: open-webui-secrets
-          key: WEBUI_SECRET_KEY
 
 redis:
   # Custom internal Redis for Open WebUI websocket manager.

@@ -298,6 +298,29 @@ used to populate the variable WEBUI_URL
 {{- end }}
 
 {{/*
+Return true if extraEnvVars contains the target env var name.
+Usage:
+{{ include "open-webui.hasEnvVar" (dict "values" .Values.extraEnvVars "name" "WEBUI_SECRET_KEY") }}
+*/}}
+{{- define "open-webui.hasEnvVar" -}}
+  {{- $found := false -}}
+  {{- $target := .name -}}
+  {{- $values := .values -}}
+  {{- if kindIs "map" $values -}}
+    {{- if hasKey $values $target -}}
+      {{- $found = true -}}
+    {{- end -}}
+  {{- else if kindIs "slice" $values -}}
+    {{- range $values -}}
+      {{- if and (kindIs "map" .) (eq (get . "name") $target) -}}
+        {{- $found = true -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if $found }}true{{- end -}}
+{{- end -}}
+
+{{/*
 Convert a map of environment variables to Kubernetes env var format
 */}}
 {{- define "open-webui.env" -}}

@@ -67,7 +67,9 @@ Edit `values.local-k3s.yaml` and set:
 - `ollamaModel.gguf.hostPath` to your GGUF parent directory
 - `ollama.volumes[0].hostPath.path` to the same directory
 - LangSmith credentials (or existing secret reference)
-- Open WebUI secret key (32+ chars)
+- Open WebUI secret handling:
+  - preferred: pre-created secret via `open-webui.webuiSecret.existingSecretName`
+  - fallback: set `openWebUI.webuiSecretKey` (chart-managed secret generation path)
 
 Current local runtime profile in this repository:
 
@@ -82,6 +84,20 @@ Current local runtime profile in this repository:
 - `values.yaml`: git-tracked defaults, no secrets.
 - `values.local-k3s.yaml`: local machine overrides + secrets (gitignored).
 - `values.local-k3s.example.yaml`: safe template for onboarding and CI render checks.
+
+### Open WebUI Secret Wiring
+
+To avoid drift between wrapper and subchart config, keep these aligned:
+
+- `open-webui.webuiSecret.existingSecretName`
+- `open-webui.webuiSecret.existingSecretKey`
+
+Legacy fields still exist for compatibility:
+
+- `openWebUI.existingSecret`
+- `openWebUI.existingSecretKey`
+
+If legacy fields are used, they must match `open-webui.webuiSecret.*` or template validation fails.
 
 ### Build the local LangChain demo image
 

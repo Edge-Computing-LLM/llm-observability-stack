@@ -1,0 +1,27 @@
+{{- /*
+Validate cross-chart secret wiring to avoid drift between:
+- root wrapper values (openWebUI.*)
+- vendored open-webui values (open-webui.webuiSecret.*)
+*/ -}}
+{{- $openWebUISubchart := (get .Values "open-webui") | default dict -}}
+{{- $webuiSecret := (get $openWebUISubchart "webuiSecret") | default dict -}}
+{{- $legacySecretName := (trim (.Values.openWebUI.existingSecret | default "")) -}}
+{{- $legacySecretKey := (trim (.Values.openWebUI.existingSecretKey | default "")) -}}
+{{- $subchartSecretName := (trim ((get $webuiSecret "existingSecretName") | default "")) -}}
+{{- $subchartSecretKey := (trim ((get $webuiSecret "existingSecretKey") | default "")) -}}
+
+{{- if and $legacySecretName (eq $subchartSecretName "") -}}
+{{- fail "openWebUI.existingSecret is set but open-webui.webuiSecret.existingSecretName is empty. Set both to the same secret name for consistent WEBUI_SECRET_KEY wiring." -}}
+{{- end -}}
+
+{{- if and $legacySecretName $subchartSecretName (ne $legacySecretName $subchartSecretName) -}}
+{{- fail "Secret name mismatch: openWebUI.existingSecret must match open-webui.webuiSecret.existingSecretName." -}}
+{{- end -}}
+
+{{- if and $legacySecretKey $subchartSecretKey (ne $legacySecretKey $subchartSecretKey) -}}
+{{- fail "Secret key mismatch: openWebUI.existingSecretKey must match open-webui.webuiSecret.existingSecretKey." -}}
+{{- end -}}
+
+{{- if and $subchartSecretName (eq $subchartSecretKey "") -}}
+{{- fail "open-webui.webuiSecret.existingSecretName is set but open-webui.webuiSecret.existingSecretKey is empty." -}}
+{{- end -}}

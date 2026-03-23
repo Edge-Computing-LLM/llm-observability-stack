@@ -383,6 +383,14 @@ spec:
         {{- end }}
         {{- end }}
         {{- end }}
+        {{- $hasWebUISecretEnv := include "open-webui.hasEnvVar" (dict "values" .Values.extraEnvVars "name" "WEBUI_SECRET_KEY") }}
+        {{- if and .Values.webuiSecret.enabled (ne $hasWebUISecretEnv "true") }}
+        - name: "WEBUI_SECRET_KEY"
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.webuiSecret.existingSecretName | default "open-webui-secrets" | quote }}
+              key: {{ .Values.webuiSecret.existingSecretKey | default "WEBUI_SECRET_KEY" | quote }}
+        {{- end }}
         {{- if .Values.extraEnvVars }}
           {{- include "open-webui.env" .Values.extraEnvVars | nindent 8 }}
         {{- end }}
