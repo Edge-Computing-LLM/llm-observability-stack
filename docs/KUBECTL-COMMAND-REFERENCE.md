@@ -10,8 +10,8 @@ NS=llm-observability
 
 Profile note:
 
-- In the default local profile, `python-toolbox` and `langsmith-dashboard-seeder` are disabled.
-- Commands below for those resources are optional and only apply when enabled.
+- The current local example profile keeps `pythonToolbox.enabled=true` and `langsmithDashboardSeeder.enabled=false`.
+- See [CONFIG-PROFILES.md](CONFIG-PROFILES.md) before assuming a workload is enabled in a given environment.
 
 ## 1. Cluster and Context Safety
 
@@ -20,7 +20,7 @@ kubectl config current-context
 kubectl config get-contexts
 kubectl cluster-info
 kubectl get nodes -o wide
-kubectl version --short
+kubectl version --client
 ```
 
 ## 2. Namespace and Core Inventory
@@ -33,6 +33,13 @@ kubectl get events -n $NS --sort-by=.lastTimestamp
 ```
 
 ## 3. Helm-Related Runtime Validation
+
+Detect workload kind first:
+
+```bash
+kubectl get deploy,statefulset -n $NS
+kubectl get deploy,statefulset -n $NS -o name | grep -E 'ollama|open-webui|langchain-demo|python-toolbox'
+```
 
 ```bash
 kubectl get pods -n $NS -o wide

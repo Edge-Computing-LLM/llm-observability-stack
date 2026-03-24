@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3.11
+#!/usr/bin/env python3
 """Build a namespace networking report and optional JSON output."""
 
 from __future__ import annotations

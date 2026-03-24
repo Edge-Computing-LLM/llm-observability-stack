@@ -32,9 +32,13 @@ Edit `values.local-k3s.yaml` and confirm:
 - GGUF host path values point to your model directory
 - LangSmith credentials or existing secret references are set correctly
 - Open WebUI secret inputs are wired the way you want
-- `pythonToolbox.enabled: true` if you want notebook-driven diagnostics available immediately
+- the example profile defaults still match the behavior you want locally
 
 Do not commit `values.local-k3s.yaml`.
+
+Profile reference:
+
+- [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
 
 ## 3. Build and Import Local Images
 
@@ -100,21 +104,15 @@ kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000
 Launch notebooks from the project notebook directory:
 
 ```bash
+PYTHON_BIN="${PYTHON_BIN:-python3.11}"
 cd jupyter-notebooks
-/usr/local/bin/python3.11 -m jupyter lab
+"${PYTHON_BIN}" -m jupyter lab
 ```
 
 Notebook index:
 
-- `01` environment smoke test
-- `02` Ollama API basics
-- `03` LangChain proxy deep dive
-- `04` LangSmith tracing setup
-- `05` Open WebUI end-to-end flow
-- `06` custom Modelfile workflow
-- `07` python-toolbox diagnostics
-- `08` troubleshooting and etcd simulations
-- `09` k3s networking deep dive
+- [../jupyter-notebooks/CATALOG.md](../jupyter-notebooks/CATALOG.md)
+- [../jupyter-notebooks/README.md](../jupyter-notebooks/README.md)
 
 ## 8. Minimal Troubleshooting
 

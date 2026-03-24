@@ -10,8 +10,8 @@ NS=llm-observability
 
 Profile note:
 
-- In the default local profile, `python-toolbox` is disabled.
-- Toolbox-based commands in this document are optional and apply only when that deployment is enabled.
+- The current local example profile keeps `pythonToolbox.enabled=true`.
+- Verify the active profile in [CONFIG-PROFILES.md](CONFIG-PROFILES.md) and with `helm get values ... -a` before assuming toolbox availability.
 
 ## 1. Networking Topology
 

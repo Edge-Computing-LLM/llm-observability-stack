@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3.11
+#!/usr/bin/env python3
 """Trace service routing path: selector -> pods -> endpoints -> routes."""
 
 from __future__ import annotations

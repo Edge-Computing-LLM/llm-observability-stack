@@ -1,10 +1,10 @@
 # Kubernetes in Action coverage mapping
 
-This toolkit maps the source domains from your local `kubernetes-in-action-2nd-edition` content into operational scripts for your `llm-observability` k3s cluster.
+This toolkit maps the source domains from a local `kubernetes-in-action-2nd-edition` checkout into operational scripts for your `llm-observability` k3s cluster.
 
 ## Source reviewed
 
-- Repository path: `/media/waqasm86/External1/Project-Nvidia-Office/Project-Llamatelemetry/langchain-kubernetes-jupyterlab/kubernetes-in-action-2nd-edition`
+- Local source checkout: set `KIA_SOURCE_ROOT` in your shell or notes if you want to record the exact path on your machine.
 - Book PDF: `Kubernetes in Action_Kevin Conner.pdf`
 - Chapter source folders reviewed: `Chapter02` through `Chapter18`
 - High-frequency resource kinds in examples: `Pod`, `ConfigMap`, `Secret`, `PersistentVolume`, `PersistentVolumeClaim`, `Service`, `Ingress`, `Gateway`, `HTTPRoute`, `Deployment`, `StatefulSet`, `DaemonSet`, `Job`, `CronJob`

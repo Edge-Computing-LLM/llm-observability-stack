@@ -14,13 +14,15 @@ This folder provides a practical Kubernetes operations toolkit for your local `l
 ## Quick start
 
 ```bash
-cd /media/waqasm86/External1/Project-Nvidia-Office/Project-Llamatelemetry/langchain-kubernetes-jupyterlab/llm-observability-stack/jupyter-notebooks/llm-observability-in-action
+PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+PYTHON_BIN="${PYTHON_BIN:-python3.11}"
+cd "${PROJECT_ROOT}/jupyter-notebooks/llm-observability-in-action"
 cp config.env.example config.env
 
 # Optional: set K8S_CONTEXT in config.env if multiple contexts exist.
 
 ./runbooks/run_kubectl_suite_readonly.sh
-/usr/local/bin/python3.11 -m pip install -r python/requirements.txt
+"${PYTHON_BIN}" -m pip install -r python/requirements.txt
 ./runbooks/run_python_suite.sh
 ```
 

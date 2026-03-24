@@ -5,7 +5,8 @@ These scripts use the official Kubernetes Python client and are focused on your 
 ## Install
 
 ```bash
-/usr/local/bin/python3.11 -m venv .venv
+PYTHON_BIN="${PYTHON_BIN:-python3.11}"
+"${PYTHON_BIN}" -m venv .venv
 source .venv/bin/activate
 pip install -r python/requirements.txt
 ```
@@ -30,9 +31,10 @@ pip install -r python/requirements.txt
 ## Examples
 
 ```bash
-/usr/local/bin/python3.11 python/01_namespace_inventory.py --namespace llm-observability
-/usr/local/bin/python3.11 python/02_service_path_inspector.py --namespace llm-observability --service ollama
-/usr/local/bin/python3.11 python/03_workload_health.py --namespace llm-observability
-/usr/local/bin/python3.11 python/04_networking_report.py --namespace llm-observability --json
-/usr/local/bin/python3.11 python/05_watch_events.py --namespace llm-observability --timeout 180
+PYTHON_BIN="${PYTHON_BIN:-python3.11}"
+"${PYTHON_BIN}" python/01_namespace_inventory.py --namespace llm-observability
+"${PYTHON_BIN}" python/02_service_path_inspector.py --namespace llm-observability --service ollama
+"${PYTHON_BIN}" python/03_workload_health.py --namespace llm-observability
+"${PYTHON_BIN}" python/04_networking_report.py --namespace llm-observability --json
+"${PYTHON_BIN}" python/05_watch_events.py --namespace llm-observability --timeout 180
 ```

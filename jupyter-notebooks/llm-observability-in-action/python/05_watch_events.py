@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3.11
+#!/usr/bin/env python3
 """Watch Kubernetes events in a namespace for troubleshooting."""
 
 from __future__ import annotations

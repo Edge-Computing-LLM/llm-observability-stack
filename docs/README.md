@@ -2,25 +2,25 @@
 
 This directory contains the long-form documentation for `llm-observability-stack`. The intent is to keep the top-level [README.md](../README.md) fast to scan while preserving deeper operational, architectural, and workflow guidance here.
 
-Current local profile notes:
+Current local-profile reference:
 
-- `open-webui` is the main browser entrypoint
-- `ollama` and `langchain-demo` are internal `ClusterIP` services by default
-- `pythonToolbox.enabled: true`
-- `langsmithDashboardSeeder.enabled: false`
+- See [CONFIG-PROFILES.md](CONFIG-PROFILES.md) for the canonical defaults and local-example overrides.
 
 ## Start Here
 
 1. [QUICKSTART.md](QUICKSTART.md)
-2. [ARCHITECTURE.md](ARCHITECTURE.md)
-3. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
-4. [NOTEBOOKS-GUIDE.md](NOTEBOOKS-GUIDE.md)
-5. [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
+2. [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
+3. [ARCHITECTURE.md](ARCHITECTURE.md)
+4. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
+5. [NOTEBOOKS-GUIDE.md](NOTEBOOKS-GUIDE.md)
+6. [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
 
 ## Core Guides
 
 - [QUICKSTART.md](QUICKSTART.md)
   - Fast local setup for k3s, values files, image build/import, install, and first validation.
+- [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
+  - Canonical comparison of git-tracked defaults, local example values, and private local overrides.
 - [ARCHITECTURE.md](ARCHITECTURE.md)
   - Component ownership, request paths, service exposure, and configuration boundaries.
 - [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
@@ -45,6 +45,21 @@ Current local profile notes:
 
 - [GITHUB-PUBLISHING.md](GITHUB-PUBLISHING.md)
   - Remote setup, safe publishing workflow, and repo hygiene guidance.
+
+## Suggested Reading Paths
+
+- First deploy:
+  - [QUICKSTART.md](QUICKSTART.md)
+  - [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
+  - [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
+- Notebook-focused:
+  - [NOTEBOOKS-GUIDE.md](NOTEBOOKS-GUIDE.md)
+  - [../jupyter-notebooks/CATALOG.md](../jupyter-notebooks/CATALOG.md)
+  - [../jupyter-notebooks/README.md](../jupyter-notebooks/README.md)
+- Contributor/operator:
+  - [../CONTRIBUTING.md](../CONTRIBUTING.md)
+  - [KUBECTL-COMMAND-REFERENCE.md](KUBECTL-COMMAND-REFERENCE.md)
+  - [PYTHON-KUBERNETES-AUTOMATION.md](PYTHON-KUBERNETES-AUTOMATION.md)
 
 ## Supporting Script Docs
 

@@ -101,8 +101,9 @@ Use these for:
 Launch:
 
 ```bash
+PYTHON_BIN="${PYTHON_BIN:-python3.11}"
 cd jupyter-notebooks
-/usr/local/bin/python3.11 -m jupyter lab
+"${PYTHON_BIN}" -m jupyter lab
 ```
 
 Useful pairings:

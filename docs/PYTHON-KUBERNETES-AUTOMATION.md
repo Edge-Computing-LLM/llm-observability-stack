@@ -5,7 +5,8 @@ This guide shows how to automate cluster/network checks for `llm-observability-s
 Profile note:
 
 - These scripts can be run from host, CI, or a temporary debug pod.
-- The default local profile currently keeps `python-toolbox` disabled for lower baseline memory usage.
+- The current local example profile keeps `pythonToolbox.enabled=true`.
+- Use [CONFIG-PROFILES.md](CONFIG-PROFILES.md) as the source of truth for generic defaults vs local-example behavior.
 
 ## 1. Install and Environment
 

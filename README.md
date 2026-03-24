@@ -38,7 +38,7 @@ Typical local exposure strategy:
 - `open-webui` is exposed directly for browser use
 - `ollama` and `langchain-demo` stay `ClusterIP`
 - host access to internal APIs is done with `kubectl port-forward`
-- `pythonToolbox.enabled: true` in the local k3s profile
+- the local example profile keeps `pythonToolbox.enabled: true`
 
 ## Repository Layout
 
@@ -63,6 +63,7 @@ Core documentation:
 
 - [docs/README.md](docs/README.md)
 - [docs/QUICKSTART.md](docs/QUICKSTART.md)
+- [docs/CONFIG-PROFILES.md](docs/CONFIG-PROFILES.md)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/OPERATIONS-RUNBOOK.md](docs/OPERATIONS-RUNBOOK.md)
 - [docs/NOTEBOOKS-GUIDE.md](docs/NOTEBOOKS-GUIDE.md)
@@ -111,6 +112,12 @@ cp values.local-k3s.example.yaml values.local-k3s.yaml
 - the GGUF host path values for Ollama
 - LangSmith credentials or existing secret references
 - Open WebUI secret handling
+- any local service exposure overrides you want to keep
+
+Profile guidance:
+
+- generic defaults and local-example differences: [docs/CONFIG-PROFILES.md](docs/CONFIG-PROFILES.md)
+- sanitized local example: [values.local-k3s.example.yaml](values.local-k3s.example.yaml)
 
 3. Build/import local images:
 
@@ -153,8 +160,9 @@ kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000
 Notebook launch:
 
 ```bash
+PYTHON_BIN="${PYTHON_BIN:-python3.11}"
 cd jupyter-notebooks
-/usr/local/bin/python3.11 -m jupyter lab
+"${PYTHON_BIN}" -m jupyter lab
 ```
 
 ## Common Workflows
@@ -252,8 +260,7 @@ Never commit:
 
 ## Current Local Profile Notes
 
-- `pythonToolbox.enabled: true`
-- `langsmithDashboardSeeder.enabled: false`
+- Profile reference: [docs/CONFIG-PROFILES.md](docs/CONFIG-PROFILES.md)
 - `open-webui` is intended for direct browser use
 - `ollama` and `langchain-demo` are internal by default
 - the stack is optimized for local Xubuntu + k3s + NVIDIA workflows, not generic multi-node production deployment

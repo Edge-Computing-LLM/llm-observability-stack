@@ -2,6 +2,8 @@
 
 This directory contains the main notebook walkthroughs for your local k3s-based `llm-observability-stack`, from basic checks to advanced troubleshooting, networking inspection, and architecture visualization.
 
+For classification and status, see [CATALOG.md](CATALOG.md).
+
 ## Notebook Sequence
 
 1. **01-environment-smoke-test.ipynb**  
@@ -42,20 +44,23 @@ The [llm-observability-in-action](llm-observability-in-action/README.md) subdire
 
 ## Python 3.11 Requirement
 
-All notebooks are authored for **`/usr/local/bin/python3.11`** and use the `python311` kernelspec.
+All notebooks are authored for Python `3.11` and use the `python311` kernelspec.
 
 Register kernel if needed:
 
 ```bash
-/usr/local/bin/python3.11 -m pip install ipykernel
-/usr/local/bin/python3.11 -m ipykernel install --user --name python311 --display-name "Python 3.11"
+PYTHON_BIN="${PYTHON_BIN:-python3.11}"
+"${PYTHON_BIN}" -m pip install ipykernel
+"${PYTHON_BIN}" -m ipykernel install --user --name python311 --display-name "Python 3.11"
 ```
 
 Launch Jupyter:
 
 ```bash
-cd /media/waqasm86/External1/Project-Nvidia-Office/Project-Llamatelemetry/langchain-kubernetes-jupyterlab/llm-observability-stack/jupyter-notebooks
-/usr/local/bin/python3.11 -m jupyter lab
+PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+PYTHON_BIN="${PYTHON_BIN:-python3.11}"
+cd "${PROJECT_ROOT}/jupyter-notebooks"
+"${PYTHON_BIN}" -m jupyter lab
 ```
 
 ## Recommended Preflight
@@ -89,3 +94,9 @@ Notebook-specific expectations:
 - `05` assumes browser access to Open WebUI on `localhost:8080`
 - `07` uses `python-toolbox` in-cluster plus optional `localhost:8000` GPU-correlation checks
 - `09` is mostly API-first and uses the Kubernetes Python client plus `python-toolbox`
+
+## Portability Notes
+
+- Prefer setting `PROJECT_ROOT` and `PYTHON_BIN` in your shell before launching Jupyter.
+- If the notebook server is started outside the repo, set `LLM_OBSERVABILITY_PROJECT_ROOT` for notebooks that need to find chart files automatically.
+- `jupyter-notebooks-2/` is a local-only duplicate tree and is not part of the published notebook workflow.

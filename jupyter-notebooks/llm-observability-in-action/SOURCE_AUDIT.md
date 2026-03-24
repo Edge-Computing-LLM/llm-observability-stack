@@ -1,6 +1,6 @@
 # Source audit snapshot
 
-Source path: /media/waqasm86/External1/Project-Nvidia-Office/Project-Llamatelemetry/langchain-kubernetes-jupyterlab/kubernetes-in-action-2nd-edition
+Source path: machine-specific local checkout of `kubernetes-in-action-2nd-edition`
 Generated: 2026-03-23T19:17:42+05:00
 
 ## Chapter file counts

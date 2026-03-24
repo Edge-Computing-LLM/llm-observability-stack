@@ -18,13 +18,19 @@ kubectl explain service.spec
 
 ## Namespace and core workloads
 
+Detect workload kind first so rollout and log commands target the right controller:
+
+```bash
+kubectl -n llm-observability get deploy,statefulset -o name
+```
+
 ```bash
 kubectl get ns --show-labels
 kubectl -n llm-observability get all
 kubectl -n llm-observability get deploy,rs,sts,ds,pod,job,cronjob -o wide
 kubectl -n llm-observability describe deploy/langchain-demo
-kubectl -n llm-observability rollout status deploy/open-webui
-kubectl -n llm-observability rollout status sts/ollama
+kubectl -n llm-observability rollout status deployment/ollama
+kubectl -n llm-observability rollout status statefulset/open-webui
 ```
 
 ## Pod lifecycle and debugging

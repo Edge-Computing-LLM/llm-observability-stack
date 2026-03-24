@@ -8,7 +8,7 @@ K8S_NAMESPACE="llm-observability"
 OPENWEBUI_SERVICE="open-webui"
 OLLAMA_SERVICE="ollama"
 LANGCHAIN_SERVICE="langchain-demo"
-PYTHON_BIN="/usr/local/bin/python3.11"
+PYTHON_BIN="${PYTHON_BIN:-python3}"
 
 if [[ -f "${ROOT_DIR}/config.env" ]]; then
   # shellcheck disable=SC1091

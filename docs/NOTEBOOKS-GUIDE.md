@@ -2,6 +2,8 @@
 
 This guide explains how the notebook suite in `jupyter-notebooks/` is intended to be used on a local k3s workstation. The notebooks are written for iterative hands-on use, not for unattended CI. Several cells assume a running cluster, live services, and host access to internal APIs through `kubectl port-forward`.
 
+Notebook classification is maintained in [../jupyter-notebooks/CATALOG.md](../jupyter-notebooks/CATALOG.md).
+
 ## Core Sequence
 
 1. `01-environment-smoke-test.ipynb`
@@ -46,6 +48,7 @@ The repository also contains `llm-observability-stack-example-*.ipynb` notebooks
 - `pythonToolbox.enabled` should remain `true` for the local profile.
 - Python 3.11 and the `python311` kernelspec should be available.
 - The local machine should have enough RAM and GPU headroom for Ollama inference.
+- If Jupyter is launched from outside the repo, set `LLM_OBSERVABILITY_PROJECT_ROOT` to the chart root before running path-sensitive notebooks.
 
 Recommended preflight:
 
