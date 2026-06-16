@@ -142,20 +142,23 @@ Key value paths:
 
 ## 5. Values and Configuration Strategy
 
-Use a 3-file strategy:
+Use a layered values strategy:
 
 - `values.yaml`: non-secret, stable defaults tracked in git.
+- `values.enterprise-pilot-k3s.yaml`: verified local single-node k3s/NVIDIA profile.
 - `values.local-k3s.example.yaml`: sanitized local template tracked in git.
 - `values.local-k3s.yaml`: machine + secret overrides, **gitignored**.
 
-Recommended install command:
+Recommended verified local install command:
 
 ```bash
-helm dependency build .
 helm upgrade --install llm-observability-stack . \
   -n llm-observability --create-namespace \
-  -f values.local-k3s.yaml
+  -f values.enterprise-pilot-k3s.yaml \
+  --set kube-prometheus-stack.crds.enabled=false
 ```
+
+If you install an existing release with a private `values.local-k3s.yaml`, keep the `ollama.persistentVolume.size` value aligned with the existing `ollama` PVC. The k3s `local-path` provisioner does not resize that PVC in place.
 
 ## 6. Prerequisites
 
@@ -205,6 +208,11 @@ sudo k3s ctr images ls | grep -E 'langchain-demo|python-toolbox'
 helm lint .
 helm template llm-observability-stack . > /tmp/rendered-default.yaml
 helm template llm-observability-stack . -f values.local-k3s.example.yaml > /tmp/rendered-example.yaml
+helm template llm-observability-stack . \
+  -n llm-observability \
+  -f values.enterprise-pilot-k3s.yaml \
+  --set kube-prometheus-stack.crds.enabled=false \
+  > /tmp/rendered-enterprise-pilot.yaml
 ```
 
 ### 8.2 Deploy
@@ -212,7 +220,8 @@ helm template llm-observability-stack . -f values.local-k3s.example.yaml > /tmp/
 ```bash
 helm upgrade --install llm-observability-stack . \
   -n llm-observability --create-namespace \
-  -f values.local-k3s.yaml
+  -f values.enterprise-pilot-k3s.yaml \
+  --set kube-prometheus-stack.crds.enabled=false
 ```
 
 ### 8.3 Post-deploy checks
@@ -227,10 +236,10 @@ kubectl get svc -n llm-observability
 ### 8.4 Upgrade
 
 ```bash
-helm dependency build .
 helm upgrade llm-observability-stack . \
   -n llm-observability \
-  -f values.local-k3s.yaml
+  -f values.enterprise-pilot-k3s.yaml \
+  --set kube-prometheus-stack.crds.enabled=false
 ```
 
 ### 8.5 Rollback

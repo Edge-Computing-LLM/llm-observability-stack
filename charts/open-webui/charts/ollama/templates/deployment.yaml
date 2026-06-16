@@ -222,11 +222,6 @@ spec:
                     {{- end }}
                     {{- end }}
 
-                    {{- if .Values.ollama.models.clean }}
-                    /bin/ollama list | awk 'NR>1 {print $1}' | while read model; do
-                      echo "{{ $allModels | join " " }}" | tr ' ' '\n' | grep -Fqx "$model" || /bin/ollama rm "$model"
-                    done
-                    {{- end }}
           {{- end }}
           {{- end }}
       {{- if and .Values.ollama.gpu.enabled .Values.ollama.gpu.draEnabled }}

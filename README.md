@@ -74,10 +74,11 @@ These numbers prove constrained edge feasibility. They do not establish enterpri
 
 ## Platform Components
 
-- Vendored Ollama and Open WebUI Helm charts.
+- Vendored Helm charts for Ollama, Open WebUI, NVIDIA GPU Operator, NVIDIA device plugin, DCGM exporter, kube-prometheus-stack, OpenTelemetry Collector, and OpenTelemetry Operator.
 - FastAPI LangChain/LangSmith-compatible proxy with Prometheus metrics.
 - TTFT, latency, token, throughput, active-request, HTTP, and error telemetry.
-- Optional kube-prometheus-stack, Grafana, Alertmanager, node exporter, and kube-state-metrics.
+- Optional kube-prometheus-stack, Grafana, Alertmanager, node exporter, and kube-state-metrics from the root umbrella chart.
+- OpenTelemetry Collector endpoint for OTLP traces, metrics, and logs, with an optional operator-managed collector path.
 - Blackbox endpoint probes and Prometheus alert rules.
 - NVIDIA DCGM dashboard and external DCGM ServiceMonitor integration.
 - NVIDIA NIM `/v1/metrics` ServiceMonitor path.
@@ -116,14 +117,14 @@ llm-observability-stack/
 ├── values.yaml
 ├── values.validation-k3s.yaml
 ├── values.geforce-940m-k3s.yaml
+├── values.enterprise-pilot-k3s.yaml
 ├── values.competition-nvidia.example.yaml
 ├── values.local-k3s.example.yaml
 ├── artifacts/                     # sanitized public benchmark evidence
 ├── benchmarks/                    # repeatable inference benchmark clients
 ├── dashboards/                    # LLM, benchmark, and NVIDIA GPU dashboards
-├── monitoring/                    # pinned Prometheus Community umbrella chart
 ├── templates/                     # application monitoring and security manifests
-├── charts/                        # vendored Ollama and Open WebUI charts
+├── charts/                        # vendored dependency charts
 ├── langchain-demo/                # instrumented FastAPI proxy
 ├── python-toolbox/                # in-cluster diagnostics
 ├── docs/
@@ -177,17 +178,33 @@ helm upgrade --install llm-observability-stack . \
 ### C. Full competition profile
 
 ```bash
-helm dependency build monitoring
-
-helm upgrade --install llm-monitoring ./monitoring \
-  -n monitoring --create-namespace
-
 helm upgrade --install llm-observability-stack . \
   -n llm-observability --create-namespace \
   -f values.competition-nvidia.example.yaml
 ```
 
 Use private values files or existing Kubernetes Secrets for LangSmith and Open WebUI secrets. Never commit secrets.
+
+### D. Local enterprise-pilot k3s profile
+
+This profile is tailored for the verified local single-node k3s/NVIDIA GPU workstation. It uses the vendored OpenTelemetry Collector subchart, keeps external-facing services as `ClusterIP`, and keeps the existing Ollama `local-path` PVC at `5Gi`.
+
+```bash
+helm upgrade --install llm-observability-stack . \
+  -n llm-observability --create-namespace \
+  -f values.enterprise-pilot-k3s.yaml \
+  --set kube-prometheus-stack.crds.enabled=false
+```
+
+Import the local `langchain-demo` and `python-toolbox` images into k3s containerd before enabling those two workloads.
+
+For a guided local setup, use:
+
+```bash
+./hack/bootstrap-enterprise-pilot-k3s.sh
+```
+
+Do not switch an existing release from `values.enterprise-pilot-k3s.yaml` to a private profile that changes the `ollama` PVC size unless you intentionally recreate or migrate the PVC. k3s `local-path` storage does not resize that claim in place.
 
 ## Access and Benchmarking
 
@@ -222,8 +239,6 @@ helm template llm-observability-stack . \
   --set open-webui.webuiSecret.existingSecretName= \
   >/tmp/rendered-competition.yaml
 
-helm dependency build monitoring
-helm lint monitoring
 pytest -q tests
 ./hack/competition-validate.sh
 ./hack/competition-validate.sh --strict-gpu
@@ -272,6 +287,7 @@ Start with [docs/README.md](docs/README.md), then use:
 - [Operations runbook](docs/OPERATIONS-RUNBOOK.md)
 - [Complete project documentation](docs/PROJECT-DOCUMENTATION.md)
 - [GitHub publishing guide](docs/GITHUB-PUBLISHING.md)
+- [Local k3s NVIDIA runbook](docs/LOCAL-K3S-NVIDIA-RUNBOOK.md)
 
 ## Project Status
 

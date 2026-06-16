@@ -38,11 +38,13 @@ kubectl rollout status deploy/python-toolbox -n llm-observability
 ### Install or upgrade
 
 ```bash
-helm dependency build .
 helm upgrade --install llm-observability-stack . \
   -n llm-observability --create-namespace \
-  -f values.local-k3s.yaml
+  -f values.enterprise-pilot-k3s.yaml \
+  --set kube-prometheus-stack.crds.enabled=false
 ```
+
+Use a private `values.local-k3s.yaml` only when your host paths, secrets, or service exposure differ. Keep `ollama.persistentVolume.size` aligned with any existing `ollama` PVC; k3s `local-path` storage does not resize that claim in place.
 
 ### Inspect release values
 
@@ -143,7 +145,7 @@ kubectl get pods -n nvidia-device-plugin
 kubectl get nodes -o json | jq '.items[0].status.allocatable'
 ```
 
-If scheduling is failing, inspect the node plugin runtime behavior and confirm the resource name requested in `values.local-k3s.yaml`.
+If scheduling is failing, inspect the node plugin runtime behavior and confirm the resource name requested in `values.enterprise-pilot-k3s.yaml` or your private local override.
 
 ## 9. Troubleshooting Patterns
 

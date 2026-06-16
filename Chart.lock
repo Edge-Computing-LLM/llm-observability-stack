@@ -1,9 +1,27 @@
 dependencies:
+- name: gpu-operator
+  repository: file://charts/gpu-operator
+  version: v1.0.0-devel
+- name: nvidia-device-plugin
+  repository: file://charts/nvidia-device-plugin
+  version: 0.19.2
+- name: dcgm-exporter
+  repository: file://charts/dcgm-exporter
+  version: 4.8.2
 - name: ollama
   repository: file://charts/ollama
   version: 1.50.0
 - name: open-webui
   repository: file://charts/open-webui
   version: 12.10.0
-digest: sha256:a6789adfc8067719e12420270f46739b724b53f19ca76764edd07bcc22c24e97
-generated: "2026-03-16T20:06:40.929213592+05:00"
+- name: kube-prometheus-stack
+  repository: file://charts/kube-prometheus-stack
+  version: 86.2.3
+- name: opentelemetry-collector
+  repository: file://charts/opentelemetry-collector
+  version: 0.158.1
+- name: opentelemetry-operator
+  repository: file://charts/opentelemetry-operator
+  version: 0.115.0
+digest: sha256:7a8de8212f1051cbddc881e9d7d865424f83be907ccd7d5da91491038579eba5
+generated: "2026-06-16T14:22:44.167855506+05:00"

@@ -54,6 +54,8 @@ ollama:
     enabled: true
     storageClass: local-path
     size: 5Gi
+    annotations:
+      "helm.sh/resource-policy": keep
   service:
     type: ClusterIP
     port: 11434

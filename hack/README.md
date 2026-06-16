@@ -14,6 +14,11 @@ This directory contains the local image workflow helpers for `llm-observability-
   - imports that image into k3s containerd
   - skips import when the image already exists in containerd
 
+- `bootstrap-enterprise-pilot-k3s.sh`
+  - installs Prometheus Operator CRDs from the vendored kube-prometheus-stack chart
+  - installs the enterprise-pilot k3s profile with the vendored OpenTelemetry Collector subchart
+  - passes any extra CLI flags through to `helm upgrade --install`
+
 ## Typical Usage
 
 Build/import `langchain-demo`:
@@ -29,6 +34,16 @@ Build/import `python-toolbox`:
 ./hack/build-local-image.sh python-toolbox 0.2.0 ./python-toolbox
 ./hack/import-local-image-to-k3s.sh python-toolbox 0.2.0
 ```
+
+Bootstrap the local enterprise-pilot profile:
+
+```bash
+./hack/bootstrap-enterprise-pilot-k3s.sh \
+  --set langchainDemo.enabled=false \
+  --set pythonToolbox.enabled=false
+```
+
+Enable `langchainDemo` and `pythonToolbox` only after their local images have been imported into k3s containerd.
 
 ## When To Use These Scripts
 

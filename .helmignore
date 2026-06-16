@@ -10,6 +10,9 @@ values.local-k3s.yaml
 .planning/
 .local-backups/
 files/
+artifacts/local-images/
+artifacts/*.tar
+*.tar
 rendered.yaml
 rendered-with-etcd.yaml
 *.log
@@ -31,7 +34,6 @@ tests/
 .github/
 pictures/
 hack/
-monitoring/
 benchmarks/
 README.md
 CONTRIBUTING.md
@@ -59,6 +61,7 @@ python-toolbox/examples/redis_ping.py
 python-toolbox/examples/service_dns_check.py
 
 # Vendored chart docs/assets are not needed at install time
+charts/*.tgz
 charts/ollama/README.md
 charts/ollama/LICENSE
 charts/ollama/artifacthub-repo.yml
@@ -80,3 +83,39 @@ charts/open-webui/charts/tika/README.md
 charts/open-webui/charts/tika/LICENSE.txt
 charts/open-webui/charts/tika/artifacthub-repo.yml
 charts/open-webui/charts/tika/.github/
+charts/gpu-operator/.github/
+charts/gpu-operator/README.md
+charts/gpu-operator/README.md.gotmpl
+charts/gpu-operator/CHANGELOG.md
+charts/gpu-operator/ci/
+charts/gpu-operator/tests/
+charts/nvidia-device-plugin/.github/
+charts/nvidia-device-plugin/README.md
+charts/nvidia-device-plugin/README.md.gotmpl
+charts/nvidia-device-plugin/CHANGELOG.md
+charts/nvidia-device-plugin/ci/
+charts/nvidia-device-plugin/tests/
+charts/dcgm-exporter/.github/
+charts/dcgm-exporter/README.md
+charts/dcgm-exporter/README.md.gotmpl
+charts/dcgm-exporter/CHANGELOG.md
+charts/dcgm-exporter/ci/
+charts/dcgm-exporter/tests/
+charts/kube-prometheus-stack/.github/
+charts/kube-prometheus-stack/README.md
+charts/kube-prometheus-stack/README.md.gotmpl
+charts/kube-prometheus-stack/CHANGELOG.md
+charts/kube-prometheus-stack/ci/
+charts/kube-prometheus-stack/tests/
+charts/opentelemetry-operator/.github/
+charts/opentelemetry-operator/README.md
+charts/opentelemetry-operator/README.md.gotmpl
+charts/opentelemetry-operator/CHANGELOG.md
+charts/opentelemetry-operator/ci/
+charts/opentelemetry-operator/examples/
+charts/opentelemetry-operator/tests/
+charts/opentelemetry-collector/README.md
+charts/opentelemetry-collector/CONTRIBUTING.md
+charts/opentelemetry-collector/UPGRADING.md
+charts/opentelemetry-collector/ci/
+charts/opentelemetry-collector/examples/

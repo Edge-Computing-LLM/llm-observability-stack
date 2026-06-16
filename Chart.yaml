@@ -13,6 +13,9 @@ home: https://github.com/waqasm86/llm-observability-stack
 sources:
   - https://github.com/prometheus-community/helm-charts
   - https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/
+  - https://github.com/NVIDIA/k8s-device-plugin
+  - https://github.com/NVIDIA/dcgm-exporter
+  - https://github.com/open-telemetry/opentelemetry-helm-charts
   - https://github.com/otwld/ollama-helm
   - https://github.com/open-webui/helm-charts
 maintainers:
@@ -33,6 +36,18 @@ keywords:
   - langchain
   - langsmith
 dependencies:
+  - name: gpu-operator
+    version: v1.0.0-devel
+    repository: file://charts/gpu-operator
+    condition: gpu-operator.enabled
+  - name: nvidia-device-plugin
+    version: 0.19.2
+    repository: file://charts/nvidia-device-plugin
+    condition: nvidia-device-plugin.enabled
+  - name: dcgm-exporter
+    version: 4.8.2
+    repository: file://charts/dcgm-exporter
+    condition: dcgm-exporter.enabled
   - name: ollama
     version: 1.50.0
     repository: file://charts/ollama
@@ -41,3 +56,15 @@ dependencies:
     version: 12.10.0
     repository: file://charts/open-webui
     condition: openWebUI.enabled
+  - name: kube-prometheus-stack
+    version: 86.2.3
+    repository: file://charts/kube-prometheus-stack
+    condition: kube-prometheus-stack.enabled
+  - name: opentelemetry-collector
+    version: 0.158.1
+    repository: file://charts/opentelemetry-collector
+    condition: opentelemetry-collector.enabled
+  - name: opentelemetry-operator
+    version: 0.115.0
+    repository: file://charts/opentelemetry-operator
+    condition: opentelemetry-operator.enabled

@@ -8,30 +8,33 @@ This repository uses three configuration layers. Keep their responsibilities sep
 2. `values.local-k3s.example.yaml`
    - Sanitized local k3s example profile.
    - Shows the intended workstation overrides without storing live secrets.
-3. `values.local-k3s.yaml`
+3. `values.enterprise-pilot-k3s.yaml`
+   - Verified local k3s/NVIDIA workstation profile used for the current end-to-end deployment.
+   - Keeps the Ollama PVC at `5Gi` to match the existing local-path claim and avoid unsupported resize attempts.
+4. `values.local-k3s.yaml`
    - Your real machine-specific override file.
    - Gitignored and expected to contain local paths, secret references, or direct secret values.
 
 ## Source of Truth
 
 - Treat [`values.yaml`](../values.yaml) as the baseline behavior of the chart.
-- Treat [`values.local-k3s.example.yaml`](../values.local-k3s.example.yaml) as the canonical example for a local NVIDIA-enabled k3s workstation.
+- Treat [`values.enterprise-pilot-k3s.yaml`](../values.enterprise-pilot-k3s.yaml) as the verified local single-node k3s/NVIDIA profile for this repository.
+- Treat [`values.local-k3s.example.yaml`](../values.local-k3s.example.yaml) as a sanitized example for creating private local overrides.
 - Treat `values.local-k3s.yaml` as private runtime state that may legitimately differ from the example.
 
 ## At-a-Glance Differences
 
-| Area | `values.yaml` | `values.local-k3s.example.yaml` | Why it differs |
+| Area | `values.yaml` | `values.local-k3s.example.yaml` | `values.enterprise-pilot-k3s.yaml` |
 |---|---|---|---|
-| GPU resource | `nvidia.com/gpu` | `nvidia.com/gpu.shared` | The example profile is tuned for the local host's MPS-sharing setup. |
-| GGUF host path | Placeholder path | Example host path under `/media/.../models` | Local workstations need a real host path for the mounted model directory. |
-| Ollama service type | `ClusterIP` | `LoadBalancer` | The example profile exposes Ollama directly for host-side demos. |
-| LangChain demo service type | `ClusterIP` | `LoadBalancer` | The example profile exposes the proxy directly for easier local testing. |
-| Open WebUI service type | `ClusterIP` | `LoadBalancer` | The example profile expects direct browser access. |
-| LangSmith API key | Empty string | `replace-me` placeholder | The example signals that the operator must provide a real secret value or existing secret. |
-| Open WebUI secret key | Empty string | `replace-with-a-32-plus-char-secret` placeholder | The example makes the required secret explicit without committing a real key. |
-| `pythonToolbox.enabled` | `true` | `true` | The current local workflow expects the toolbox to be available by default. |
-| `langsmithDashboardSeeder.enabled` | `false` | `false` | Seeder stays off unless you intentionally enable periodic synthetic traces. |
-| `etcd.enabled` | `false` | `false` | etcd simulation remains opt-in for troubleshooting exercises. |
+| GPU resource | `nvidia.com/gpu` | `nvidia.com/gpu` | `nvidia.com/gpu` |
+| GGUF host path | Placeholder path | Example host path under `/media/.../models` | Local verified host path under `/media/.../models` |
+| Ollama PVC size | `20Gi` | `5Gi` | `5Gi` |
+| Service exposure | `ClusterIP` | `ClusterIP` | `ClusterIP` |
+| LangSmith API key | Empty string | `replace-me` placeholder | disabled |
+| Open WebUI secret key | Empty string | placeholder | placeholder, chart-managed secret |
+| `pythonToolbox.enabled` | `true` | `true` | `true` |
+| `langsmithDashboardSeeder.enabled` | `false` | `false` | `false` |
+| `etcd.enabled` | `false` | `false` | `false` |
 
 ## Recommended Workflow
 
@@ -60,6 +63,16 @@ Render with the example profile:
 
 ```bash
 helm template llm-observability-stack . -f values.local-k3s.example.yaml >/tmp/rendered-local-example.yaml
+```
+
+Render with the verified enterprise pilot profile:
+
+```bash
+helm template llm-observability-stack . \
+  -n llm-observability \
+  -f values.enterprise-pilot-k3s.yaml \
+  --set kube-prometheus-stack.crds.enabled=false \
+  >/tmp/rendered-enterprise-pilot.yaml
 ```
 
 Render with your private local profile:

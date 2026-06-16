@@ -26,6 +26,11 @@ Validate chart rendering:
 helm lint .
 helm template llm-observability-stack . >/tmp/rendered-default.yaml
 helm template llm-observability-stack . -f values.local-k3s.example.yaml >/tmp/rendered-local.yaml
+helm template llm-observability-stack . \
+  -n llm-observability \
+  -f values.enterprise-pilot-k3s.yaml \
+  --set kube-prometheus-stack.crds.enabled=false \
+  >/tmp/rendered-enterprise-pilot.yaml
 ```
 
 Stage, commit, and push:
@@ -40,6 +45,7 @@ git push origin main
 
 - no GGUF model binaries
 - no secrets, kubeconfigs, private values, or credentials
+- no local Docker image tarballs from `artifacts/local-images/`
 - `helm lint .` passes
 - application and Helm tests pass
 - README says pilot-ready and does not claim production proof

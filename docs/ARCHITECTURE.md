@@ -19,6 +19,7 @@ The root chart owns:
 - deployment composition
 - values layering
 - custom templates that glue the subcharts together
+- observability dependencies including kube-prometheus-stack and OpenTelemetry Operator
 - optional resources such as Redis, python-toolbox, and etcd simulations
 
 Files:
@@ -77,6 +78,16 @@ Optional root-level resource set. It supports Open WebUI websocket/state flows w
 
 Optional and disabled by default. These exist for troubleshooting and demo scenarios, not for the default happy path.
 
+### 2.8 NVIDIA and observability operators
+
+The root chart vendors and controls the NVIDIA and observability integration points required for an enterprise pilot:
+
+- `gpu-operator` for clusters that need NVIDIA driver/toolkit/device-plugin/DCGM lifecycle management.
+- `nvidia-device-plugin` plus `dcgm-exporter` for lightweight workstation or k3s clusters where host drivers and container runtime are already installed.
+- `kube-prometheus-stack` for Prometheus Operator, Prometheus, Grafana, Alertmanager, node exporter, and kube-state-metrics.
+- `opentelemetry-collector` for a directly managed OTLP collector Deployment and Service.
+- `opentelemetry-operator` remains available for clusters that need an operator-managed `OpenTelemetryCollector` custom resource.
+
 ## 3. Traffic Flow
 
 Primary user path:
@@ -85,6 +96,7 @@ Primary user path:
 2. `open-webui` pod -> `langchain-demo` Service
 3. `langchain-demo` pod -> `ollama` Service
 4. `langchain-demo` -> LangSmith API when tracing is enabled
+5. `langchain-demo` -> OpenTelemetry Collector when OpenTelemetry is enabled
 
 Supporting path:
 
@@ -126,7 +138,7 @@ There are three main configuration layers:
 
 ## 6. Component Source Map
 
-- `templates/`: root chart resources and glue
+- `templates/`: root chart resources, optional OpenTelemetryCollector CR, and integration glue
 - `langchain-demo/app.py`: FastAPI app and traced proxy logic
 - `python-toolbox/examples/`: in-cluster helper scripts
 - `hack/`: local image build/import flow
@@ -134,7 +146,7 @@ There are three main configuration layers:
 
 ## 7. Why the Repository Is Structured This Way
 
-- Vendored dependency charts reduce upstream drift during local support and demos
+- Vendored dependency charts reduce upstream drift during local support, demos, and competition evaluation
 - Local image sources make runtime behavior more repeatable than mutable pods
 - Notebook and script assets are kept with the chart so the repo is self-contained for local workshops
 - Optional components remain in the same repo because they are part of the troubleshooting story

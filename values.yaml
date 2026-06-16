@@ -9,7 +9,7 @@ notes:
   requireNvidiaDevicePlugin: true
 
 monitoring:
-  # Install the separate monitoring/ umbrella chart before enabling these CRs.
+  # Enable kube-prometheus-stack in this umbrella chart before enabling these CRs.
   enabled: false
   labels:
     release: kube-prometheus-stack
@@ -19,7 +19,7 @@ monitoring:
     scrapeTimeout: 10s
   blackbox:
     enabled: true
-    proberUrl: http://prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
+    proberUrl: prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
     module: http_2xx
     interval: 30s
     targets:
@@ -66,6 +66,211 @@ nvidia:
   gpuResourceName: nvidia.com/gpu
   # Keep at 1 for MPS shared mode unless your device-plugin config explicitly allows >1 per pod.
   gpuCount: 1
+
+gpu-operator:
+  # Cluster-level installer. Enable this when the cluster does not already have NVIDIA
+  # drivers, container toolkit, device plugin, and DCGM exporter managed elsewhere.
+  enabled: false
+  nfd:
+    enabled: true
+  driver:
+    enabled: false
+  toolkit:
+    enabled: false
+  devicePlugin:
+    enabled: true
+  dcgmExporter:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+nvidia-device-plugin:
+  # Lightweight alternative to gpu-operator when host drivers/toolkit already exist.
+  enabled: false
+  allowDefaultNamespace: true
+  fullnameOverride: nvidia-device-plugin
+  namespaceOverride: ""
+  runtimeClassName: nvidia
+  migStrategy: none
+  deviceListStrategy: envvar
+  nfd:
+    enabled: false
+  gfd:
+    enabled: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+dcgm-exporter:
+  # Enable with nvidia-device-plugin, or leave disabled when gpu-operator manages DCGM.
+  enabled: false
+  fullnameOverride: dcgm-exporter
+  runtimeClassName: nvidia
+  serviceMonitor:
+    enabled: true
+    interval: 15s
+    scrapeTimeout: 10s
+    additionalLabels:
+      release: kube-prometheus-stack
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+kube-prometheus-stack:
+  enabled: false
+  fullnameOverride: kube-prometheus-stack
+  namespaceOverride: ""
+  crds:
+    enabled: true
+  alertmanager:
+    enabled: true
+  grafana:
+    enabled: true
+    adminUser: admin
+    adminPassword: admin
+    defaultDashboardsEnabled: true
+    sidecar:
+      dashboards:
+        enabled: true
+        label: grafana_dashboard
+        labelValue: "1"
+        searchNamespace: ALL
+  prometheus:
+    enabled: true
+    prometheusSpec:
+      serviceMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelectorNilUsesHelmValues: false
+      probeSelectorNilUsesHelmValues: false
+      ruleSelectorNilUsesHelmValues: false
+      scrapeConfigSelectorNilUsesHelmValues: false
+
+opentelemetry-operator:
+  enabled: false
+  fullnameOverride: opentelemetry-operator
+  admissionWebhooks:
+    certManager:
+      enabled: false
+    autoGenerateCert:
+      enabled: true
+  manager:
+    collectorImage:
+      repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
+      tag: 0.153.0
+    serviceMonitor:
+      enabled: true
+      extraLabels:
+        release: kube-prometheus-stack
+
+opentelemetry-collector:
+  enabled: true
+  fullnameOverride: opentelemetry-collector
+  mode: deployment
+  replicaCount: 1
+  image:
+    repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
+    tag: 0.153.0
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  ports:
+    otlp:
+      enabled: true
+      containerPort: 4317
+      servicePort: 4317
+      protocol: TCP
+      appProtocol: grpc
+    otlp-http:
+      enabled: true
+      containerPort: 4318
+      servicePort: 4318
+      protocol: TCP
+    jaeger-compact:
+      enabled: false
+    jaeger-thrift:
+      enabled: false
+    jaeger-grpc:
+      enabled: false
+    zipkin:
+      enabled: false
+    metrics:
+      enabled: true
+      containerPort: 8888
+      servicePort: 8888
+      protocol: TCP
+  service:
+    type: ClusterIP
+  serviceMonitor:
+    enabled: false
+    extraLabels:
+      release: kube-prometheus-stack
+  alternateConfig:
+    exporters:
+      debug: {}
+    extensions:
+      health_check:
+        endpoint: ${env:MY_POD_IP}:13133
+    processors:
+      batch: {}
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: ${env:MY_POD_IP}:4317
+          http:
+            endpoint: ${env:MY_POD_IP}:4318
+    service:
+      telemetry:
+        metrics:
+          readers:
+            - pull:
+                exporter:
+                  prometheus:
+                    host: ${env:MY_POD_IP}
+                    port: 8888
+      extensions:
+        - health_check
+      pipelines:
+        traces:
+          receivers:
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - debug
+        metrics:
+          receivers:
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - debug
+        logs:
+          receivers:
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - debug
 
 langsmith:
   enabled: true
@@ -150,6 +355,8 @@ ollama:
     enabled: true
     size: 20Gi
     storageClass: local-path
+    annotations:
+      "helm.sh/resource-policy": keep
   service:
     type: ClusterIP
     port: 11434
@@ -356,6 +563,67 @@ langchainDemo:
       cpu: 1000m
       memory: 1Gi
   extraEnv: []
+
+opentelemetry:
+  enabled: true
+  endpoint: http://opentelemetry-collector:4317
+  # Legacy operator-managed CR path. The default collector is the vendored
+  # opentelemetry-collector subchart above.
+  operatorCollector:
+    enabled: false
+    name: opentelemetry
+    mode: deployment
+    replicas: 1
+    image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s:0.153.0
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    config:
+      exporters:
+        debug: {}
+      processors:
+        batch: {}
+        memory_limiter:
+          check_interval: 5s
+          limit_percentage: 80
+          spike_limit_percentage: 25
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+            http:
+              endpoint: 0.0.0.0:4318
+      service:
+        pipelines:
+          traces:
+            receivers:
+              - otlp
+            processors:
+              - memory_limiter
+              - batch
+            exporters:
+              - debug
+          metrics:
+            receivers:
+              - otlp
+            processors:
+              - memory_limiter
+              - batch
+            exporters:
+              - debug
+          logs:
+            receivers:
+              - otlp
+            processors:
+              - memory_limiter
+              - batch
+            exporters:
+              - debug
 
 
 pythonToolbox:

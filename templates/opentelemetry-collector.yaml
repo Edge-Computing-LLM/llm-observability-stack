@@ -1,0 +1,18 @@
+{{- if and .Values.opentelemetry.enabled (get .Values "opentelemetry-operator").enabled .Values.opentelemetry.operatorCollector.enabled }}
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: {{ .Values.opentelemetry.operatorCollector.name }}
+  namespace: {{ include "llm-observability-stack.namespace" . }}
+  labels:
+    app.kubernetes.io/name: opentelemetry-collector
+    app.kubernetes.io/part-of: llm-observability-stack
+spec:
+  mode: {{ .Values.opentelemetry.operatorCollector.mode }}
+  replicas: {{ .Values.opentelemetry.operatorCollector.replicas }}
+  image: {{ .Values.opentelemetry.operatorCollector.image }}
+  resources:
+{{ toYaml .Values.opentelemetry.operatorCollector.resources | indent 4 }}
+  config:
+{{ toYaml .Values.opentelemetry.operatorCollector.config | indent 4 }}
+{{- end }}

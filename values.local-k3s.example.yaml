@@ -4,9 +4,9 @@ namespace:
 
 nvidia:
   runtimeClassName: nvidia
-  # This host uses NVIDIA MPS sharing. Keep per-pod GPU request at 1.
-  # Runtime logs currently show failRequestsGreaterThanOne=true for the plugin.
-  gpuResourceName: nvidia.com/gpu.shared
+  # Use nvidia.com/gpu for the standard NVIDIA device plugin.
+  # Override this only if your cluster exposes a different GPU resource name.
+  gpuResourceName: nvidia.com/gpu
   gpuCount: 1
 
 langsmith:
@@ -61,7 +61,7 @@ ollama:
       enabled: true
       type: nvidia
       number: 1
-      nvidiaResource: nvidia.com/gpu.shared
+      nvidiaResource: nvidia.com/gpu
     models:
       create:
         - name: gemma3-1b-it-gguf-local
@@ -69,10 +69,12 @@ ollama:
           configMapKeyRef: Modelfile
   persistentVolume:
     enabled: true
-    size: 20Gi
+    size: 5Gi
     storageClass: local-path
+    annotations:
+      "helm.sh/resource-policy": keep
   service:
-    type: LoadBalancer
+    type: ClusterIP
     port: 11434
   volumeMounts:
     - name: local-gguf-model
@@ -105,7 +107,7 @@ langchainDemo:
   appFromConfigMap:
     enabled: true
   service:
-    type: LoadBalancer
+    type: ClusterIP
     port: 8000
 
 etcd:
@@ -115,7 +117,7 @@ openWebUI:
   ollamaBaseUrl: http://langchain-demo:8000/ollama
   webuiSecretKey: "replace-with-a-32-plus-char-secret"
   service:
-    type: LoadBalancer
+    type: ClusterIP
     port: 8080
 
 open-webui:
@@ -125,7 +127,7 @@ open-webui:
     existingSecretName: ""
     existingSecretKey: WEBUI_SECRET_KEY
   service:
-    type: LoadBalancer
+    type: ClusterIP
     port: 8080
     containerPort: 8080
   ollamaUrls:

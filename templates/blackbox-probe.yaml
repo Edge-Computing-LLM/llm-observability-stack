@@ -11,7 +11,7 @@ spec:
   interval: {{ .Values.monitoring.blackbox.interval }}
   module: {{ .Values.monitoring.blackbox.module }}
   prober:
-    url: {{ .Values.monitoring.blackbox.proberUrl }}
+    url: {{ .Values.monitoring.blackbox.proberUrl | quote }}
   targets:
     staticConfig:
       static:

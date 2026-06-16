@@ -271,14 +271,15 @@ kubectl get events -n $NS --sort-by=.lastTimestamp | tail -n 100
 ```bash
 helm uninstall llm-observability-stack -n $NS
 kubectl get all -n $NS
-kubectl delete namespace $NS
 ```
 
-If PVCs remain (depending on reclaim policy):
+The Ollama PVC is annotated with `helm.sh/resource-policy: keep` so GGUF-backed
+Ollama model artifacts are retained after Helm uninstall. Do not delete the
+Ollama PVC unless you intentionally want to remove the created Ollama model
+store.
 
 ```bash
 kubectl get pvc -n $NS
-kubectl delete pvc -n $NS --all
 ```
 
 ## 18. One-liner Status Snapshot

@@ -25,3 +25,40 @@ Validate cross-chart secret wiring to avoid drift between:
 {{- if and $subchartSecretName (eq $subchartSecretKey "") -}}
 {{- fail "open-webui.webuiSecret.existingSecretName is set but open-webui.webuiSecret.existingSecretKey is empty." -}}
 {{- end -}}
+
+{{- $gpuOperator := (get .Values "gpu-operator") | default dict -}}
+{{- $devicePlugin := (get .Values "nvidia-device-plugin") | default dict -}}
+{{- $dcgmExporter := (get .Values "dcgm-exporter") | default dict -}}
+{{- if and (get $gpuOperator "enabled") (get $devicePlugin "enabled") -}}
+{{- fail "gpu-operator.enabled and nvidia-device-plugin.enabled must not both be true. gpu-operator already manages the NVIDIA device plugin." -}}
+{{- end -}}
+{{- if and (get $gpuOperator "enabled") (get $dcgmExporter "enabled") -}}
+{{- fail "gpu-operator.enabled and dcgm-exporter.enabled must not both be true. gpu-operator already manages DCGM exporter." -}}
+{{- end -}}
+
+{{- $ollamaValues := .Values.ollama | default dict -}}
+{{- $ollamaRuntime := (get $ollamaValues "ollama") | default dict -}}
+{{- $ollamaModels := (get $ollamaRuntime "models") | default dict -}}
+{{- if (get $ollamaModels "clean") -}}
+{{- fail "ollama.ollama.models.clean must stay false. This project retains GGUF-backed Ollama models and must not render model cleanup commands." -}}
+{{- end -}}
+
+{{- $openWebUISubchartOllama := (get $openWebUISubchart "ollama") | default dict -}}
+{{- $openWebUIOllamaRuntime := (get $openWebUISubchartOllama "ollama") | default dict -}}
+{{- $openWebUIOllamaModels := (get $openWebUIOllamaRuntime "models") | default dict -}}
+{{- if (get $openWebUIOllamaModels "clean") -}}
+{{- fail "open-webui.ollama.ollama.models.clean must stay false. This project retains GGUF-backed Ollama models and must not render model cleanup commands." -}}
+{{- end -}}
+
+{{- if and .Values.ollamaModel.enabled .Values.ollamaModel.gguf.enabled -}}
+{{- $ggufMountPath := .Values.ollamaModel.gguf.mountPath -}}
+{{- $ggufMountReadOnly := false -}}
+{{- range .Values.ollama.volumeMounts -}}
+{{- if eq .mountPath $ggufMountPath -}}
+{{- $ggufMountReadOnly = eq (.readOnly | default false) true -}}
+{{- end -}}
+{{- end -}}
+{{- if not $ggufMountReadOnly -}}
+{{- fail "The GGUF hostPath mount must be readOnly: true so Kubernetes workloads cannot modify or delete local GGUF model files." -}}
+{{- end -}}
+{{- end -}}

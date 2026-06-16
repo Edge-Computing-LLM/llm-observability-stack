@@ -5,6 +5,10 @@
 {{- $startupProbe := get $probes "startup" | default dict -}}
 {{- $readinessProbe := get $probes "readiness" | default dict -}}
 {{- $livenessProbe := get $probes "liveness" | default dict -}}
+{{- $otelCollectorChart := (get .Values "opentelemetry-collector") | default dict -}}
+{{- $otelOperator := (get .Values "opentelemetry-operator") | default dict -}}
+{{- $otelOperatorCollector := (get .Values.opentelemetry "operatorCollector") | default dict -}}
+{{- $otelEnabled := and .Values.opentelemetry.enabled (or (get $otelCollectorChart "enabled") (and (get $otelOperator "enabled") (get $otelOperatorCollector "enabled"))) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -67,6 +71,16 @@ spec:
               value: {{ .Values.langsmith.project | quote }}
             - name: LANGCHAIN_PROJECT
               value: {{ .Values.langsmith.project | quote }}
+{{- if $otelEnabled }}
+            - name: OTEL_SERVICE_NAME
+              value: langchain-demo
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .Values.opentelemetry.endpoint | quote }}
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: grpc
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.namespace={{ include "llm-observability-stack.namespace" . }},deployment.environment=kubernetes"
+{{- end }}
 {{- if .Values.etcd.enabled }}
             - name: ETCD_ENDPOINTS
               value: http://{{ include "llm-observability-stack.etcdFullname" . }}:{{ .Values.etcd.service.clientPort }}

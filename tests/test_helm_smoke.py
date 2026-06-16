@@ -102,6 +102,8 @@ def test_competition_profile_renders_observability_resources() -> None:
     manifest = render.stdout
     assert "kind: ServiceMonitor" in manifest
     assert "kind: Probe" in manifest
+    assert 'url: "prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115"' in manifest
+    assert "url: http://prometheus-blackbox-exporter" not in manifest
     assert "kind: PrometheusRule" in manifest
     assert "name: llm-observability-dashboards" in manifest
     assert "llm_observability_time_to_first_token_seconds" in manifest
@@ -125,10 +127,30 @@ def test_geforce_profile_uses_repository_modelfile_and_gpu_worker() -> None:
     assert "node-role.kubernetes.io/worker: \"true\"" in manifest
     assert "nvidia.com/gpu: 1" in manifest
     assert "PARAMETER num_ctx 1024" in manifest
+    assert 'helm.sh/resource-policy: keep' in manifest
+    assert "readOnly: true" in manifest
+    assert "/bin/ollama rm" not in manifest
 
     default_render = _run(["helm", "template", "llm-observability-stack", "."])
     assert default_render.returncode == 0, _combined_output(default_render)
     assert "FROM /models/gguf/gemma-3-1b-it-gguf.gguf" in default_render.stdout
+    assert "/bin/ollama rm" not in default_render.stdout
+
+
+@pytest.mark.skipif(shutil.which("helm") is None, reason="helm binary is not available")
+def test_model_cleanup_is_rejected() -> None:
+    render = _run(
+        [
+            "helm",
+            "template",
+            "llm-observability-stack",
+            ".",
+            "--set",
+            "ollama.ollama.models.clean=true",
+        ]
+    )
+    assert render.returncode != 0
+    assert "models.clean must stay false" in _combined_output(render)
 
 
 @pytest.mark.skipif(shutil.which("helm") is None, reason="helm binary is not available")
@@ -137,7 +159,7 @@ def test_helm_package_stays_below_secret_limit_budget(tmp_path: Path) -> None:
     assert package.returncode == 0, _combined_output(package)
 
     archive = next(tmp_path.glob("llm-observability-stack-*.tgz"))
-    assert archive.stat().st_size < 900_000
+    assert archive.stat().st_size < 3_000_000
 
     with tarfile.open(archive, "r:gz") as tgz:
         names = tgz.getnames()
@@ -159,6 +181,12 @@ def test_helm_package_stays_below_secret_limit_budget(tmp_path: Path) -> None:
         "llm-observability-stack/dashboards/benchmark-results.json",
         "llm-observability-stack/python-toolbox/examples/langsmith_inference_traces.py",
         "llm-observability-stack/python-toolbox/examples/langsmith_dashboard_seed_every_5m.py",
+        "llm-observability-stack/charts/gpu-operator/Chart.yaml",
+        "llm-observability-stack/charts/nvidia-device-plugin/Chart.yaml",
+        "llm-observability-stack/charts/dcgm-exporter/Chart.yaml",
+        "llm-observability-stack/charts/kube-prometheus-stack/Chart.yaml",
+        "llm-observability-stack/charts/opentelemetry-collector/Chart.yaml",
+        "llm-observability-stack/charts/opentelemetry-operator/Chart.yaml",
     ]
     for required_file in required_files:
         assert required_file in names, required_file

@@ -1,7 +1,7 @@
 1. GPU workloads require the NVIDIA device plugin and an allocatable GPU resource.
 2. Confirm the GGUF host path exists on every node eligible for Ollama scheduling.
 3. Suggested install:
-   helm upgrade --install llm-observability-stack ./llm-observability-stack      -n {{ include "llm-observability-stack.namespace" . }} --create-namespace      -f values.local-k3s.example.yaml
+   helm upgrade --install llm-observability-stack ./llm-observability-stack      -n {{ include "llm-observability-stack.namespace" . }} --create-namespace      -f values.enterprise-pilot-k3s.yaml      --set kube-prometheus-stack.crds.enabled=false
 
 Endpoints after install:
 {{- if .Values.ollama.enabled }}

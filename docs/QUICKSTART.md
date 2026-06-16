@@ -21,7 +21,9 @@ helm version
 
 ## 2. Prepare Local Values
 
-Create your local override file:
+For the verified local single-node k3s/NVIDIA workflow, use `values.enterprise-pilot-k3s.yaml`.
+
+Create a private override only when your host paths, secrets, or service exposure differ:
 
 ```bash
 cp values.local-k3s.example.yaml values.local-k3s.yaml
@@ -64,12 +66,16 @@ sudo k3s ctr images ls | grep -E 'langchain-demo|python-toolbox'
 
 ## 4. Deploy the Chart
 
+Verified local k3s/NVIDIA command:
+
 ```bash
-helm dependency build .
 helm upgrade --install llm-observability-stack . \
   -n llm-observability --create-namespace \
-  -f values.local-k3s.yaml
+  -f values.enterprise-pilot-k3s.yaml \
+  --set kube-prometheus-stack.crds.enabled=false
 ```
+
+If you created a private `values.local-k3s.yaml`, keep the Ollama PVC size aligned with any existing `ollama` PVC before using it on the same release. The k3s `local-path` provisioner does not support resizing this PVC in place.
 
 ## 5. Verify the Deployment
 
@@ -81,7 +87,7 @@ kubectl get pvc -n llm-observability
 
 Typical local result:
 
-- `open-webui` exposed for browser access
+- `open-webui` available through port-forwarding
 - `ollama` internal `ClusterIP`
 - `langchain-demo` internal `ClusterIP`
 - `python-toolbox` running for in-cluster diagnostics
@@ -92,9 +98,11 @@ Browser:
 
 - Open WebUI: `http://localhost:8080/`
 
-Internal APIs:
+Expose UIs and internal APIs from separate terminals:
 
 ```bash
+kubectl port-forward -n llm-observability svc/open-webui 8080:8080
+kubectl port-forward -n llm-observability svc/llm-observability-stack-grafana 3000:80
 kubectl port-forward -n llm-observability svc/ollama 11434:11434
 kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000
 ```

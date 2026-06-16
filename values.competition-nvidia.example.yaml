@@ -19,6 +19,30 @@ monitoring:
     serviceMonitor:
       enabled: false
 
+kube-prometheus-stack:
+  enabled: true
+
+opentelemetry-operator:
+  enabled: false
+
+opentelemetry-collector:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+
+gpu-operator:
+  enabled: false
+
+nvidia-device-plugin:
+  enabled: true
+  migStrategy: none
+
+dcgm-exporter:
+  enabled: true
+  serviceMonitor:
+    additionalLabels:
+      release: kube-prometheus-stack
+
 networkPolicy:
   enabled: true
   monitoringNamespace: monitoring
