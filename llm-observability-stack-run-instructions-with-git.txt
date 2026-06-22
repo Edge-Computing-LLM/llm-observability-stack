@@ -1,0 +1,235 @@
+LLM Observability Stack Run and Git Publish Instructions
+
+Target system:
+- Xubuntu 24
+- local k3s Kubernetes
+- NVIDIA GPU runtime and device plugin
+- project path:
+  /media/waqasm86/External11/Project-Llamatelemetry/Project-Llamatelemetry-End-to-End/Project-Nvidia-Singapore-Competition-2026/llm-observability-stack
+
+GitHub repository:
+https://github.com/waqasm86/llm-observability-stack/
+
+1. Enter the project
+
+cd /media/waqasm86/External11/Project-Llamatelemetry/Project-Llamatelemetry-End-to-End/Project-Nvidia-Singapore-Competition-2026/llm-observability-stack
+
+2. Check host prerequisites
+
+nvidia-smi
+helm version
+kubectl version --client
+kubectl get nodes -o wide
+kubectl get storageclass
+kubectl get runtimeclass
+
+Check that k3s sees the NVIDIA GPU:
+
+kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" gpu="}{.status.allocatable.nvidia\.com/gpu}{"\n"}{end}'
+
+If gpu= is empty, prepare the node and install the NVIDIA device plugin:
+
+./hack/prepare-single-node-k3s.sh
+./hack/install-nvidia-device-plugin.sh
+
+3. Verify the local GGUF model exists
+
+ls -lh /media/waqasm86/External11/Project-Llamatelemetry/repos-llamatelemetry/llamatelemetry-xubuntu24/models/gemma-3-1b-it-Q4_K_M.gguf
+
+4. Minimal verified GPU/Ollama run
+
+Use this first to prove local GPU inference is healthy:
+
+helm upgrade --install llm-observability-stack . \
+  -n llm-observability --create-namespace \
+  -f values.geforce-940m-k3s.yaml
+
+Wait for Ollama:
+
+kubectl rollout status deployment/ollama -n llm-observability --timeout=10m
+kubectl get pods -n llm-observability -o wide
+
+Test inference:
+
+./hack/test-geforce-940m-inference.sh
+
+Optional direct API test:
+
+kubectl port-forward -n llm-observability svc/ollama 11434:11434
+
+In another terminal:
+
+curl -s http://127.0.0.1:11434/api/tags | jq
+
+curl -s http://127.0.0.1:11434/api/generate \
+  -H 'Content-Type: application/json' \
+  -d '{"model":"gemma3-1b-it-gguf-local","prompt":"Reply with one short sentence.","stream":false}' | jq
+
+5. Full enterprise-pilot stack
+
+Before enabling the full profile, build and import the local images:
+
+./hack/build-local-image.sh langchain-demo 0.1.1 ./langchain-demo
+./hack/import-local-image-to-k3s.sh langchain-demo 0.1.1
+
+./hack/build-local-image.sh python-toolbox 0.2.0 ./python-toolbox
+./hack/import-local-image-to-k3s.sh python-toolbox 0.2.0
+
+Install the full local profile:
+
+./hack/bootstrap-enterprise-pilot-k3s.sh
+
+Or manually:
+
+helm upgrade --install llm-observability-stack . \
+  -n llm-observability --create-namespace \
+  -f values.enterprise-pilot-k3s.yaml \
+  --set kube-prometheus-stack.crds.enabled=false
+
+6. Watch everything start
+
+kubectl get pods,svc,pvc -n llm-observability -o wide
+
+kubectl rollout status deploy/ollama -n llm-observability --timeout=10m
+kubectl rollout status deploy/langchain-demo -n llm-observability --timeout=5m
+kubectl rollout status deploy/python-toolbox -n llm-observability --timeout=5m
+kubectl rollout status deploy/opentelemetry-collector -n llm-observability --timeout=5m
+
+7. Access services locally
+
+Ollama:
+
+kubectl port-forward -n llm-observability svc/ollama 11434:11434
+
+LangChain proxy:
+
+kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000
+
+Open WebUI:
+
+kubectl port-forward -n llm-observability svc/open-webui 8080:8080
+
+Open in browser:
+
+http://127.0.0.1:8080
+
+Grafana:
+
+kubectl port-forward -n llm-observability svc/llm-observability-stack-grafana 3000:80
+
+Open:
+
+http://127.0.0.1:3000
+
+Grafana credentials:
+
+username: admin
+password: admin
+
+8. Run validation
+
+helm lint .
+
+helm template llm-observability-stack . \
+  -f values.geforce-940m-k3s.yaml >/tmp/rendered-geforce.yaml
+
+helm template llm-observability-stack . \
+  -f values.enterprise-pilot-k3s.yaml \
+  --set kube-prometheus-stack.crds.enabled=false >/tmp/rendered-enterprise.yaml
+
+python3 -m pytest -q tests
+
+Optional competition validation:
+
+./hack/competition-validate.sh
+./hack/competition-validate.sh --strict-gpu
+
+9. Run benchmark
+
+With Ollama port-forward active:
+
+./benchmarks/ollama_benchmark.py \
+  --model gemma3-1b-it-gguf-local \
+  --warmup-runs 1 \
+  --runs 10 \
+  --output artifacts/benchmark-local.json
+
+10. Useful debug commands
+
+kubectl get all -n llm-observability
+kubectl logs -n llm-observability deploy/ollama --tail=100
+kubectl logs -n llm-observability deploy/langchain-demo --tail=100
+kubectl logs -n llm-observability deploy/python-toolbox --tail=100
+kubectl logs -n llm-observability deploy/opentelemetry-collector --tail=100
+kubectl get events -n llm-observability --sort-by=.lastTimestamp
+
+11. Uninstall
+
+This removes the Helm release but keeps protected model/PVC state where configured:
+
+helm uninstall llm-observability-stack -n llm-observability
+
+Check remaining PVCs:
+
+kubectl get pvc -n llm-observability
+
+12. Git status and local validation before publishing
+
+Check the current branch and remote:
+
+git branch --show-current
+git remote -v
+git status --short
+
+Review pending changes:
+
+git diff
+git diff --stat
+
+Run the normal repository validation:
+
+helm lint .
+python3 -m pytest -q tests
+
+13. Commit project changes
+
+Stage the files you intentionally changed. Example:
+
+git add llm-observability-stack-run-instructions-with-git.txt
+
+Review staged changes:
+
+git diff --cached --stat
+git diff --cached
+
+Commit:
+
+git commit -m "docs: add local run and git publish instructions"
+
+14. Push to GitHub
+
+Confirm the target remote:
+
+git remote get-url origin
+
+Push the current branch to GitHub:
+
+git push origin main
+
+If the branch is new or upstream tracking is missing:
+
+git push -u origin main
+
+15. Verify the GitHub state
+
+Check the latest local commit:
+
+git log --oneline -1
+
+Confirm the working tree is clean:
+
+git status --short
+
+Optionally verify the remote branch:
+
+git ls-remote --heads origin main
