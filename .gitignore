@@ -48,6 +48,11 @@ __pycache__/
 jupyter-notebooks/generated/
 jupyter-notebooks-2/
 jupyter-notebooks/python3.11-pip-list.txt
+# Generated validation evidence; force-add only sanitized submission artifacts.
+validation/screenshots/*
+!validation/screenshots/.gitkeep
+validation/benchmark-results/*
+!validation/benchmark-results/.gitkeep
 # Editor/OS
 .DS_Store
 .idea/
