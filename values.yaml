@@ -151,6 +151,15 @@ kube-prometheus-stack:
       probeSelectorNilUsesHelmValues: false
       ruleSelectorNilUsesHelmValues: false
       scrapeConfigSelectorNilUsesHelmValues: false
+  # Keep these defaults explicit for CI clean checkouts where this umbrella chart
+  # packages kube-prometheus-stack from a local file dependency before nested
+  # subchart defaults are available to parent templates.
+  prometheus-node-exporter:
+    kubeRBACProxy:
+      enabled: false
+  kube-state-metrics:
+    kubeRBACProxy:
+      enabled: false
 
 opentelemetry-operator:
   enabled: false
