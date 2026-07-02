@@ -5,14 +5,14 @@ Target system:
 - local k3s Kubernetes
 - NVIDIA GPU runtime and device plugin
 - project path:
-  /media/waqasm86/External11/Project-Llamatelemetry/Project-Llamatelemetry-End-to-End/Project-Nvidia-Singapore-Competition-2026/llm-observability-stack
+  /media/waqasm86/External1/Waqas-Projects/Project-Edge-Computing-LLM/llm-observability-stack
 
 GitHub repository:
-https://github.com/waqasm86/llm-observability-stack/
+https://github.com/Edge-Computing-LLM/llm-observability-stack/
 
 1. Enter the project
 
-cd /media/waqasm86/External11/Project-Llamatelemetry/Project-Llamatelemetry-End-to-End/Project-Nvidia-Singapore-Competition-2026/llm-observability-stack
+cd /media/waqasm86/External1/Waqas-Projects/Project-Edge-Computing-LLM/llm-observability-stack
 
 2. Check host prerequisites
 
@@ -34,7 +34,7 @@ If gpu= is empty, prepare the node and install the NVIDIA device plugin:
 
 3. Verify the local GGUF model exists
 
-ls -lh /media/waqasm86/External11/Project-Llamatelemetry/repos-llamatelemetry/llamatelemetry-xubuntu24/models/gemma-3-1b-it-Q4_K_M.gguf
+ls -lh /media/waqasm86/External1/Waqas-Projects/repos-llamatelemetry/llamatelemetry-xubuntu24/models/gemma-3-1b-it-Q4_K_M.gguf
 
 4. Minimal verified GPU/Ollama run
 
@@ -65,7 +65,7 @@ curl -s http://127.0.0.1:11434/api/generate \
   -H 'Content-Type: application/json' \
   -d '{"model":"gemma3-1b-it-gguf-local","prompt":"Reply with one short sentence.","stream":false}' | jq
 
-5. Full enterprise-pilot stack
+5. Full local k3s NVIDIA stack
 
 Before enabling the full profile, build and import the local images:
 
@@ -135,14 +135,14 @@ helm template llm-observability-stack . \
 
 helm template llm-observability-stack . \
   -f values.enterprise-pilot-k3s.yaml \
-  --set kube-prometheus-stack.crds.enabled=false >/tmp/rendered-enterprise.yaml
+  --set kube-prometheus-stack.crds.enabled=false >/tmp/rendered-local-full-stack.yaml
 
 python3 -m pytest -q tests
 
-Optional competition validation:
+Optional local stack validation:
 
-./hack/competition-validate.sh
-./hack/competition-validate.sh --strict-gpu
+./hack/validate-local-stack.sh
+./hack/validate-local-stack.sh --strict-gpu
 
 9. Run benchmark
 

@@ -190,8 +190,8 @@ password: admin
 
 ```bash
 pytest -q tests
-./hack/competition-validate.sh
-./hack/competition-validate.sh --strict-gpu
+./hack/validate-local-stack.sh
+./hack/validate-local-stack.sh --strict-gpu
 ```
 
 ## 13. Uninstall Without Deleting Models

@@ -28,13 +28,13 @@ This report summarizes a local end-to-end validation run for `llm-observability-
 | `helm template` default profile | Passed |
 | `helm template -f values.local-k3s.example.yaml` | Passed |
 | `helm template -f values.geforce-940m-k3s.yaml` | Passed |
-| `helm template -f values.competition-nvidia.example.yaml` with empty secret overrides | Passed |
+| `helm template -f values.full-stack-nvidia.example.yaml` with empty secret overrides | Passed |
 | `python3 -m pytest -q tests` | Passed, 12 tests |
-| `./hack/competition-validate.sh --strict-gpu` | Passed |
+| `./hack/validate-local-stack.sh --strict-gpu` | Passed |
 
 ## Deployment Result
 
-The full enterprise pilot profile was installed/upgraded successfully:
+The full local k3s/NVIDIA profile was installed/upgraded successfully:
 
 ```bash
 helm upgrade --install llm-observability-stack . \
@@ -141,7 +141,7 @@ The raw JSON output is intentionally ignored by Git under `validation/benchmark-
 
 ## Notes and Caveats
 
-- This is a local self-deployed validation run, not an external customer pilot.
+- This is a local self-deployed validation run, not an external customer deployment.
 - Open WebUI first startup can take several minutes because it downloads embedding assets from Hugging Face.
 - Raw benchmark JSON, logs, screenshots, chart archives, caches, and local image artifacts remain ignored by Git unless explicitly sanitized and force-added.
 - The deployment uses the local GeForce 940M edge profile and should not be represented as modern RTX, NIM, or production-scale evidence.

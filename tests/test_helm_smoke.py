@@ -81,7 +81,7 @@ def test_helm_install_dry_run_client_succeeds() -> None:
 
 
 @pytest.mark.skipif(shutil.which("helm") is None, reason="helm binary is not available")
-def test_competition_profile_renders_observability_resources() -> None:
+def test_full_stack_nvidia_profile_renders_observability_resources() -> None:
     render = _run(
         [
             "helm",
@@ -89,7 +89,7 @@ def test_competition_profile_renders_observability_resources() -> None:
             "llm-observability-stack",
             ".",
             "-f",
-            "values.competition-nvidia.example.yaml",
+            "values.full-stack-nvidia.example.yaml",
             "--set",
             "langsmith.existingSecret=",
             "--set",

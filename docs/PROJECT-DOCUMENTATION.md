@@ -23,7 +23,7 @@ Primary goals:
 - Provide an API integration surface through a FastAPI + LangChain demo app.
 - Provide observability and connectivity triage via LangSmith and an in-cluster Python toolbox.
 
-The current implementation is a pilot-ready, production-oriented reference architecture with a
+The current implementation is a local-ready, production-oriented reference architecture with a
 verified local edge profile. It is not yet customer-production-proven and requires workload-specific
 security, reliability, storage, and scale validation.
 

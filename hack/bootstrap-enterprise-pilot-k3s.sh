@@ -87,7 +87,7 @@ kubectl wait --for=condition=Established \
   crd/prometheusrules.monitoring.coreos.com \
   --timeout=120s
 
-echo "Installing enterprise-pilot profile"
+echo "Installing local full-stack k3s profile"
 helm upgrade --install "${RELEASE}" . \
   -n "${NAMESPACE}" --create-namespace \
   "${values_args[@]}" \

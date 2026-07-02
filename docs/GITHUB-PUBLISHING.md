@@ -48,10 +48,10 @@ git push origin main
 - no local Docker image tarballs from `artifacts/local-images/`
 - `helm lint .` passes
 - application and Helm tests pass
-- README says pilot-ready and does not claim production proof
-- competition documents are present
+- README describes local stack capabilities and does not claim production proof
+- local runbooks and validation documents are present
 - verified local results and sanitized benchmark evidence are present
-- no false Lenovo or NVIDIA sponsorship, endorsement, or certification claims
+- no false third-party sponsorship, endorsement, or certification claims
 
 Recommended local checks:
 

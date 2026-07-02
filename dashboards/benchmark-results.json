@@ -19,11 +19,11 @@
   ],
   "refresh": "30s",
   "schemaVersion": 41,
-  "tags": ["benchmark", "llm-observability", "competition"],
+  "tags": ["benchmark", "llm-observability", "local-validation"],
   "templating": {"list": []},
   "time": {"from": "now-24h", "to": "now"},
   "timezone": "browser",
-  "title": "LLM Competition Benchmark",
-  "uid": "llm-competition-benchmark",
+  "title": "LLM Local Benchmark",
+  "uid": "llm-local-benchmark",
   "version": 1
 }

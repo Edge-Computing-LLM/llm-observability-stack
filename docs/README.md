@@ -1,33 +1,28 @@
 # Documentation Index
 
-This directory contains the long-form documentation for `llm-observability-stack`. The intent is to keep the top-level [README.md](../README.md) fast to scan while preserving deeper operational, architectural, and workflow guidance here.
+This directory contains the long-form documentation for `llm-observability-stack`. The top-level [README.md](../README.md) is the fast entry point; these documents cover architecture, deployment profiles, local operations, troubleshooting, validation, and publishing.
 
-This documentation is now organized around EdgeLLM Observability: private LLM deployment and
-observability on NVIDIA-powered Linux edge devices using k3s, Helm, GGUF/Ollama,
-LangChain/LangSmith-compatible tracing, Prometheus/Grafana, and NVIDIA GPU metrics. The repository
-is a pilot-ready, production-oriented reference architecture, not a claim of universal laptop or
-customer production readiness.
-
-Current local-profile reference:
-
-- See [CONFIG-PROFILES.md](CONFIG-PROFILES.md) for the canonical defaults and local-example overrides.
+The documentation is organized around private LLM deployment and observability on k3s/Kubernetes with CPU-only and NVIDIA GPU paths. The verified local reference environment is Xubuntu 24 with k3s and an NVIDIA GPU.
 
 ## Start Here
 
 1. [QUICKSTART.md](QUICKSTART.md)
 2. [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
-3. [ARCHITECTURE.md](ARCHITECTURE.md)
-4. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
-5. [NOTEBOOKS-GUIDE.md](NOTEBOOKS-GUIDE.md)
+3. [XUBUNTU-K3S-NVIDIA-RUNBOOK.md](XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
+4. [ARCHITECTURE.md](ARCHITECTURE.md)
+5. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
 6. [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
-7. [competition/README.md](competition/README.md)
 
 ## Core Guides
 
 - [QUICKSTART.md](QUICKSTART.md)
   - Fast local setup for k3s, values files, image build/import, install, and first validation.
 - [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
-  - Canonical comparison of git-tracked defaults, local example values, and private local overrides.
+  - Canonical comparison of git-tracked defaults, local example values, GPU profiles, CPU profiles, and private overrides.
+- [XUBUNTU-K3S-NVIDIA-RUNBOOK.md](XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
+  - Current local runbook for Xubuntu 24 + k3s + NVIDIA GPU, based on the active local deployment.
+- [LOCAL-K3S-NVIDIA-RUNBOOK.md](LOCAL-K3S-NVIDIA-RUNBOOK.md)
+  - Existing local k3s/NVIDIA command reference.
 - [ARCHITECTURE.md](ARCHITECTURE.md)
   - Component ownership, request paths, service exposure, and configuration boundaries.
 - [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
@@ -48,32 +43,31 @@ Current local-profile reference:
 - [PYTHON-KUBERNETES-AUTOMATION.md](PYTHON-KUBERNETES-AUTOMATION.md)
   - Kubernetes Python client usage patterns and script-driven inspection.
 
+## Local Validation
+
+- [VERIFIED-LOCAL-GPU-RESULTS.md](VERIFIED-LOCAL-GPU-RESULTS.md)
+  - Sanitized local GPU benchmark and deployment results.
+- [LOCAL-K3S-NVIDIA-REPORT-2026-07-02.md](LOCAL-K3S-NVIDIA-REPORT-2026-07-02.md)
+  - Local k3s/NVIDIA status report for the Xubuntu 24 system.
+- [SINGLE-NODE-K3S-GEFORCE-940M.md](SINGLE-NODE-K3S-GEFORCE-940M.md)
+  - Low-memory GeForce 940M profile notes and constraints.
+- [../validation/README.md](../validation/README.md)
+  - Validation artifact index.
+
 ## Git and Publishing
 
 - [GITHUB-PUBLISHING.md](GITHUB-PUBLISHING.md)
-  - Remote setup, safe publishing workflow, and repo hygiene guidance.
-
-## NVIDIA Inception and Pilot Materials
-
-- [competition/README.md](competition/README.md)
-  - Product positioning, evidence, NVIDIA alignment, and remaining proof targets.
-- [competition/EDGE-VALIDATION-ROADMAP.md](competition/EDGE-VALIDATION-ROADMAP.md)
-  - Hardware and pilot validation phases from GeForce 940M to RTX, DCGM/NIM, and design partners.
-- [competition/EDGE-BUSINESS-MODEL.md](competition/EDGE-BUSINESS-MODEL.md)
-  - Open-source, enterprise pilot, and OEM/SI commercial paths.
-- [competition/LENOVO-OEM-ANGLE.md](competition/LENOVO-OEM-ANGLE.md)
-  - Future OEM validation and sponsorship path without implying current endorsement.
+  - Remote setup, safe publishing workflow, and repository hygiene guidance.
 
 ## Suggested Reading Paths
 
 - First deploy:
   - [QUICKSTART.md](QUICKSTART.md)
   - [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
-  - [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
-- Notebook-focused:
-  - [NOTEBOOKS-GUIDE.md](NOTEBOOKS-GUIDE.md)
-  - [../jupyter-notebooks/CATALOG.md](../jupyter-notebooks/CATALOG.md)
-  - [../jupyter-notebooks/README.md](../jupyter-notebooks/README.md)
+  - [XUBUNTU-K3S-NVIDIA-RUNBOOK.md](XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
+- CPU-only or MacOS/minikube:
+  - [../ReadMe-MacOS.md](../../ReadMe-MacOS.md)
+  - [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
 - Contributor/operator:
   - [../CONTRIBUTING.md](../CONTRIBUTING.md)
   - [KUBECTL-COMMAND-REFERENCE.md](KUBECTL-COMMAND-REFERENCE.md)

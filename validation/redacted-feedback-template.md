@@ -1,63 +1,34 @@
 # Redacted Feedback Template
 
-Use this template for customer, partner, accelerator, cloud provider, or community reviewer feedback. Store private originals outside the public repository. Only commit sanitized, permissioned summaries.
+Use this template for community, operator, lab, or internal reviewer feedback. Store private originals outside the public repository. Only commit sanitized summaries that the reviewer approved for public use.
 
-## Feedback Record
+## Feedback Metadata
 
 | Field | Value |
 |---|---|
-| Date received | `YYYY-MM-DD` |
-| Source type | customer / partner / accelerator / cloud provider / community reviewer |
-| Organization | `Redacted` or approved organization name |
-| Contact role/title | `Redacted` or approved title |
-| Contact name | `Redacted` unless explicitly approved |
-| Channel | Email / LinkedIn / Slack / call / form / other |
-| Permission to use in NVIDIA application? | Yes / No / Pending |
-| Permission scope | Anonymous / role only / organization name / direct quote / reference contact |
-| Related use case | Private LLM / edge AI / GPU observability / Kubernetes deployment / other |
+| Date received | YYYY-MM-DD |
+| Source type | community reviewer / local operator / lab user / internal reviewer |
+| Public attribution allowed? | yes / no / anonymized only |
+| Workload reviewed | README / runbook / Helm install / dashboard / benchmark |
+| Environment | OS, Kubernetes distribution, CPU/GPU, model type |
 
-## Redacted Quote or Summary
+## Approved Summary
 
-> Paste approved redacted quote here.
+> A reviewer from `<category>` confirmed that `<problem>` is relevant because `<reason>`, and indicated that `<evidence or feature>` would be useful for evaluating local LLM operations.
 
-If direct quote permission is not available, use an anonymized summary:
+## Evidence Type
 
-> A reviewer from `<category>` confirmed that `<problem>` is relevant because `<reason>`, and indicated that `<evidence or feature>` would be useful for evaluating an Edge LLM pilot.
+- [ ] Reviewed README or documentation.
+- [ ] Reviewed demo or screenshots.
+- [ ] Ran Helm template or install.
+- [ ] Ran CPU-only deployment.
+- [ ] Ran NVIDIA GPU deployment.
+- [ ] Suggested documentation changes.
+- [ ] Suggested security or operations changes.
 
-## Value Confirmed
+## Constraints
 
-Check all that apply:
-
-- [ ] Problem is relevant.
-- [ ] Would consider a technical pilot.
-- [ ] Wants benchmark evidence.
-- [ ] Wants Grafana/Prometheus dashboards.
-- [ ] Wants GPU utilization and memory evidence.
-- [ ] Wants NVIDIA NIM or GPU Operator validation.
-- [ ] Wants Kubernetes/OpenShift packaging review.
-- [ ] Wants security/data-flow review.
-- [ ] Will introduce another reviewer or partner.
-
-## Reviewer Notes
-
-```text
-Paste sanitized notes here. Remove names, emails, tokens, hostnames, customer names, and confidential details.
-```
-
-## Follow-Up Actions
-
-- [ ] Send pilot report.
-- [ ] Send one-page summary.
-- [ ] Send screenshots.
-- [ ] Schedule demo.
-- [ ] Ask for permissioned quote.
-- [ ] Ask for pilot criteria.
-- [ ] Ask for hardware/cloud validation support.
-
-## Evidence Attachment Index
-
-| Artifact | Location | Public or private? | Notes |
-|---|---|---|---|
-| Original email/message | Private path or inbox reference | Private | Do not commit. |
-| Redacted screenshot/PDF | `validation/screenshots/<file>` | Public if sanitized | Optional. |
-| Approved quote | This file or private evidence folder | Depends on permission | Confirm scope. |
+- No private names unless explicitly approved.
+- No raw emails or private messages.
+- No proprietary prompts or data.
+- No credentials, kubeconfigs, internal URLs, screenshots with secrets, or private cluster details.

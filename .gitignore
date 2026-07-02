@@ -67,3 +67,5 @@ rendered-with-etcd.yaml
 jupyter-notebooks/python*-pip-list.txt
 local-run-output/
 *.kube-report.json
+*.kubeconfig.bak
+evidence-local-run/

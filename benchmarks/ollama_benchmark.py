@@ -88,7 +88,7 @@ def main() -> int:
     parser.add_argument("--warmup-runs", type=int, default=2)
     parser.add_argument("--timeout", type=float, default=300)
     parser.add_argument("--pushgateway", default="")
-    parser.add_argument("--push-job", default="llm_competition_benchmark")
+    parser.add_argument("--push-job", default="llm_local_benchmark")
     parser.add_argument("--output", type=Path, default=Path("artifacts/benchmark.json"))
     args = parser.parse_args()
 

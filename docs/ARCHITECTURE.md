@@ -80,7 +80,7 @@ Optional and disabled by default. These exist for troubleshooting and demo scena
 
 ### 2.8 NVIDIA and observability operators
 
-The root chart vendors and controls the NVIDIA and observability integration points required for an enterprise pilot:
+The root chart vendors and controls the NVIDIA and observability integration points required for local GPU-aware LLM operations:
 
 - `gpu-operator` for clusters that need NVIDIA driver/toolkit/device-plugin/DCGM lifecycle management.
 - `nvidia-device-plugin` plus `dcgm-exporter` for lightweight workstation or k3s clusters where host drivers and container runtime are already installed.
@@ -146,7 +146,7 @@ There are three main configuration layers:
 
 ## 7. Why the Repository Is Structured This Way
 
-- Vendored dependency charts reduce upstream drift during local support, demos, and competition evaluation
+- Vendored dependency charts reduce upstream drift during local support, demos, and repeatable validation
 - Local image sources make runtime behavior more repeatable than mutable pods
 - Notebook and script assets are kept with the chart so the repo is self-contained for local workshops
 - Optional components remain in the same repo because they are part of the troubleshooting story

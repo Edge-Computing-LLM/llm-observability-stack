@@ -17,7 +17,7 @@ cd "$ROOT"
 helm lint .
 helm template llm-observability-stack . >/dev/null
 helm template llm-observability-stack . \
-  -f values.competition-nvidia.example.yaml \
+  -f values.full-stack-nvidia.example.yaml \
   --set langsmith.existingSecret="" \
   --set openWebUI.existingSecret="" \
   --set open-webui.webuiSecret.existingSecretName="" >/dev/null
@@ -36,4 +36,4 @@ fi
 if ! kubectl get crd servicemonitors.monitoring.coreos.com >/dev/null 2>&1; then
   echo "INFO: Prometheus Operator CRDs are not installed; install monitoring first."
 fi
-echo "Competition validation completed."
+echo "Local stack validation completed."

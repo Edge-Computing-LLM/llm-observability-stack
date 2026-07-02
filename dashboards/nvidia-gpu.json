@@ -28,7 +28,7 @@
   ],
   "refresh": "10s",
   "schemaVersion": 41,
-  "tags": ["nvidia", "dcgm", "gpu", "competition"],
+  "tags": ["nvidia", "dcgm", "gpu", "local-validation"],
   "templating": {"list": []},
   "time": {"from": "now-1h", "to": "now"},
   "timezone": "browser",

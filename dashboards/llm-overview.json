@@ -29,7 +29,7 @@
   ],
   "refresh": "10s",
   "schemaVersion": 41,
-  "tags": ["llm-observability", "nvidia", "competition"],
+  "tags": ["llm-observability", "nvidia", "local-validation"],
   "templating": {"list": []},
   "time": {"from": "now-1h", "to": "now"},
   "timezone": "browser",

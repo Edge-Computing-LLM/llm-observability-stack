@@ -73,7 +73,7 @@ Render with the example profile:
 helm template llm-observability-stack . -f values.local-k3s.example.yaml >/tmp/rendered-local-example.yaml
 ```
 
-Render with the verified enterprise pilot profile:
+Render with the verified local full-stack profile:
 
 ```bash
 helm template llm-observability-stack . \

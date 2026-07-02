@@ -30,14 +30,14 @@ jobs:
       - name: Render GeForce 940M profile
         run: helm template llm-observability-stack . -f values.geforce-940m-k3s.yaml >/tmp/rendered-geforce.yaml
 
-      - name: Render competition profile
+      - name: Render full-stack NVIDIA profile
         run: |
           helm template llm-observability-stack . \
-            -f values.competition-nvidia.example.yaml \
+            -f values.full-stack-nvidia.example.yaml \
             --set langsmith.existingSecret= \
             --set openWebUI.existingSecret= \
             --set open-webui.webuiSecret.existingSecretName= \
-            >/tmp/rendered-competition.yaml
+            >/tmp/rendered-full-stack-nvidia.yaml
 
       - name: Build and validate monitoring chart
         run: |

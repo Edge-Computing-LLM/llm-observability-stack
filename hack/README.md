@@ -16,7 +16,7 @@ This directory contains the local image workflow helpers for `llm-observability-
 
 - `bootstrap-enterprise-pilot-k3s.sh`
   - installs Prometheus Operator CRDs from the vendored kube-prometheus-stack chart
-  - installs the enterprise-pilot k3s profile with the vendored OpenTelemetry Collector subchart
+  - installs the local full-stack k3s profile with the vendored OpenTelemetry Collector subchart
   - calls `detect-runtime-profile.sh` by default so NVIDIA GPU nodes are used when available and CPU mode is used otherwise
   - passes any extra CLI flags through to `helm upgrade --install`
 
@@ -42,7 +42,7 @@ Build/import `python-toolbox`:
 ./hack/import-local-image-to-k3s.sh python-toolbox 0.2.0
 ```
 
-Bootstrap the local enterprise-pilot profile:
+Bootstrap the local full-stack profile:
 
 ```bash
 ./hack/bootstrap-enterprise-pilot-k3s.sh \
