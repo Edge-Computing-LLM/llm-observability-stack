@@ -21,7 +21,7 @@ ollamaModel:
   warmupPrompt: Say hello in one short sentence.
   gguf:
     enabled: true
-    hostPath: /media/waqasm86/External11/Project-Llamatelemetry/repos-llamatelemetry/llamatelemetry-xubuntu24/models
+    hostPath: /media/waqasm86/External1/Waqas-Projects/repos-llamatelemetry/llamatelemetry-xubuntu24/models
     filename: gemma-3-1b-it-Q4_K_M.gguf
     mountPath: /models/gguf
   modelfile:
@@ -31,7 +31,6 @@ ollama:
   enabled: true
   runtimeClassName: nvidia
   nodeSelector:
-    node-role.kubernetes.io/worker: "true"
     nvidia.com/gpu.present: "true"
   image:
     repository: ollama/ollama
@@ -73,7 +72,7 @@ ollama:
   volumes:
     - name: local-gguf-model
       hostPath:
-        path: /media/waqasm86/External11/Project-Llamatelemetry/repos-llamatelemetry/llamatelemetry-xubuntu24/models
+        path: /media/waqasm86/External1/Waqas-Projects/repos-llamatelemetry/llamatelemetry-xubuntu24/models
         type: Directory
   extraEnv:
     - name: OLLAMA_KEEP_ALIVE

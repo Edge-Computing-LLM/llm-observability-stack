@@ -2,7 +2,7 @@
 
 Repository target:
 
-- https://github.com/waqasm86/llm-observability-stack
+- https://github.com/Edge-Computing-LLM/llm-observability-stack
 
 ## Daily publish workflow
 
@@ -65,9 +65,9 @@ find . -type f \( -name '*.gguf' -o -name '*.safetensors' \) -not -path './.git/
 ## Remote setup (first time only)
 
 ```bash
-git remote add origin https://github.com/waqasm86/llm-observability-stack.git
+git remote add origin https://github.com/Edge-Computing-LLM/llm-observability-stack.git
 # or, if origin already exists
-git remote set-url origin https://github.com/waqasm86/llm-observability-stack.git
+git remote set-url origin https://github.com/Edge-Computing-LLM/llm-observability-stack.git
 ```
 
 ## Secret guard

@@ -110,7 +110,7 @@ def test_competition_profile_renders_observability_resources() -> None:
 
 
 @pytest.mark.skipif(shutil.which("helm") is None, reason="helm binary is not available")
-def test_geforce_profile_uses_repository_modelfile_and_gpu_worker() -> None:
+def test_geforce_profile_uses_repository_modelfile_and_gpu_label() -> None:
     render = _run(
         [
             "helm",
@@ -124,7 +124,8 @@ def test_geforce_profile_uses_repository_modelfile_and_gpu_worker() -> None:
     assert render.returncode == 0, _combined_output(render)
     manifest = render.stdout
     assert "gemma-3-1b-it-Q4_K_M.gguf" in manifest
-    assert "node-role.kubernetes.io/worker: \"true\"" in manifest
+    assert "nvidia.com/gpu.present: \"true\"" in manifest
+    assert "node-role.kubernetes.io/worker" not in manifest
     assert "nvidia.com/gpu: 1" in manifest
     assert "PARAMETER num_ctx 1024" in manifest
     assert 'helm.sh/resource-policy: keep' in manifest

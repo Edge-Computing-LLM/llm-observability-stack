@@ -65,3 +65,5 @@ rendered-with-etcd.yaml
 *.secret.yaml
 *.private.yaml
 jupyter-notebooks/python*-pip-list.txt
+local-run-output/
+*.kube-report.json

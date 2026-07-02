@@ -5,7 +5,7 @@ This runbook deploys `llm-observability-stack` on a local Xubuntu 24 host with k
 ## 1. Enter the Project
 
 ```bash
-cd /media/waqasm86/External11/Project-Llamatelemetry/Project-Llamatelemetry-End-to-End/Project-Nvidia-Singapore-Competition-2026/llm-observability-stack
+cd /media/waqasm86/External1/Waqas-Projects/Project-Edge-Computing-LLM/llm-observability-stack
 ```
 
 ## 2. Verify Host Prerequisites
@@ -39,7 +39,7 @@ If the device plugin is not installed, install it using the local helper:
 The default local enterprise profile expects:
 
 ```bash
-ls -lh /media/waqasm86/External11/Project-Llamatelemetry/repos-llamatelemetry/llamatelemetry-xubuntu24/models/gemma-3-1b-it-Q4_K_M.gguf
+ls -lh /media/waqasm86/External1/Waqas-Projects/repos-llamatelemetry/llamatelemetry-xubuntu24/models/gemma-3-1b-it-Q4_K_M.gguf
 ```
 
 The chart mounts that host directory read-only into Ollama at `/models/gguf`, and the Ollama PVC is annotated with `helm.sh/resource-policy: keep`.

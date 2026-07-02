@@ -2,7 +2,7 @@
 set -euo pipefail
 
 NODE="${NODE:-$(kubectl get nodes -o jsonpath='{.items[0].metadata.name}')}"
-MODEL_DIR="${MODEL_DIR:-/media/waqasm86/External11/Project-Llamatelemetry/repos-llamatelemetry/llamatelemetry-xubuntu24/models}"
+MODEL_DIR="${MODEL_DIR:-/media/waqasm86/External1/Waqas-Projects/repos-llamatelemetry/llamatelemetry-xubuntu24/models}"
 MODEL_FILE="${MODEL_FILE:-gemma-3-1b-it-Q4_K_M.gguf}"
 
 [[ "$(kubectl get nodes --no-headers | wc -l)" -eq 1 ]] || {

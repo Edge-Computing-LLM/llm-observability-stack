@@ -4,7 +4,7 @@ Kubernetes-native observability and benchmarking for private GGUF/NVIDIA LLM inf
 
 This repository packages an edge-focused LLM observability stack around k3s, Helm, NVIDIA GPU runtime/device plugin, Ollama/GGUF models, Open WebUI, a LangChain/LangSmith-compatible proxy, Prometheus, Grafana, blackbox probes, benchmark metrics, and NVIDIA/DCGM-ready dashboards.
 
-GitHub repository: <https://github.com/waqasm86/llm-observability-stack>
+GitHub repository: <https://github.com/Edge-Computing-LLM/llm-observability-stack>
 
 ## NVIDIA Inception 2026 Positioning
 
@@ -49,6 +49,7 @@ Measured after one warmup and three streaming benchmark requests:
 Evidence and reproduction:
 
 - [Single-node k3s GeForce 940M guide](docs/SINGLE-NODE-K3S-GEFORCE-940M.md)
+- [Local k3s NVIDIA deployment report - 2026-07-02](docs/LOCAL-K3S-NVIDIA-REPORT-2026-07-02.md)
 - [Verified local results](docs/competition/VERIFIED-LOCAL-RESULTS.md)
 - [Sanitized benchmark artifact](artifacts/geforce-940m-benchmark.json)
 - [GeForce 940M Helm profile](values.geforce-940m-k3s.yaml)
@@ -167,9 +168,11 @@ helm template llm-observability-stack . \
 ### B. Verified GeForce 940M edge profile
 
 Review the machine-specific model host path before using this profile on another system.
+The profile schedules on nodes with `nvidia.com/gpu.present=true`, which supports a
+single-node k3s control-plane/worker laptop without requiring a separate worker label.
 
 ```bash
-./hack/prepare-single-node-k3s.sh
+MODEL_DIR=/absolute/path/to/gguf-models ./hack/prepare-single-node-k3s.sh
 ./hack/install-nvidia-device-plugin.sh
 
 helm upgrade --install llm-observability-stack . \
