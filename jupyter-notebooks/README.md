@@ -15,11 +15,11 @@ For classification and status, see [CATALOG.md](CATALOG.md).
 3. **03-langchain-proxy-deep-dive.ipynb**  
    Explores `langchain-demo` proxy endpoints (`/healthz`, `/config`, `/invoke`, `/ollama/api/*`) and compares direct vs proxy latency.
 
-4. **04-langsmith-tracing-setup.ipynb**  
-   Validates LangSmith credentials, generates traced inference calls, queries runs from your project, and plots observability metrics.
+4. **04-opentelemetry-tracing-setup.ipynb**  
+   Validates OpenTelemetry credentials, generates traced inference calls, queries runs from your project, and plots observability metrics.
 
 5. **05-open-webui-end-to-end.ipynb**  
-   Validates Browser -> Open WebUI -> LangChain proxy -> Ollama -> LangSmith flow with manual browser prompts plus post-run trace analysis.
+   Validates Browser -> Open WebUI -> LangChain proxy -> Ollama -> OpenTelemetry flow with manual browser prompts plus post-run trace analysis.
 
 6. **06-custom-modelfile-workflow.ipynb**  
    Walks through GGUF-backed Modelfile inspection, tuning, optional model creation via Ollama API, and benchmark comparison.

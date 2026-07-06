@@ -2,7 +2,7 @@
 
 Kubernetes-native observability, benchmarking, and operations tooling for private LLM inference on local edge systems.
 
-This repository packages a Helm-based stack for k3s and Kubernetes with Ollama/GGUF model serving, Open WebUI, a LangChain/LangSmith-compatible FastAPI proxy, Prometheus, Grafana, OpenTelemetry Collector, blackbox probes, benchmark metrics, and optional NVIDIA GPU monitoring through the NVIDIA runtime, device plugin, GPU Operator, and DCGM-compatible dashboards.
+This repository packages a Helm-based stack for k3s and Kubernetes with Ollama/GGUF model serving, Open WebUI, an OpenTelemetry GenAI-instrumented FastAPI proxy, Prometheus, Grafana, OpenTelemetry Collector, blackbox probes, benchmark metrics, and optional NVIDIA GPU monitoring through the NVIDIA runtime, device plugin, GPU Operator, and DCGM-compatible dashboards.
 
 GitHub repository: <https://github.com/Edge-Computing-LLM/llm-observability-stack>
 
@@ -16,7 +16,7 @@ GitHub repository: <https://github.com/Edge-Computing-LLM/llm-observability-stac
 - A FastAPI proxy with LLM request metrics for TTFT, latency, tokens per second, prompt tokens, generated tokens, active requests, and errors.
 - Prometheus, Grafana, Alertmanager, kube-state-metrics, node exporter, ServiceMonitors, probes, and alert rules.
 - OpenTelemetry Collector endpoints for OTLP traces, metrics, and logs.
-- Optional diagnostics workloads including Python toolbox, Redis checks, LangSmith seeding, and benchmark reporting.
+- Optional diagnostics workloads including Python toolbox, Redis checks, OpenTelemetry seeding, and benchmark reporting.
 
 ## Verified Local NVIDIA GPU Deployment
 
@@ -62,14 +62,14 @@ These numbers prove constrained local edge feasibility. They do not claim enterp
 ## What This Is Not
 
 - Not a generic cloud-only LLM observability SaaS.
-- Not a replacement for LangSmith, Grafana, Prometheus, DCGM, or NIM.
+- Not a replacement for OpenTelemetry, Grafana, Prometheus, DCGM, or NIM.
 - Not a claim that every laptop GPU is suitable for production LLM inference.
 - Not a repository for committing GGUF model binaries, kubeconfigs, credentials, or secrets.
 
 ## Platform Components
 
 - Vendored Helm charts for Ollama, Open WebUI, NVIDIA GPU Operator, NVIDIA device plugin, DCGM exporter, kube-prometheus-stack, OpenTelemetry Collector, and OpenTelemetry Operator.
-- FastAPI LangChain/LangSmith-compatible proxy with Prometheus metrics.
+- FastAPI OpenTelemetry GenAI-instrumented proxy with Prometheus metrics.
 - TTFT, latency, token, throughput, active-request, HTTP, and error telemetry.
 - Optional kube-prometheus-stack, Grafana, Alertmanager, node exporter, and kube-state-metrics from the root umbrella chart.
 - OpenTelemetry Collector endpoint for OTLP traces, metrics, and logs, with an optional operator-managed collector path.
@@ -77,7 +77,7 @@ These numbers prove constrained local edge feasibility. They do not claim enterp
 - NVIDIA DCGM dashboard and external DCGM ServiceMonitor integration.
 - NVIDIA NIM `/v1/metrics` ServiceMonitor path for environments that use NIM.
 - Pushgateway-compatible benchmark reporting.
-- Optional Python diagnostics toolbox, Redis, LangSmith seeder, and etcd failure simulation.
+- Optional Python diagnostics toolbox, Redis, OpenTelemetry seeder, and etcd failure simulation.
 
 ## Runtime Architecture
 
@@ -87,7 +87,7 @@ User or benchmark client
         v
 Open WebUI / FastAPI proxy
         |                \
-        |                 +--> LangSmith-compatible traces
+        |                 +--> OpenTelemetry GenAI traces
         |                 +--> Prometheus /metrics
         v
 Ollama + private GGUF model       Optional NVIDIA NIM
@@ -179,7 +179,7 @@ helm upgrade --install llm-observability-stack . \
   -f values.full-stack-nvidia.example.yaml
 ```
 
-Use private values files or existing Kubernetes Secrets for LangSmith and Open WebUI secrets. Never commit secrets.
+Use private values files or existing Kubernetes Secrets for OpenTelemetry and Open WebUI secrets. Never commit secrets.
 
 ### D. Local full-stack k3s profile
 
@@ -247,7 +247,7 @@ helm template llm-observability-stack . \
   -f values.geforce-940m-k3s.yaml >/tmp/rendered-geforce.yaml
 helm template llm-observability-stack . \
   -f values.full-stack-nvidia.example.yaml \
-  --set langsmith.existingSecret= \
+  --set opentelemetry.tracing.enabled= \
   --set openWebUI.existingSecret= \
   --set open-webui.webuiSecret.existingSecretName= \
   >/tmp/rendered-full-stack-nvidia.yaml

@@ -22,14 +22,6 @@
 {{- default .Release.Namespace .Values.namespace.name -}}
 {{- end -}}
 
-{{- define "llm-observability-stack.langsmithSecretName" -}}
-{{- if .Values.langsmith.existingSecret -}}
-{{- .Values.langsmith.existingSecret -}}
-{{- else -}}
-langsmith-secrets
-{{- end -}}
-{{- end -}}
-
 {{- define "llm-observability-stack.webuiSecretName" -}}
 {{- $openWebUISubchart := (get .Values "open-webui") | default dict -}}
 {{- $webuiSecret := (get $openWebUISubchart "webuiSecret") | default dict -}}

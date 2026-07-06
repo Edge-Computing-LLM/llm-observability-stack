@@ -2,7 +2,7 @@
 
 This documentation is now organized around EdgeLLM Observability: private LLM deployment and
 observability on NVIDIA-powered Linux edge devices using k3s, Helm, GGUF/Ollama,
-LangChain/LangSmith-compatible tracing, Prometheus/Grafana, and NVIDIA GPU metrics.
+OpenTelemetry GenAI-instrumented tracing, Prometheus/Grafana, and NVIDIA GPU metrics.
 
 Use this document as the deep reference after the focused guides:
 
@@ -21,7 +21,7 @@ Primary goals:
 - Run local LLM inference with Ollama using GGUF models.
 - Provide UI access through Open WebUI.
 - Provide an API integration surface through a FastAPI + LangChain demo app.
-- Provide observability and connectivity triage via LangSmith and an in-cluster Python toolbox.
+- Provide observability and connectivity triage vian OpenTelemetry and an in-cluster Python toolbox.
 
 The current implementation is a local-ready, production-oriented reference architecture with a
 verified local edge profile. It is not yet customer-production-proven and requires workload-specific
@@ -36,13 +36,13 @@ security, reliability, storage, and scale validation.
   - `charts/ollama`
   - `charts/open-webui`
 - Custom glue resources in `templates/`:
-  - LangSmith Secret (optional)
+  - OpenTelemetry Secret (optional)
   - Open WebUI Secret (optional)
   - Ollama Modelfile ConfigMap
   - LangChain demo app ConfigMap (optional mount-over-image mode)
   - LangChain demo Deployment + Service
   - Python toolbox Deployment (optional)
-  - LangSmith dashboard seeder CronJob (optional)
+  - OpenTelemetry dashboard seeder CronJob (optional)
   - Optional Redis Deployment/Service/PVC/Secret
   - Optional etcd StatefulSet + Services
 
@@ -51,8 +51,8 @@ security, reliability, storage, and scale validation.
 1. User -> Open WebUI (`open-webui:8080`)
 2. Open WebUI -> LangChain demo proxy (`langchain-demo:8000/ollama`)
 3. LangChain demo proxy -> Ollama (`OLLAMA_UPSTREAM_BASE_URL=http://ollama:11434`)
-4. LangChain demo -> LangSmith API for proxy traces (when configured)
-5. Optional Python toolbox -> LangSmith API (when enabled)
+4. LangChain demo -> OpenTelemetry API for proxy traces (when configured)
+5. Optional Python toolbox -> OpenTelemetry API (when enabled)
 5. Open WebUI websocket manager -> Redis
    - Default: subchart `open-webui-redis`
    - Optional: custom `redis` resource from root templates
@@ -117,7 +117,7 @@ Key value paths:
   - `GET /config`
   - `POST /invoke`
 - Uses `langchain-ollama` (`ChatOllama`) against Ollama API.
-- Can emit tracing to LangSmith when API key is configured.
+- Can emit tracing to OpenTelemetry when API key is configured.
 
 ### 4.4 Python toolbox
 
@@ -126,7 +126,7 @@ Key value paths:
   - DNS/service checks
   - Ollama chat smoke
   - Redis ping
-  - LangSmith API health
+  - OpenTelemetry API health
 
 ### 4.5 Optional Redis (root template)
 
@@ -301,9 +301,9 @@ kubectl exec -it -n llm-observability deploy/python-toolbox -- bash
 python /workspace/examples/service_dns_check.py
 python /workspace/examples/ollama_smoke.py
 python /workspace/examples/redis_ping.py
-python /workspace/examples/langsmith_healthcheck.py
-python /workspace/examples/langsmith_inference_traces.py
-python /workspace/examples/langsmith_dashboard_seed_every_5m.py
+python /workspace/examples/otel_genai_inference_traces.py
+python /workspace/examples/otel_genai_inference_traces.py
+python /workspace/examples/otel_genai_trace_seed_every_5m.py
 ```
 
 ## 11. Security Guidance

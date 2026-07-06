@@ -15,11 +15,11 @@ Notebook classification is maintained in [../jupyter-notebooks/CATALOG.md](../ju
 3. `03-langchain-proxy-deep-dive.ipynb`
    - Validates the local FastAPI proxy and compares direct-vs-proxy request behavior.
    - Requires `kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000`.
-4. `04-langsmith-tracing-setup.ipynb`
-   - Confirms LangSmith credentials, pushes traced inference traffic, and queries recorded runs.
-   - Requires the LangSmith environment variables in the notebook kernel plus the same port-forwards used by `02` and `03`.
+4. `04-opentelemetry-tracing-setup.ipynb`
+   - Confirms OpenTelemetry credentials, pushes traced inference traffic, and queries recorded runs.
+   - Requires the OpenTelemetry environment variables in the notebook kernel plus the same port-forwards used by `02` and `03`.
 5. `05-open-webui-end-to-end.ipynb`
-   - Walks through the browser path from Open WebUI through the proxy to Ollama and then back to LangSmith.
+   - Walks through the browser path from Open WebUI through the proxy to Ollama and then back to OpenTelemetry.
    - Requires a browser session in Open WebUI and manual prompt submission.
 6. `06-custom-modelfile-workflow.ipynb`
    - Focuses on Modelfile customization, optional model creation, and comparison benchmarking.
@@ -73,7 +73,7 @@ Typical dependency map:
 - `02` needs Ollama on `localhost:11434`
 - `03` needs the proxy on `localhost:8000`
 - `04` needs both `localhost:8000` and `localhost:11434`
-- `05` needs browser access to Open WebUI plus LangSmith environment variables if tracing is being validated
+- `05` needs browser access to Open WebUI plus OpenTelemetry environment variables if tracing is being validated
 - `06` usually needs Ollama on `localhost:11434`
 - `07` primarily uses the in-cluster toolbox, but some optional checks use `localhost:8000`
 - `09` mostly uses the Kubernetes API directly and only shells into `python-toolbox` for in-cluster probes
@@ -83,7 +83,7 @@ Typical dependency map:
 - Re-run notebook `01` after cluster restarts or Helm upgrades.
 - Treat saved outputs as historical context only; re-execution is the authoritative check.
 - If a notebook prints a port-forward command, open it in another terminal and rerun the affected cell.
-- Keep LangSmith keys in the environment, not in notebook source.
+- Keep OpenTelemetry keys in the environment, not in notebook source.
 - Prefer the local values file for machine-specific overrides and keep it out of git.
 
 ## Common Failure Modes
@@ -92,7 +92,7 @@ Typical dependency map:
   - Missing port-forward or the backing pod is not ready.
 - `No running python-toolbox pod found`
   - The release is disabled or the deployment needs a restart.
-- Empty LangSmith result tables
+- Empty OpenTelemetry result tables
   - Credentials are missing, tracing is disabled, or the project name does not match the release configuration.
 - Networking notebook probe parse failures
   - Re-run after updating to the current notebook version; the probe cell now tolerates both JSON and Python-literal exec output.

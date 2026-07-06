@@ -46,6 +46,12 @@ artifacts/private/
 # Python cache
 __pycache__/
 *.pyc
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 # Notebook and generated local tutorial artifacts
 **/.ipynb_checkpoints/
 jupyter-notebooks/generated/

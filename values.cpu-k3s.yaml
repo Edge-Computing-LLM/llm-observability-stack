@@ -39,6 +39,10 @@ opentelemetry-collector:
 
 opentelemetry:
   enabled: true
+  tracing:
+    enabled: true
+    genAI:
+      enabled: true
 
 gpu-operator:
   enabled: false
@@ -50,8 +54,6 @@ dcgm-exporter:
 networkPolicy:
   enabled: false
 
-langsmith:
-  enabled: false
 
 nvidia:
   runtimeClassName: ""
@@ -194,7 +196,7 @@ pythonToolbox:
     tag: 0.2.0
     pullPolicy: IfNotPresent
 
-langsmithDashboardSeeder:
+otelTraceSeeder:
   enabled: false
 
 etcd:

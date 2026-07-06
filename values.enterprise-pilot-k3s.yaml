@@ -33,6 +33,10 @@ opentelemetry-collector:
 
 opentelemetry:
   enabled: true
+  tracing:
+    enabled: true
+    genAI:
+      enabled: true
 
 # This local k3s node already has nvidia-device-plugin installed as a separate release.
 # Keep the vendored NVIDIA installer charts available but disabled to avoid duplicate DaemonSets.
@@ -46,8 +50,6 @@ dcgm-exporter:
 networkPolicy:
   enabled: false
 
-langsmith:
-  enabled: false
 
 nvidia:
   runtimeClassName: nvidia
@@ -191,7 +193,7 @@ pythonToolbox:
     tag: 0.2.0
     pullPolicy: IfNotPresent
 
-langsmithDashboardSeeder:
+otelTraceSeeder:
   enabled: false
 
 etcd:

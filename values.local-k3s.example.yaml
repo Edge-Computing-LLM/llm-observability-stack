@@ -9,10 +9,6 @@ nvidia:
   gpuResourceName: nvidia.com/gpu
   gpuCount: 1
 
-langsmith:
-  tracing: true
-  project: k3s-ollama-gemma-local
-  apiKey: "replace-me"
 
 ollamaModel:
   name: gemma3-1b-it-gguf-local
@@ -150,5 +146,5 @@ pythonToolbox:
     - sleep
     - infinity
 
-langsmithDashboardSeeder:
+otelTraceSeeder:
   enabled: false

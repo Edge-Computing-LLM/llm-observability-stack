@@ -57,7 +57,7 @@ Responsibilities:
 - health and config endpoints
 - simple `/invoke` demo endpoint
 - Ollama-compatible proxy path at `/ollama/*`
-- optional LangSmith-traced proxy runs for Open WebUI traffic
+- optional OpenTelemetry-traced proxy runs for Open WebUI traffic
 
 ### 2.5 Python toolbox
 
@@ -67,7 +67,7 @@ Responsibilities:
 
 - in-cluster diagnostics
 - DNS and service connectivity checks
-- optional LangSmith helper scripts
+- optional OpenTelemetry helper scripts
 - notebook support for cluster-side network probing
 
 ### 2.6 Redis
@@ -95,13 +95,13 @@ Primary user path:
 1. Browser -> `open-webui` Service
 2. `open-webui` pod -> `langchain-demo` Service
 3. `langchain-demo` pod -> `ollama` Service
-4. `langchain-demo` -> LangSmith API when tracing is enabled
+4. `langchain-demo` -> OpenTelemetry API when tracing is enabled
 5. `langchain-demo` -> OpenTelemetry Collector when OpenTelemetry is enabled
 
 Supporting path:
 
 1. Notebook or operator -> `kubectl exec` or Kubernetes Python client
-2. `python-toolbox` pod -> internal Services, DNS, LangSmith API
+2. `python-toolbox` pod -> internal Services, DNS, OpenTelemetry API
 
 ## 4. Exposure Strategy
 

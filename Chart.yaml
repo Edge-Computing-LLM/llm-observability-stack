@@ -3,8 +3,9 @@ name: llm-observability-stack
 description: |
   Kubernetes-native EdgeLLM observability and benchmarking stack for private GGUF/NVIDIA
   LLM inference on Linux edge devices, laptops, workstations, and small GPU clusters.
-  Includes Ollama, Open WebUI, LangChain/LangSmith-compatible proxying, Prometheus metrics,
-  Grafana dashboards, blackbox probes, benchmark artifacts, and NVIDIA/DCGM-ready integrations.
+  Includes Ollama, Open WebUI, an OpenTelemetry GenAI-instrumented Ollama proxy,
+  Prometheus metrics, Grafana dashboards, blackbox probes, benchmark artifacts,
+  and NVIDIA/DCGM-ready integrations.
 type: application
 version: 0.2.0
 appVersion: "1.1.0"
@@ -33,8 +34,8 @@ keywords:
   - prometheus
   - grafana
   - dcgm
-  - langchain
-  - langsmith
+  - opentelemetry
+  - genai
 dependencies:
   - name: gpu-operator
     version: v1.0.0-devel

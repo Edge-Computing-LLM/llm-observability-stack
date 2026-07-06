@@ -55,7 +55,6 @@ python-toolbox/Dockerfile
 python-toolbox/README.md
 python-toolbox/requirements.txt
 python-toolbox/examples/__pycache__/
-python-toolbox/examples/langsmith_healthcheck.py
 python-toolbox/examples/ollama_smoke.py
 python-toolbox/examples/redis_ping.py
 python-toolbox/examples/service_dns_check.py

@@ -25,19 +25,14 @@ def reset_env_and_state(monkeypatch: pytest.MonkeyPatch) -> None:
         "OLLAMA_UPSTREAM_BASE_URL",
         "OLLAMA_MODEL",
         "OLLAMA_TEMPERATURE",
-        "OLLAMA_PROXY_TRACE_LANGSMITH",
+        "OLLAMA_PROXY_TRACE_OTEL",
         "OLLAMA_PROXY_TIMEOUT_SECONDS",
-        "LANGSMITH_API_KEY",
-        "LANGCHAIN_API_KEY",
-        "LANGSMITH_ENDPOINT",
-        "LANGCHAIN_ENDPOINT",
-        "LANGSMITH_PROJECT",
-        "LANGCHAIN_PROJECT",
+        "OTEL_TRACES_ENABLED",
+        "OTEL_EXPORTER_OTLP_ENDPOINT",
+        "OTEL_SERVICE_NAME",
     ]:
         monkeypatch.delenv(name, raising=False)
-
-    app_module._LANGSMITH_CLIENT = None
-    app_module._LANGSMITH_CLIENT_UNAVAILABLE = False
+    monkeypatch.setenv("OTEL_TRACES_ENABLED", "false")
 
 
 def test_root_and_healthz_endpoints() -> None:

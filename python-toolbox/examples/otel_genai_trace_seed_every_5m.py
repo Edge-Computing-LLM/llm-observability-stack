@@ -2,16 +2,12 @@ import os
 import time
 from datetime import datetime, timezone
 
-from langsmith import Client
-
-from langsmith_inference_traces import (
+from otel_genai_inference_traces import (
     DEFAULT_CALL_COUNT,
-    DEFAULT_ENDPOINT,
-    DEFAULT_FEEDBACK_KEY,
     DEFAULT_MODEL,
-    DEFAULT_PROJECT,
+    DEFAULT_OTLP_ENDPOINT,
     DEFAULT_TIMEOUT_SECONDS,
-    get_required_api_key,
+    configure_tracing,
     load_prompts,
     seed_inference_runs,
 )
@@ -24,26 +20,21 @@ def now_utc() -> str:
 
 
 def main() -> None:
-    api_key = get_required_api_key()
-    endpoint = os.getenv("LANGSMITH_ENDPOINT", DEFAULT_ENDPOINT)
-    project = os.getenv("LANGSMITH_PROJECT", DEFAULT_PROJECT)
+    endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", DEFAULT_OTLP_ENDPOINT)
     model = os.getenv("OLLAMA_MODEL", DEFAULT_MODEL)
     api_url = os.getenv("OBS_INFERENCE_API_URL", "http://ollama:11434/api/chat").rstrip("/")
     timeout_seconds = int(os.getenv("OBS_TIMEOUT_SECONDS", str(DEFAULT_TIMEOUT_SECONDS)))
-    feedback_key = os.getenv("LANGSMITH_FEEDBACK_KEY", DEFAULT_FEEDBACK_KEY)
     prompts = load_prompts()
 
-    # Keeps existing behavior if only OBS_CALL_COUNT is set.
     calls_per_cycle = int(os.getenv("OBS_CALL_COUNT_PER_CYCLE", os.getenv("OBS_CALL_COUNT", str(DEFAULT_CALL_COUNT))))
     interval_seconds = int(os.getenv("OBS_INTERVAL_SECONDS", str(DEFAULT_INTERVAL_SECONDS)))
     max_cycles = int(os.getenv("OBS_MAX_CYCLES", "0"))
 
-    client = Client(api_url=endpoint, api_key=api_key)
+    configure_tracing(endpoint)
 
-    print("Starting LangSmith dashboard seed scheduler.")
+    print("Starting OpenTelemetry GenAI trace seed scheduler.")
     print(f"Started at UTC      : {now_utc()}")
-    print(f"LangSmith endpoint  : {endpoint}")
-    print(f"LangSmith project   : {project}")
+    print(f"OTLP endpoint       : {endpoint}")
     print(f"Inference API URL   : {api_url}")
     print(f"Model               : {model}")
     print(f"Calls per cycle     : {calls_per_cycle}")
@@ -58,13 +49,10 @@ def main() -> None:
         print(f"\n[{now_utc()}] Cycle {cycle} started")
 
         seed_inference_runs(
-            client=client,
-            project=project,
             model=model,
             api_url=api_url,
             timeout_seconds=timeout_seconds,
             call_count=calls_per_cycle,
-            feedback_key=feedback_key,
             prompts=prompts,
         )
 

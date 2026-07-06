@@ -210,7 +210,7 @@ helm template llm-observability-stack . -f values.geforce-940m-k3s.yaml >/tmp/re
 helm template llm-observability-stack . -f values.cpu-k3s.yaml >/tmp/rendered-cpu.yaml
 helm template llm-observability-stack . \
   -f values.full-stack-nvidia.example.yaml \
-  --set langsmith.existingSecret= \
+  --set opentelemetry.tracing.enabled= \
   --set openWebUI.existingSecret= \
   --set open-webui.webuiSecret.existingSecretName= \
   >/tmp/rendered-full-stack-nvidia.yaml

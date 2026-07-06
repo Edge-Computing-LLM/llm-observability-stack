@@ -1,0 +1,12 @@
+{{- if .Values.otelTraceSeeder.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-trace-seeder-scripts
+  namespace: {{ include "llm-observability-stack.namespace" . }}
+data:
+  otel_genai_inference_traces.py: |
+{{ .Files.Get "python-toolbox/examples/otel_genai_inference_traces.py" | indent 4 }}
+  otel_genai_trace_seed_every_5m.py: |
+{{ .Files.Get "python-toolbox/examples/otel_genai_trace_seed_every_5m.py" | indent 4 }}
+{{- end }}

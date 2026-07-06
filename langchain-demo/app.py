@@ -1,19 +1,22 @@
 import json
 import os
 import time
-from datetime import datetime, timezone
 from typing import Any, Optional
-from uuid import UUID, uuid4
 
 import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import Response, StreamingResponse
 from langchain_ollama import ChatOllama
-from langsmith import Client
+from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.trace import Span, Status, StatusCode
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
 from pydantic import BaseModel, Field
 
-APP_TITLE = "k3s-ollama-langsmith-demo"
+APP_TITLE = "k3s-ollama-opentelemetry-demo"
 DEFAULT_MODEL = "gemma3-1b-it-gguf-local"
 DEFAULT_BASE_URL = "http://ollama:11434"
 DEFAULT_TEMPERATURE = 0.2
@@ -22,8 +25,7 @@ DEFAULT_PROXY_TIMEOUT_SECONDS = 180.0
 TRACE_PREVIEW_LIMIT = 8000
 
 app = FastAPI(title=APP_TITLE)
-_LANGSMITH_CLIENT: Optional[Client] = None
-_LANGSMITH_CLIENT_UNAVAILABLE = False
+_TRACER_CONFIGURED = False
 
 HTTP_REQUESTS = Counter(
     "llm_observability_http_requests_total",
@@ -160,89 +162,96 @@ def truncate_text(value: str, limit: int = TRACE_PREVIEW_LIMIT) -> str:
     return value[:limit]
 
 
-def get_langsmith_client() -> Optional[Client]:
-    global _LANGSMITH_CLIENT, _LANGSMITH_CLIENT_UNAVAILABLE
-    if _LANGSMITH_CLIENT_UNAVAILABLE:
-        return None
-    if _LANGSMITH_CLIENT is not None:
-        return _LANGSMITH_CLIENT
+def configure_tracing() -> None:
+    global _TRACER_CONFIGURED
+    if _TRACER_CONFIGURED or not get_env_bool("OTEL_TRACES_ENABLED", True):
+        return
 
-    api_key = os.environ.get("LANGSMITH_API_KEY") or os.environ.get("LANGCHAIN_API_KEY")
-    if not api_key:
-        _LANGSMITH_CLIENT_UNAVAILABLE = True
-        return None
-
-    try:
-        kwargs: dict[str, Any] = {"api_key": api_key}
-        endpoint = os.environ.get("LANGSMITH_ENDPOINT") or os.environ.get("LANGCHAIN_ENDPOINT")
-        if endpoint:
-            kwargs["api_url"] = endpoint
-        _LANGSMITH_CLIENT = Client(**kwargs)
-        return _LANGSMITH_CLIENT
-    except Exception:
-        _LANGSMITH_CLIENT_UNAVAILABLE = True
-        return None
+    endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
+    resource = Resource.create(
+        {
+            "service.name": get_env("OTEL_SERVICE_NAME", "langchain-demo"),
+            "service.namespace": get_env("OTEL_SERVICE_NAMESPACE", "llm-observability"),
+            "deployment.environment": get_env("OTEL_DEPLOYMENT_ENVIRONMENT", "k3s-nvidia-edge"),
+        }
+    )
+    provider = TracerProvider(resource=resource)
+    if endpoint:
+        provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=endpoint)))
+    trace.set_tracer_provider(provider)
+    _TRACER_CONFIGURED = True
 
 
-def get_langsmith_project_name() -> str:
-    return os.environ.get("LANGSMITH_PROJECT") or os.environ.get("LANGCHAIN_PROJECT") or "default"
+def get_tracer() -> trace.Tracer:
+    configure_tracing()
+    return trace.get_tracer("llm-observability-stack.langchain-demo")
+
+
+def set_span_tokens(span: Span, payload: Optional[Any]) -> None:
+    if not isinstance(payload, dict):
+        return
+    prompt_tokens = payload.get("prompt_eval_count")
+    generated_tokens = payload.get("eval_count")
+    if isinstance(prompt_tokens, (int, float)) and prompt_tokens >= 0:
+        span.set_attribute("gen_ai.usage.input_tokens", int(prompt_tokens))
+    if isinstance(generated_tokens, (int, float)) and generated_tokens >= 0:
+        span.set_attribute("gen_ai.usage.output_tokens", int(generated_tokens))
+
+
+def start_genai_span(name: str, model: str, route: str, extra: Optional[dict[str, Any]] = None) -> Span:
+    attributes: dict[str, Any] = {
+        "gen_ai.system": "ollama",
+        "gen_ai.operation.name": "chat",
+        "gen_ai.request.model": model,
+        "llm.route": route,
+        "server.address": get_ollama_upstream_base_url(),
+    }
+    if extra:
+        attributes.update(extra)
+    return get_tracer().start_span(name, attributes=attributes)
 
 
 def start_proxy_trace(
     method: str, upstream_path: str, query: str, payload: Optional[Any]
-) -> tuple[Optional[Client], Optional[UUID]]:
-    if not get_env_bool("OLLAMA_PROXY_TRACE_LANGSMITH", True):
-        return None, None
+) -> Optional[Span]:
+    if not get_env_bool("OLLAMA_PROXY_TRACE_OTEL", True):
+        return None
 
-    client = get_langsmith_client()
-    if client is None:
-        return None, None
-
-    run_id = uuid4()
-    inputs: dict[str, Any] = {"method": method, "upstream_path": upstream_path}
+    model = get_model_name(payload)
+    attrs: dict[str, Any] = {
+        "http.request.method": method,
+        "url.path": upstream_path,
+    }
     if query:
-        inputs["query"] = query
+        attrs["url.query"] = query
     if payload is not None:
-        inputs["payload"] = payload
-
-    try:
-        client.create_run(
-            name=f"open_webui_ollama_proxy:{method.lower()}:{upstream_path}",
-            run_type="llm",
-            project_name=get_langsmith_project_name(),
-            id=run_id,
-            start_time=datetime.now(timezone.utc),
-            inputs=inputs,
-            tags=["open-webui", "ollama-proxy"],
-        )
-        return client, run_id
-    except Exception:
-        return None, None
+        attrs["llm.request.preview"] = truncate_text(json.dumps(payload, ensure_ascii=True))
+    return start_genai_span(f"ollama {method.lower()} {upstream_path}", model, "ollama_proxy", attrs)
 
 
 def finish_proxy_trace(
-    client: Optional[Client],
-    run_id: Optional[UUID],
+    span: Optional[Span],
     status_code: Optional[int],
     outputs: Optional[dict[str, Any]] = None,
     error: Optional[str] = None,
 ) -> None:
-    if client is None or run_id is None:
+    if span is None:
         return
 
-    update_outputs = dict(outputs or {})
     if status_code is not None:
-        update_outputs.setdefault("status_code", status_code)
+        span.set_attribute("http.response.status_code", status_code)
+        if status_code >= 500:
+            span.set_status(Status(StatusCode.ERROR))
+    for key, value in (outputs or {}).items():
+        if isinstance(value, (str, int, float, bool)):
+            span.set_attribute(f"llm.response.{key}", value)
+        elif isinstance(value, dict):
+            span.set_attribute(f"llm.response.{key}", truncate_text(json.dumps(value, ensure_ascii=True)))
+    if error:
+        span.record_exception(Exception(error))
+        span.set_status(Status(StatusCode.ERROR, error))
+    span.end()
 
-    try:
-        client.update_run(
-            run_id=run_id,
-            end_time=datetime.now(timezone.utc),
-            outputs=update_outputs if update_outputs else None,
-            error=error,
-        )
-    except Exception:
-        return
 
 
 def extract_response_payload(resp: Any) -> dict[str, Any]:
@@ -314,8 +323,8 @@ def healthz() -> dict:
         "model": get_env("OLLAMA_MODEL", DEFAULT_MODEL),
         "ollama_base_url": get_env("OLLAMA_BASE_URL", DEFAULT_BASE_URL),
         "ollama_upstream_base_url": get_ollama_upstream_base_url(),
-        "langsmith_tracing": get_env("LANGSMITH_TRACING", "false"),
-        "langsmith_project": os.environ.get("LANGSMITH_PROJECT"),
+        "otel_traces_enabled": get_env("OTEL_TRACES_ENABLED", "true"),
+        "otel_exporter_otlp_endpoint": os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"),
         "etcd_endpoints": os.environ.get("ETCD_ENDPOINTS"),
     }
 
@@ -332,8 +341,8 @@ def config() -> dict:
         "ollama_base_url": get_env("OLLAMA_BASE_URL", DEFAULT_BASE_URL),
         "ollama_upstream_base_url": get_ollama_upstream_base_url(),
         "temperature": float(get_env("OLLAMA_TEMPERATURE", str(DEFAULT_TEMPERATURE))),
-        "langsmith_project": os.environ.get("LANGSMITH_PROJECT"),
-        "langsmith_endpoint": os.environ.get("LANGSMITH_ENDPOINT"),
+        "otel_service_name": get_env("OTEL_SERVICE_NAME", "langchain-demo"),
+        "otel_exporter_otlp_endpoint": os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"),
         "etcd_endpoints": os.environ.get("ETCD_ENDPOINTS"),
     }
 
@@ -344,13 +353,23 @@ def invoke(req: PromptIn) -> InvokeOut:
     route = "invoke"
     started = time.perf_counter()
     LLM_ACTIVE_REQUESTS.labels(model=model, route=route).inc()
+    span = start_genai_span(
+        "ollama invoke",
+        model,
+        route,
+        {"gen_ai.request.temperature": float(get_env("OLLAMA_TEMPERATURE", str(DEFAULT_TEMPERATURE)))},
+    )
     try:
         llm = get_llm()
         prompt = req.prompt if not req.system else f"System: {req.system}\n\nUser: {req.prompt}"
+        span.set_attribute("llm.request.prompt_preview", truncate_text(prompt))
         response = llm.invoke(prompt)
         content = getattr(response, "content", response)
         response_metadata = getattr(response, "response_metadata", None)
         observe_ollama_payload(response_metadata, model, route)
+        set_span_tokens(span, response_metadata)
+        span.set_attribute("gen_ai.response.model", model)
+        span.set_attribute("llm.response.preview", truncate_text(str(content)))
         LLM_REQUESTS.labels(model=model, route=route, outcome="success").inc()
         return InvokeOut(
             response=str(content),
@@ -359,8 +378,11 @@ def invoke(req: PromptIn) -> InvokeOut:
         )
     except Exception as exc:  # pragma: no cover - runtime surface for demo support drills
         LLM_REQUESTS.labels(model=model, route=route, outcome="error").inc()
+        span.record_exception(exc)
+        span.set_status(Status(StatusCode.ERROR, str(exc)))
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     finally:
+        span.end()
         LLM_ACTIVE_REQUESTS.labels(model=model, route=route).dec()
         LLM_REQUEST_DURATION.labels(model=model, route=route).observe(time.perf_counter() - started)
 
@@ -382,7 +404,7 @@ async def ollama_proxy(upstream_path: str, request: Request):
     LLM_ACTIVE_REQUESTS.labels(model=model, route=route).inc()
     proxy_headers = build_upstream_headers(request)
 
-    client, run_id = start_proxy_trace(
+    span = start_proxy_trace(
         method=request.method,
         upstream_path=normalized_path,
         query=request.url.query,
@@ -443,19 +465,18 @@ async def ollama_proxy(upstream_path: str, request: Request):
                         if isinstance(parsed, dict) and parsed.get("done") is True:
                             final_payload = parsed
                     observe_ollama_payload(final_payload, model, route)
+                    set_span_tokens(span, final_payload)
                     outcome = "success" if upstream_status_code < 500 else "error"
                     LLM_REQUESTS.labels(model=model, route=route, outcome=outcome).inc()
                     finish_proxy_trace(
-                        client,
-                        run_id,
+                        span,
                         upstream_status_code,
                         outputs={"streamed": True, "response_preview": "".join(preview_parts)},
                     )
                 except Exception as exc:
                     LLM_REQUESTS.labels(model=model, route=route, outcome="error").inc()
                     finish_proxy_trace(
-                        client,
-                        run_id,
+                        span,
                         upstream_status_code,
                         outputs={"streamed": True},
                         error=str(exc),
@@ -484,14 +505,14 @@ async def ollama_proxy(upstream_path: str, request: Request):
                 content=request_body or None,
             )
 
+        response_payload = safe_json(upstream_response.content)
+        observe_ollama_payload(response_payload, model, route)
+        set_span_tokens(span, response_payload)
         finish_proxy_trace(
-            client,
-            run_id,
+            span,
             upstream_response.status_code,
             outputs=extract_response_payload(upstream_response),
         )
-        response_payload = safe_json(upstream_response.content)
-        observe_ollama_payload(response_payload, model, route)
         outcome = "success" if upstream_response.status_code < 500 else "error"
         LLM_REQUESTS.labels(model=model, route=route, outcome=outcome).inc()
         return Response(
@@ -501,7 +522,7 @@ async def ollama_proxy(upstream_path: str, request: Request):
         )
     except httpx.HTTPError as exc:
         LLM_REQUESTS.labels(model=model, route=route, outcome="error").inc()
-        finish_proxy_trace(client, run_id, None, error=str(exc))
+        finish_proxy_trace(span, None, error=str(exc))
         raise HTTPException(status_code=502, detail=f"Ollama proxy request failed: {exc}") from exc
     finally:
         if not stream_owns_metrics:

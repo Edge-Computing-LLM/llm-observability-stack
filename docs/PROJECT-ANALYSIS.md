@@ -21,7 +21,7 @@ Current runtime preference in local overrides:
 - Local image workflow for `langchain-demo` and `python-toolbox` is documented and scriptable.
 - GGUF Modelfile creation path is implemented and deployable.
 - CI validates chart linting and template rendering.
-- LangSmith tracing is wired through the `langchain-demo` proxy path (`/ollama/api/*`) for on-demand observability from Open WebUI traffic.
+- OpenTelemetry tracing is wired through the `langchain-demo` proxy path (`/ollama/api/*`) for on-demand observability from Open WebUI traffic.
 
 ## Main Risk Areas
 

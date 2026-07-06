@@ -18,7 +18,7 @@ helm lint .
 helm template llm-observability-stack . >/dev/null
 helm template llm-observability-stack . \
   -f values.full-stack-nvidia.example.yaml \
-  --set langsmith.existingSecret="" \
+  --set opentelemetry.tracing.enabled="" \
   --set openWebUI.existingSecret="" \
   --set open-webui.webuiSecret.existingSecretName="" >/dev/null
 "$PYTHON_BIN" -m pytest -q tests

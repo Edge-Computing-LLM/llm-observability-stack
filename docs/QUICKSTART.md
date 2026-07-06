@@ -32,7 +32,7 @@ cp values.local-k3s.example.yaml values.local-k3s.yaml
 Edit `values.local-k3s.yaml` and confirm:
 
 - GGUF host path values point to your model directory
-- LangSmith credentials or existing secret references are set correctly
+- the OpenTelemetry OTLP endpoint points at the in-cluster collector
 - Open WebUI secret inputs are wired the way you want
 - the example profile defaults still match the behavior you want locally
 
@@ -137,7 +137,7 @@ If notebook API cells fail:
 
 - verify the required port-forwards are active
 - verify `pythonToolbox.enabled` and toolbox pod health
-- verify LangSmith environment variables for tracing notebooks
+- verify `OTEL_EXPORTER_OTLP_ENDPOINT` and `OTEL_SERVICE_NAME` for tracing notebooks
 
 ## 9. Next Reading
 

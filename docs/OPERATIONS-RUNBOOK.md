@@ -96,7 +96,7 @@ Use these for:
 
 - direct Ollama API tests
 - LangChain proxy notebook cells
-- LangSmith traced proxy requests from the host
+- OpenTelemetry traced proxy requests from the host
 
 ## 6. Jupyter Notebook Operations
 
@@ -119,7 +119,7 @@ If notebook cells fail:
 - confirm the required port-forwards
 - confirm the release is installed
 - confirm the toolbox pod is running
-- confirm LangSmith environment variables for tracing notebooks
+- confirm OpenTelemetry environment variables for tracing notebooks
 
 ## 7. In-Cluster Toolbox Checks
 
@@ -157,7 +157,7 @@ If scheduling is failing, inspect the node plugin runtime behavior and confirm t
 
 - inspect logs
 - confirm the local image tag imported into k3s matches the chart values
-- confirm LangSmith env inputs are valid when tracing is enabled
+- confirm OpenTelemetry env inputs are valid when tracing is enabled
 
 ### `ollama` is healthy but model calls fail
 

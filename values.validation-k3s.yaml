@@ -3,8 +3,6 @@ namespace:
   name: llm-observability-validation
 monitoring:
   enabled: false
-langsmith:
-  enabled: false
 ollamaModel:
   enabled: false
 ollama:
@@ -19,7 +17,7 @@ langchainDemo:
   enabled: false
 pythonToolbox:
   enabled: false
-langsmithDashboardSeeder:
+otelTraceSeeder:
   enabled: false
 etcd:
   enabled: false

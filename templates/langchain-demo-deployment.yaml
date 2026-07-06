@@ -1,6 +1,4 @@
 {{- if .Values.langchainDemo.enabled }}
-{{- $langsmithConfigured := and .Values.langsmith.enabled (or (ne (trim .Values.langsmith.apiKey) "") (ne (trim .Values.langsmith.existingSecret) "")) -}}
-{{- $langsmithTracing := and $langsmithConfigured (default false .Values.langsmith.tracing) -}}
 {{- $probes := .Values.langchainDemo.probes | default dict -}}
 {{- $startupProbe := get $probes "startup" | default dict -}}
 {{- $readinessProbe := get $probes "readiness" | default dict -}}
@@ -55,47 +53,27 @@ spec:
               value: {{ .Values.ollamaModel.name | quote }}
             - name: OLLAMA_PROXY_PATH_PREFIX
               value: "/ollama"
-            - name: OLLAMA_PROXY_TRACE_LANGSMITH
-              value: {{ ternary "true" "false" $langsmithTracing | quote }}
+            - name: OLLAMA_PROXY_TRACE_OTEL
+              value: {{ ternary "true" "false" .Values.opentelemetry.tracing.enabled | quote }}
             - name: OLLAMA_PROXY_TIMEOUT_SECONDS
               value: "180"
-            - name: LANGSMITH_TRACING
-              value: {{ ternary "true" "false" $langsmithTracing | quote }}
-            - name: LANGCHAIN_TRACING_V2
-              value: {{ ternary "true" "false" $langsmithTracing | quote }}
-            - name: LANGSMITH_ENDPOINT
-              value: {{ .Values.langsmith.endpoint | quote }}
-            - name: LANGCHAIN_ENDPOINT
-              value: {{ .Values.langsmith.endpoint | quote }}
-            - name: LANGSMITH_PROJECT
-              value: {{ .Values.langsmith.project | quote }}
-            - name: LANGCHAIN_PROJECT
-              value: {{ .Values.langsmith.project | quote }}
+            - name: OTEL_TRACES_ENABLED
+              value: {{ ternary "true" "false" .Values.opentelemetry.tracing.enabled | quote }}
 {{- if $otelEnabled }}
             - name: OTEL_SERVICE_NAME
               value: langchain-demo
+            - name: OTEL_SERVICE_NAMESPACE
+              value: {{ include "llm-observability-stack.namespace" . | quote }}
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: {{ .Values.opentelemetry.endpoint | quote }}
             - name: OTEL_EXPORTER_OTLP_PROTOCOL
               value: grpc
             - name: OTEL_RESOURCE_ATTRIBUTES
-              value: "service.namespace={{ include "llm-observability-stack.namespace" . }},deployment.environment=kubernetes"
+              value: "service.namespace={{ include "llm-observability-stack.namespace" . }},deployment.environment=k3s-nvidia-edge,k8s.cluster.name={{ .Values.cluster.name }}"
 {{- end }}
 {{- if .Values.etcd.enabled }}
             - name: ETCD_ENDPOINTS
               value: http://{{ include "llm-observability-stack.etcdFullname" . }}:{{ .Values.etcd.service.clientPort }}
-{{- end }}
-{{- if $langsmithConfigured }}
-            - name: LANGSMITH_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "llm-observability-stack.langsmithSecretName" . }}
-                  key: {{ .Values.langsmith.existingSecretKey }}
-            - name: LANGCHAIN_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "llm-observability-stack.langsmithSecretName" . }}
-                  key: {{ .Values.langsmith.existingSecretKey }}
 {{- end }}
 {{- range .Values.langchainDemo.extraEnv }}
             - name: {{ .name }}

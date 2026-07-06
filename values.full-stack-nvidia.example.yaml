@@ -61,12 +61,6 @@ ollama:
       number: 1
       nvidiaResource: nvidia.com/gpu
 
-langsmith:
-  enabled: true
-  tracing: true
-  apiKey: ""
-  existingSecret: langsmith-secrets
-  existingSecretKey: LANGSMITH_API_KEY
 
 openWebUI:
   auth: true

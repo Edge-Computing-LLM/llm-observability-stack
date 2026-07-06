@@ -9,7 +9,7 @@ These notebooks form the main guided path for the current stack:
 1. `01-environment-smoke-test.ipynb`
 2. `02-ollama-api-basics.ipynb`
 3. `03-langchain-proxy-deep-dive.ipynb`
-4. `04-langsmith-tracing-setup.ipynb`
+4. `04-opentelemetry-tracing-setup.ipynb`
 5. `05-open-webui-end-to-end.ipynb`
 6. `06-custom-modelfile-workflow.ipynb`
 7. `07-python-toolbox-diagnostics.ipynb`

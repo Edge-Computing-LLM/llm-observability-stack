@@ -6,8 +6,6 @@ monitoring:
   enabled: false
 networkPolicy:
   enabled: false
-langsmith:
-  enabled: false
 
 nvidia:
   runtimeClassName: nvidia
@@ -94,7 +92,7 @@ langchainDemo:
   enabled: false
 pythonToolbox:
   enabled: false
-langsmithDashboardSeeder:
+otelTraceSeeder:
   enabled: false
 etcd:
   enabled: false

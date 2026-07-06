@@ -5,6 +5,9 @@ namespace:
   create: false
   name: llm-observability
 
+cluster:
+  name: k3s-nvidia-edge
+
 runtime:
   # Set by values profiles or by .generated/values.runtime-detected.yaml.
   # Supported values: nvidia, cpu.
@@ -286,16 +289,6 @@ opentelemetry-collector:
           exporters:
             - debug
 
-langsmith:
-  enabled: true
-  tracing: true
-  endpoint: https://api.smith.langchain.com
-  project: k3s-ollama-gemma-local
-  # Keep empty in git-tracked defaults. Set real value only in values.local-k3s.yaml.
-  apiKey: ""
-  existingSecret: ""
-  existingSecretKey: LANGSMITH_API_KEY
-
 ollamaModel:
   enabled: true
   # Final Ollama model name visible from `ollama list`
@@ -394,7 +387,7 @@ ollama:
 openWebUI:
   enabled: true
   fullnameOverride: open-webui
-  # Route Open WebUI through langchain-demo proxy so requests can be traced in LangSmith.
+  # Route Open WebUI through the OpenTelemetry-instrumented Ollama proxy.
   ollamaBaseUrl: http://langchain-demo:8000/ollama
   # Leave empty to auto-generate a strong value when chart-managed secret mode is used.
   # If you provide a value here, it is used as-is.
@@ -593,6 +586,10 @@ langchainDemo:
 opentelemetry:
   enabled: true
   endpoint: http://opentelemetry-collector:4317
+  tracing:
+    enabled: true
+    genAI:
+      enabled: true
   # Legacy operator-managed CR path. The default collector is the vendored
   # opentelemetry-collector subchart above.
   operatorCollector:
@@ -671,9 +668,9 @@ pythonToolbox:
       memory: 384Mi
   extraEnv: []
 
-langsmithDashboardSeeder:
+otelTraceSeeder:
   enabled: false
-  # Runs a short Python job every 5 minutes to keep LangSmith Monitoring charts populated.
+  # Runs a short Python job every 5 minutes to keep OpenTelemetry GenAI traces flowing.
   schedule: "*/5 * * * *"
   suspend: false
   concurrencyPolicy: Forbid
@@ -689,12 +686,11 @@ langsmithDashboardSeeder:
     pullPolicy: ""
   command:
     - python
-    - /opt/langsmith-seeder/langsmith_inference_traces.py
+    - /opt/otel-trace-seeder/otel_genai_inference_traces.py
   env:
     inferenceApiUrl: http://ollama:11434/api/chat
     callCount: "2"
     timeoutSeconds: "180"
-    feedbackKey: response_quality
   resources:
     requests:
       cpu: 25m

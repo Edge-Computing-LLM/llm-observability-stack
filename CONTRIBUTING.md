@@ -8,7 +8,7 @@ This repository is focused on local Kubernetes observability workflows for:
 
 - Ollama
 - Open WebUI
-- LangChain demo + LangSmith tracing
+- LangChain demo + OpenTelemetry tracing
 
 Please keep changes aligned with local k3s reproducibility and interview-support use cases.
 

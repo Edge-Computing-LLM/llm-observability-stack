@@ -38,10 +38,10 @@ This repository uses tracked configuration profiles plus a generated runtime ove
 | GGUF host path | Placeholder path | Example host path under `/media/.../models` | Local verified host path under `/media/.../models` | Local verified host path under `/media/.../models` |
 | Ollama PVC size | `20Gi` | `5Gi` | `5Gi` | `5Gi` |
 | Service exposure | `ClusterIP` | `ClusterIP` | `ClusterIP` | `ClusterIP` |
-| LangSmith API key | Empty string | `replace-me` placeholder | disabled | disabled |
+| OpenTelemetry tracing | enabled | enabled | enabled | enabled |
 | Open WebUI secret key | Empty string | placeholder | placeholder, chart-managed secret | placeholder, chart-managed secret |
 | `pythonToolbox.enabled` | `true` | `true` | `true` | `true` |
-| `langsmithDashboardSeeder.enabled` | `false` | `false` | `false` | `false` |
+| `otelTraceSeeder.enabled` | `false` | `false` | `false` | `false` |
 | `etcd.enabled` | `false` | `false` | `false` | `false` |
 
 ## Recommended Workflow

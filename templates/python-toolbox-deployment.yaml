@@ -1,5 +1,4 @@
 {{- if .Values.pythonToolbox.enabled }}
-{{- $langsmithConfigured := and .Values.langsmith.enabled (or (ne (trim .Values.langsmith.apiKey) "") (ne (trim .Values.langsmith.existingSecret) "")) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -29,30 +28,16 @@ spec:
               value: http://ollama:11434
             - name: OLLAMA_MODEL
               value: {{ .Values.ollamaModel.name | quote }}
-            - name: LANGSMITH_ENDPOINT
-              value: {{ .Values.langsmith.endpoint | quote }}
-            - name: LANGCHAIN_ENDPOINT
-              value: {{ .Values.langsmith.endpoint | quote }}
-            - name: LANGSMITH_PROJECT
-              value: {{ .Values.langsmith.project | quote }}
-            - name: LANGCHAIN_PROJECT
-              value: {{ .Values.langsmith.project | quote }}
+            - name: OTEL_SERVICE_NAME
+              value: python-toolbox
+            - name: OTEL_SERVICE_NAMESPACE
+              value: {{ include "llm-observability-stack.namespace" . | quote }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .Values.opentelemetry.endpoint | quote }}
             - name: REDIS_HOST
               value: {{ ternary (default "redis" .Values.redis.fullnameOverride) "open-webui-redis" .Values.redis.enabled | quote }}
             - name: REDIS_PORT
               value: "6379"
-{{- if $langsmithConfigured }}
-            - name: LANGSMITH_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "llm-observability-stack.langsmithSecretName" . }}
-                  key: {{ .Values.langsmith.existingSecretKey }}
-            - name: LANGCHAIN_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "llm-observability-stack.langsmithSecretName" . }}
-                  key: {{ .Values.langsmith.existingSecretKey }}
-{{- end }}
 {{- range .Values.pythonToolbox.extraEnv }}
             - name: {{ .name }}
               value: {{ .value | quote }}

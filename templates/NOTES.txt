@@ -20,6 +20,6 @@ Endpoints after install:
 - LangChain:   http://langchain-demo:8000
 - Open WebUI traced proxy path: http://langchain-demo:8000/ollama/api/*
 {{- end }}
-{{- if .Values.langsmithDashboardSeeder.enabled }}
-- LangSmith seeder CronJob: langsmith-dashboard-seeder (schedule: {{ .Values.langsmithDashboardSeeder.schedule }})
+{{- if .Values.otelTraceSeeder.enabled }}
+- OpenTelemetry trace seeder CronJob: otel-trace-seeder (schedule: {{ .Values.otelTraceSeeder.schedule }})
 {{- end }}

@@ -10,23 +10,22 @@ This component exists to give the project a safe in-cluster execution point for:
 - internal Service connectivity checks
 - Ollama smoke tests
 - Redis checks
-- LangSmith API health and optional trace seeding
+- OpenTelemetry API health and optional trace seeding
 
 It is intentionally lighter than a full notebook image and is meant for shell/script execution inside the cluster.
 
 ## Local Profile Status
 
 - `pythonToolbox.enabled: true`
-- continuous LangSmith seeder jobs remain disabled by default
+- continuous OpenTelemetry seeder jobs remain disabled by default
 
 ## Included Example Scripts
 
 - `service_dns_check.py`
 - `ollama_smoke.py`
 - `redis_ping.py`
-- `langsmith_healthcheck.py`
-- `langsmith_inference_traces.py`
-- `langsmith_dashboard_seed_every_5m.py`
+- `otel_genai_inference_traces.py`
+- `otel_genai_trace_seed_every_5m.py`
 
 Scripts are copied into:
 
@@ -71,11 +70,11 @@ kubectl exec -it -n llm-observability deploy/python-toolbox -- \
   python /workspace/examples/ollama_smoke.py
 ```
 
-Seed LangSmith chart data:
+Seed OpenTelemetry chart data:
 
 ```bash
 kubectl exec -it -n llm-observability deploy/python-toolbox -- \
-  python /workspace/examples/langsmith_inference_traces.py
+  python /workspace/examples/otel_genai_inference_traces.py
 ```
 
 Run the continuous 5-minute seeder only when you explicitly want chart activity:
@@ -83,7 +82,7 @@ Run the continuous 5-minute seeder only when you explicitly want chart activity:
 ```bash
 kubectl exec -it -n llm-observability deploy/python-toolbox -- \
   env OBS_CALL_COUNT_PER_CYCLE=4 OBS_INTERVAL_SECONDS=300 \
-  python /workspace/examples/langsmith_dashboard_seed_every_5m.py
+  python /workspace/examples/otel_genai_trace_seed_every_5m.py
 ```
 
 ## Operational Notes

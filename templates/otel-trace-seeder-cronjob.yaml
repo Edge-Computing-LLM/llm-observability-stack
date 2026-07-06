@@ -1,0 +1,71 @@
+{{- if .Values.otelTraceSeeder.enabled }}
+{{- $imageRepository := default .Values.pythonToolbox.image.repository .Values.otelTraceSeeder.image.repository -}}
+{{- $imageTag := default .Values.pythonToolbox.image.tag .Values.otelTraceSeeder.image.tag -}}
+{{- $imagePullPolicy := default .Values.pythonToolbox.image.pullPolicy .Values.otelTraceSeeder.image.pullPolicy -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: otel-trace-seeder
+  namespace: {{ include "llm-observability-stack.namespace" . }}
+spec:
+  schedule: {{ .Values.otelTraceSeeder.schedule | quote }}
+  suspend: {{ .Values.otelTraceSeeder.suspend }}
+  concurrencyPolicy: {{ .Values.otelTraceSeeder.concurrencyPolicy | quote }}
+  successfulJobsHistoryLimit: {{ .Values.otelTraceSeeder.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.otelTraceSeeder.failedJobsHistoryLimit }}
+  startingDeadlineSeconds: {{ .Values.otelTraceSeeder.startingDeadlineSeconds }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.otelTraceSeeder.backoffLimit }}
+      ttlSecondsAfterFinished: {{ .Values.otelTraceSeeder.ttlSecondsAfterFinished }}
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: otel-trace-seeder
+        spec:
+{{- if .Values.otelTraceSeeder.runtimeClassName }}
+          runtimeClassName: {{ .Values.otelTraceSeeder.runtimeClassName }}
+{{- end }}
+          restartPolicy: Never
+          containers:
+            - name: seeder
+              image: {{ $imageRepository }}:{{ $imageTag }}
+              imagePullPolicy: {{ $imagePullPolicy }}
+              command:
+{{ toYaml .Values.otelTraceSeeder.command | indent 16 }}
+              env:
+                - name: OLLAMA_MODEL
+                  value: {{ .Values.ollamaModel.name | quote }}
+                - name: OTEL_SERVICE_NAME
+                  value: otel-trace-seeder
+                - name: OTEL_SERVICE_NAMESPACE
+                  value: {{ include "llm-observability-stack.namespace" . | quote }}
+                - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                  value: {{ .Values.opentelemetry.endpoint | quote }}
+                - name: OBS_INFERENCE_API_URL
+                  value: {{ .Values.otelTraceSeeder.env.inferenceApiUrl | quote }}
+                - name: OBS_CALL_COUNT
+                  value: {{ .Values.otelTraceSeeder.env.callCount | quote }}
+                - name: OBS_TIMEOUT_SECONDS
+                  value: {{ .Values.otelTraceSeeder.env.timeoutSeconds | quote }}
+{{- range .Values.otelTraceSeeder.extraEnv }}
+                - name: {{ .name }}
+{{- if hasKey . "valueFrom" }}
+                  valueFrom:
+{{ toYaml .valueFrom | indent 20 }}
+{{- else }}
+                  value: {{ .value | quote }}
+{{- end }}
+{{- end }}
+              resources:
+{{ toYaml .Values.otelTraceSeeder.resources | indent 16 }}
+              volumeMounts:
+                - name: seeder-scripts
+                  mountPath: /opt/otel-trace-seeder
+                  readOnly: true
+          volumes:
+            - name: seeder-scripts
+              configMap:
+                name: otel-trace-seeder-scripts
+                defaultMode: 0555
+{{- end }}

@@ -5,7 +5,7 @@
 - a simple `/invoke` API for prompt testing
 - health/config endpoints for notebook and cluster checks
 - an Ollama-compatible proxy path at `/ollama/*`
-- optional LangSmith tracing for proxied Open WebUI traffic
+- optional OpenTelemetry tracing for proxied Open WebUI traffic
 
 ## Why It Exists
 
@@ -13,7 +13,7 @@ This service is the observability bridge in the stack. Instead of sending browse
 
 - inspect proxy health independently
 - keep a stable API surface for notebooks and smoke tests
-- emit LangSmith traces for local demo traffic
+- emit OpenTelemetry traces for local demo traffic
 
 ## Source Files
 
@@ -36,10 +36,11 @@ This service is the observability bridge in the stack. Instead of sending browse
 - `OLLAMA_UPSTREAM_BASE_URL`
 - `OLLAMA_TEMPERATURE`
 - `OLLAMA_PROXY_TIMEOUT_SECONDS`
-- `OLLAMA_PROXY_TRACE_LANGSMITH`
-- `LANGSMITH_API_KEY` or `LANGCHAIN_API_KEY`
-- `LANGSMITH_ENDPOINT` / `LANGCHAIN_ENDPOINT`
-- `LANGSMITH_PROJECT` / `LANGCHAIN_PROJECT`
+- `OLLAMA_PROXY_TRACE_OTEL`
+- `OTEL_TRACES_ENABLED`
+- `OTEL_EXPORTER_OTLP_ENDPOINT`
+- `OTEL_SERVICE_NAME`
+- `OTEL_SERVICE_NAMESPACE`
 
 ## Local Image Workflow
 
@@ -95,4 +96,4 @@ curl -s http://localhost:8000/ollama/api/tags | jq
 
 - This service is intended to run from a prebuilt local image, not from mutable runtime installs.
 - If notebook cells fail on `localhost:8000`, verify the port-forward first.
-- If LangSmith metrics are missing, the proxy still works, but tracing fields may remain empty until credentials are fixed.
+- If OpenTelemetry traces are missing, the proxy still works; check the OTLP endpoint and collector logs.

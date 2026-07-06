@@ -10,7 +10,7 @@ NS=llm-observability
 
 Profile note:
 
-- The current local example profile keeps `pythonToolbox.enabled=true` and `langsmithDashboardSeeder.enabled=false`.
+- The current local example profile keeps `pythonToolbox.enabled=true` and `otelTraceSeeder.enabled=false`.
 - See [CONFIG-PROFILES.md](CONFIG-PROFILES.md) before assuming a workload is enabled in a given environment.
 
 ## 1. Cluster and Context Safety
@@ -109,15 +109,15 @@ kubectl exec -it -n $NS deploy/python-toolbox -- bash
 kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/service_dns_check.py
 kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/ollama_smoke.py
 kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/redis_ping.py
-kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/langsmith_healthcheck.py
-kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/langsmith_inference_traces.py
-kubectl exec -it -n $NS deploy/python-toolbox -- env OBS_CALL_COUNT_PER_CYCLE=4 OBS_INTERVAL_SECONDS=300 python /workspace/examples/langsmith_dashboard_seed_every_5m.py
+kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/otel_genai_inference_traces.py
+kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/otel_genai_inference_traces.py
+kubectl exec -it -n $NS deploy/python-toolbox -- env OBS_CALL_COUNT_PER_CYCLE=4 OBS_INTERVAL_SECONDS=300 python /workspace/examples/otel_genai_trace_seed_every_5m.py
 ```
 
-CronJob checks (only when `langsmithDashboardSeeder.enabled=true`):
+CronJob checks (only when `otelTraceSeeder.enabled=true`):
 
 ```bash
-kubectl get cronjob -n $NS langsmith-dashboard-seeder
+kubectl get cronjob -n $NS otel-trace-seeder
 kubectl get jobs -n $NS --sort-by=.metadata.creationTimestamp | tail -n 10
 kubectl get pods -n $NS -l job-name
 ```
@@ -185,7 +185,7 @@ Metadata only:
 kubectl get configmap -n $NS
 kubectl get secret -n $NS
 kubectl describe configmap ollama-local-modelfile -n $NS
-kubectl describe secret langsmith-secrets -n $NS
+kubectl describe secret otel-trace-seeder -n $NS
 kubectl describe secret open-webui-secrets -n $NS
 ```
 
