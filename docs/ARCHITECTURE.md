@@ -4,6 +4,8 @@ This document explains how `llm-observability-stack` is put together, which comp
 
 For local NVIDIA GPU deployments, this repository is not the cluster bootstrap layer. Deploy and validate `k3s-nvidia-edge` first, then deploy `llm-observability-stack` on top of the ready k3s/NVIDIA substrate. See [k3s-nvidia-edge dependency](K3S-NVIDIA-EDGE-DEPENDENCY.md).
 
+The Go CLI in `cmd/llm-observability` follows the same boundary. It imports `github.com/Edge-Computing-LLM/k3s-nvidia-edge/pkg/edgebase` for base-layer workflows and keeps LLM stack workflows in `internal/stack`.
+
 ## 1. Design Goals
 
 - Keep the stack understandable on a single local node
@@ -13,6 +15,19 @@ For local NVIDIA GPU deployments, this repository is not the cluster bootstrap l
 - Make observability and networking drills easy to demonstrate
 
 ## 2. Major Components
+
+### 2.0 Go CLI
+
+Source lives in `cmd/llm-observability` and `internal/stack`.
+
+Responsibilities:
+
+- check base k3s/NVIDIA readiness through `edgebase`
+- install and uninstall this Helm chart
+- report status for Ollama, Open WebUI, Redis, OpenTelemetry Collector, and services
+- validate model loading, Ollama API behavior, and CUDA/offload evidence
+- wrap the existing Python benchmark client
+- print the Helm and kubectl commands used under the hood
 
 ### 2.1 Root umbrella chart
 
@@ -149,6 +164,8 @@ There are three main configuration layers:
 
 ## 6. Component Source Map
 
+- `cmd/llm-observability/`: Go CLI entrypoint
+- `internal/stack/`: CLI workflows for this chart and app layer
 - `templates/`: root chart resources, optional OpenTelemetryCollector CR, and integration glue
 - `langchain-demo/app.py`: FastAPI app and traced proxy logic
 - `python-toolbox/examples/`: in-cluster helper scripts

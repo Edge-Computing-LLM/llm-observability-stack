@@ -12,6 +12,18 @@ values.local-*.yaml
 
 # Generated render/debug artifacts
 .generated/
+bin/
+dist/
+build/
+out/
+*.exe
+*.test
+*.prof
+*.cover
+coverage.out
+coverage.html
+coverage/
+.gocache/
 rendered.yaml
 rendered-*.yaml
 manifests.yaml

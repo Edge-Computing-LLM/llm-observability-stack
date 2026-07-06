@@ -7,17 +7,20 @@ The documentation is organized around private LLM deployment and observability o
 ## Start Here
 
 1. [QUICKSTART.md](QUICKSTART.md)
-2. [K3S-NVIDIA-EDGE-DEPENDENCY.md](K3S-NVIDIA-EDGE-DEPENDENCY.md)
-3. [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
-4. [XUBUNTU-K3S-NVIDIA-RUNBOOK.md](XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
-5. [ARCHITECTURE.md](ARCHITECTURE.md)
-6. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
-7. [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
+2. [cli.md](cli.md)
+3. [K3S-NVIDIA-EDGE-DEPENDENCY.md](K3S-NVIDIA-EDGE-DEPENDENCY.md)
+4. [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
+5. [XUBUNTU-K3S-NVIDIA-RUNBOOK.md](XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
+6. [ARCHITECTURE.md](ARCHITECTURE.md)
+7. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
+8. [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
 
 ## Core Guides
 
 - [QUICKSTART.md](QUICKSTART.md)
   - Fast local setup for k3s, values files, image build/import, install, and first validation.
+- [cli.md](cli.md)
+  - Go CLI build instructions, commands, profile mapping, install/validate/benchmark/uninstall examples, and two-layer architecture notes.
 - [K3S-NVIDIA-EDGE-DEPENDENCY.md](K3S-NVIDIA-EDGE-DEPENDENCY.md)
   - Required install order and ownership boundary between `k3s-nvidia-edge` and this LLM stack.
 - [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
@@ -65,6 +68,7 @@ The documentation is organized around private LLM deployment and observability o
 ## Suggested Reading Paths
 
 - First deploy:
+  - [cli.md](cli.md)
   - [K3S-NVIDIA-EDGE-DEPENDENCY.md](K3S-NVIDIA-EDGE-DEPENDENCY.md)
   - [QUICKSTART.md](QUICKSTART.md)
   - [CONFIG-PROFILES.md](CONFIG-PROFILES.md)

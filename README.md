@@ -2,7 +2,11 @@
 
 Kubernetes-native observability, benchmarking, and operations tooling for private LLM inference on local edge systems.
 
+Go CLI documentation: [docs/cli.md](docs/cli.md).
+
 This repository packages a Helm-based stack for k3s and Kubernetes with Ollama/GGUF model serving, Open WebUI, an OpenTelemetry GenAI-instrumented FastAPI proxy, Prometheus, Grafana, OpenTelemetry Collector, blackbox probes, benchmark metrics, and optional NVIDIA GPU monitoring through the NVIDIA runtime, device plugin, GPU Operator, and DCGM-compatible dashboards.
+
+The repository also includes a Go CLI named `llm-observability`. It reuses `github.com/Edge-Computing-LLM/k3s-nvidia-edge/pkg/edgebase` for base-layer checks and keeps application-specific Helm, validation, and benchmark workflows in this repository.
 
 GitHub repository: <https://github.com/Edge-Computing-LLM/llm-observability-stack>
 
@@ -127,7 +131,9 @@ llm-observability-stack/
 ├── values.local-k3s.example.yaml
 ├── artifacts/                     # sanitized public benchmark evidence
 ├── benchmarks/                    # repeatable inference benchmark clients
+├── cmd/llm-observability/         # Go CLI entrypoint
 ├── dashboards/                    # LLM, benchmark, and NVIDIA GPU dashboards
+├── internal/stack/                # CLI stack workflows
 ├── templates/                     # application monitoring and security manifests
 ├── charts/                        # vendored dependency charts
 ├── langchain-demo/                # instrumented FastAPI proxy
@@ -135,6 +141,20 @@ llm-observability-stack/
 ├── docs/                          # architecture, operations, and local runbooks
 ├── hack/                          # validation, device-plugin, and evidence scripts
 └── tests/                         # Helm and application smoke tests
+```
+
+Build the CLI:
+
+```bash
+go build -o bin/llm-observability ./cmd/llm-observability
+```
+
+Recommended local CLI flow when `k3s-nvidia-edge` is already healthy:
+
+```bash
+bin/llm-observability doctor
+bin/llm-observability install --profile geforce-940m-k3s --skip-base --yes
+bin/llm-observability validate
 ```
 
 ## Prerequisites

@@ -2,6 +2,14 @@
 
 `llm-observability-stack` is the LLM application and observability layer. For NVIDIA GPU deployments on local k3s, it depends on `k3s-nvidia-edge` to prepare the cluster substrate first.
 
+The Go CLI in this repository reuses the public base package:
+
+```go
+import "github.com/Edge-Computing-LLM/k3s-nvidia-edge/pkg/edgebase"
+```
+
+It does not import from `k3s-nvidia-edge/internal/...`.
+
 Deploy in this order:
 
 1. `k3s-nvidia-edge`
@@ -79,11 +87,12 @@ Then install this repository:
 
 ```bash
 cd /media/waqasm86/External1/Waqas-Projects/Project-Edge-Computing-LLM/llm-observability-stack
-helm upgrade --install llm-observability-stack . \
-  -n llm-observability --create-namespace \
-  -f values.geforce-940m-k3s.yaml \
-  --wait
+go build -o bin/llm-observability ./cmd/llm-observability
+bin/llm-observability install --profile geforce-940m-k3s --skip-base --yes
+bin/llm-observability validate
 ```
+
+The equivalent Helm path remains supported for operators who prefer direct chart commands.
 
 ## Current GeForce Profile Behavior
 
