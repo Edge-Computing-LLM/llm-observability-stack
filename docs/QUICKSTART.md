@@ -5,8 +5,9 @@ This guide is the fastest path to a working local `llm-observability-stack` depl
 ## 1. Prerequisites
 
 - k3s running and reachable from `kubectl`
+- `k3s-nvidia-edge` already deployed and healthy
 - NVIDIA runtime configured on the node
-- NVIDIA device plugin already healthy in-cluster
+- NVIDIA GPU allocatable in Kubernetes
 - Helm 3 installed
 - Docker or `nerdctl`
 - local GGUF model file on host storage
@@ -15,13 +16,17 @@ Quick checks:
 
 ```bash
 kubectl get nodes -o wide
-kubectl get pods -n nvidia-device-plugin
+kubectl get pods -n gpu-operator
+kubectl describe node "$(kubectl get nodes -o jsonpath='{.items[0].metadata.name}')" | grep -A8 Allocatable
 helm version
 ```
 
 ## 2. Prepare Local Values
 
-For the verified local single-node k3s/NVIDIA workflow, use `values.enterprise-pilot-k3s.yaml`.
+For the verified local single-node k3s/NVIDIA workflow layered on top of `k3s-nvidia-edge`, use
+`values.geforce-940m-k3s.yaml`. This profile deploys Ollama, Open WebUI, Open WebUI Redis, and the
+OpenTelemetry collector; it does not deploy GPU Operator, NVIDIA device plugin, or DCGM exporter
+workloads because those are owned by `k3s-nvidia-edge`.
 
 Create a private override only when your host paths, secrets, or service exposure differ:
 
@@ -44,7 +49,9 @@ Profile reference:
 
 ## 3. Build and Import Local Images
 
-Build the local images:
+The GeForce 940M profile does not require local app images because Open WebUI connects directly to
+Ollama. Build these images only when you intentionally enable `langchainDemo` or `pythonToolbox` in
+another profile:
 
 ```bash
 ./hack/build-local-image.sh langchain-demo 0.1.1 ./langchain-demo
@@ -71,8 +78,8 @@ Verified local k3s/NVIDIA command:
 ```bash
 helm upgrade --install llm-observability-stack . \
   -n llm-observability --create-namespace \
-  -f values.enterprise-pilot-k3s.yaml \
-  --set kube-prometheus-stack.crds.enabled=false
+  -f values.geforce-940m-k3s.yaml \
+  --wait
 ```
 
 If you created a private `values.local-k3s.yaml`, keep the Ollama PVC size aligned with any existing `ollama` PVC before using it on the same release. The k3s `local-path` provisioner does not support resizing this PVC in place.
@@ -89,8 +96,8 @@ Typical local result:
 
 - `open-webui` available through port-forwarding
 - `ollama` internal `ClusterIP`
-- `langchain-demo` internal `ClusterIP`
-- `python-toolbox` running for in-cluster diagnostics
+- `open-webui-redis` internal `ClusterIP`
+- `opentelemetry-collector` internal `ClusterIP`
 
 ## 6. Local Access
 
@@ -102,9 +109,8 @@ Expose UIs and internal APIs from separate terminals:
 
 ```bash
 kubectl port-forward -n llm-observability svc/open-webui 8080:8080
-kubectl port-forward -n llm-observability svc/llm-observability-stack-grafana 3000:80
 kubectl port-forward -n llm-observability svc/ollama 11434:11434
-kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000
+kubectl port-forward -n llm-observability svc/opentelemetry-collector 8888:8888 4317:4317 4318:4318
 ```
 
 ## 7. Jupyter Notebooks
@@ -128,9 +134,9 @@ If the stack does not come up cleanly:
 
 ```bash
 kubectl get pods -n llm-observability -o wide
-kubectl logs -n llm-observability deploy/langchain-demo --tail=100
 kubectl logs -n llm-observability deploy/ollama --tail=100
 kubectl logs -n llm-observability statefulset/open-webui --tail=100
+kubectl logs -n llm-observability deploy/open-webui-redis --tail=100
 ```
 
 If notebook API cells fail:

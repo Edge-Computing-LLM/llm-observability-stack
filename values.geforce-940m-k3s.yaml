@@ -83,9 +83,84 @@ ollama:
       value: "1024"
 
 openWebUI:
-  enabled: false
+  enabled: true
+  fullnameOverride: open-webui
+  ollamaBaseUrl: http://ollama:11434
+  webuiSecretKey: ""
+  existingSecret: ""
+  existingSecretKey: WEBUI_SECRET_KEY
+  auth: false
+  persistence:
+    enabled: true
+    size: 2Gi
+    storageClass: local-path
+  service:
+    type: ClusterIP
+    port: 8080
+  ingress:
+    enabled: false
 open-webui:
-  enabled: false
+  enabled: true
+  fullnameOverride: open-webui
+  image:
+    repository: ghcr.io/open-webui/open-webui
+    tag: 0.8.10
+    pullPolicy: IfNotPresent
+  ollama:
+    enabled: false
+  pipelines:
+    enabled: false
+  tika:
+    enabled: false
+  websocket:
+    enabled: true
+    url: ""
+    redis:
+      enabled: true
+  ollamaUrls:
+    - http://ollama:11434
+  enableOpenaiApi: false
+  openaiBaseApiUrl: ""
+  openaiApiKey: ""
+  webuiSecret:
+    enabled: true
+    existingSecretName: ""
+    existingSecretKey: WEBUI_SECRET_KEY
+  persistence:
+    enabled: true
+    size: 2Gi
+    storageClass: local-path
+  service:
+    type: ClusterIP
+    port: 8080
+    containerPort: 8080
+  runtimeClassName: ""
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1500Mi
+  extraEnvVars:
+    - name: OLLAMA_BASE_URL
+      value: http://ollama:11434
+    - name: ENABLE_PERSISTENT_CONFIG
+      value: "False"
+    - name: WEBUI_AUTH
+      value: "False"
+    - name: ENABLE_VERSION_UPDATE_CHECK
+      value: "False"
+    - name: RAG_EMBEDDING_ENGINE
+      value: ollama
+    - name: RAG_EMBEDDING_MODEL
+      value: gemma3-1b-it-gguf-local
+    - name: RAG_EMBEDDING_MODEL_AUTO_UPDATE
+      value: "False"
+    - name: RAG_RERANKING_MODEL_AUTO_UPDATE
+      value: "False"
+    - name: WHISPER_MODEL_AUTO_UPDATE
+      value: "False"
 redis:
   enabled: false
 langchainDemo:

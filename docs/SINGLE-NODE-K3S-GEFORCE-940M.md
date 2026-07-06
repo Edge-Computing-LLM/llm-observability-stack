@@ -23,8 +23,10 @@ helm upgrade --install llm-observability-stack . \
   --namespace llm-observability --create-namespace \
   -f values.geforce-940m-k3s.yaml
 
-kubectl rollout status deployment/ollama -n llm-observability --timeout=10m
+kubectl rollout status deployment/ollama -n llm-observability
+kubectl rollout status statefulset/open-webui -n llm-observability
 kubectl port-forward -n llm-observability service/ollama 11434:11434
+kubectl port-forward -n llm-observability service/open-webui 8080:8080
 ```
 
 In another terminal:
@@ -37,9 +39,13 @@ curl -s http://127.0.0.1:11434/api/generate \
 kubectl logs -n llm-observability deployment/ollama | grep -Ei 'cuda|gpu|offload|memory'
 ```
 
+Open WebUI is available in Chrome at `http://127.0.0.1:8080/` after the port-forward starts. This
+profile points Open WebUI directly at the in-cluster Ollama service (`http://ollama:11434`) and does
+not deploy GPU Operator, NVIDIA device plugin, or DCGM exporter workloads. Those remain owned by the
+base `k3s-nvidia-edge` layer.
+
 The profile reads `Modelfile.gemma-3-1b-it-gguf` directly and mounts the verified host directory.
-It intentionally starts only Ollama. Enable the API, Open WebUI, and monitoring after this GPU
-inference baseline is healthy.
+It starts Ollama plus Open WebUI for local browser inference once the GPU baseline is healthy.
 
 Verified on June 15, 2026:
 

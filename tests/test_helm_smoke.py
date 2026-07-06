@@ -130,6 +130,11 @@ def test_geforce_profile_uses_repository_modelfile_and_gpu_label() -> None:
     assert "PARAMETER num_ctx 1024" in manifest
     assert 'helm.sh/resource-policy: keep' in manifest
     assert "readOnly: true" in manifest
+    assert "name: open-webui" in manifest
+    assert "name: open-webui-redis" in manifest
+    assert "http://ollama:11434" in manifest
+    assert "http://langchain-demo:8000/ollama" not in manifest
+    assert "name: langchain-demo" not in manifest
     assert "/bin/ollama rm" not in manifest
 
     default_render = _run(["helm", "template", "llm-observability-stack", "."])
