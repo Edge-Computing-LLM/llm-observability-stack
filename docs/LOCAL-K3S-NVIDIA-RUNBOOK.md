@@ -137,6 +137,25 @@ kubectl rollout status deploy/langchain-demo -n llm-observability --timeout=180s
 ```bash
 kubectl exec -n llm-observability deploy/ollama -- ls -lh /models/gguf
 kubectl exec -n llm-observability deploy/ollama -- ollama list
+kubectl exec -n llm-observability deploy/ollama -- ollama ps
+```
+
+The NVIDIA profiles render Ollama with:
+
+```text
+OLLAMA_KEEP_ALIVE=-1
+ollama.ollama.models.run:
+  - gemma3-1b-it-gguf-local
+```
+
+At container startup, the chart creates the local GGUF-backed model and then runs a small warmup prompt so Ollama loads the model into its GPU-enabled runner. `OLLAMA_KEEP_ALIVE=-1` keeps that loaded runner resident instead of unloading it after an idle timeout.
+
+On the GeForce 940M profile, the GPU has 1 GiB of VRAM, so a GGUF model may not fit entirely in GPU memory. This is expected: Ollama should still use CUDA and offload as many layers as fit, with the remainder on CPU. Verify the split with:
+
+```bash
+kubectl logs -n llm-observability deploy/ollama --tail=200 | grep -Ei 'CUDA|offload|model weights|gpu memory'
+kubectl exec -n llm-observability deploy/ollama -- ollama ps
+kubectl exec -n llm-observability deploy/ollama -- nvidia-smi
 ```
 
 Port-forward Ollama:

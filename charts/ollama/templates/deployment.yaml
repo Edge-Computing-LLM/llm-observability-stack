@@ -218,7 +218,7 @@ spec:
                       {{- $allModels = append $allModels (printf "%s:latest" .) }}
                     {{- end }}
 
-                    /bin/ollama run {{ . }}
+                    /bin/ollama run {{ . }} {{ $.Values.ollama.models.runPrompt | default "Reply with exactly: model ready" | quote }}
                     {{- end }}
                     {{- end }}
 

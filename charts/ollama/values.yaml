@@ -101,6 +101,10 @@ ollama:
     #  - llama2
     #  - mistral
     run: []
+    # -- Prompt used for startup warmup when models.run is set.
+    # A real prompt makes the CLI perform inference, which forces Ollama to load
+    # the model before OLLAMA_KEEP_ALIVE controls residency.
+    runPrompt: "Reply with exactly: model ready"
 
     # -- List of models to create at container startup, there are two options
     # 1. Create a raw model

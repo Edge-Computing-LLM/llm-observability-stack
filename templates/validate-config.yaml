@@ -62,3 +62,27 @@ Validate cross-chart secret wiring to avoid drift between:
 {{- fail "The GGUF hostPath mount must be readOnly: true so Kubernetes workloads cannot modify or delete local GGUF model files." -}}
 {{- end -}}
 {{- end -}}
+
+{{- $ollamaGpu := (get $ollamaRuntime "gpu") | default dict -}}
+{{- if and .Values.ollama.enabled .Values.ollamaModel.enabled (get $ollamaGpu "enabled") -}}
+{{- $configuredModelName := .Values.ollamaModel.name -}}
+{{- $runModels := (get $ollamaModels "run") | default list -}}
+{{- $startupLoadsConfiguredModel := false -}}
+{{- range $runModels -}}
+{{- if eq . $configuredModelName -}}
+{{- $startupLoadsConfiguredModel = true -}}
+{{- end -}}
+{{- end -}}
+{{- if not $startupLoadsConfiguredModel -}}
+{{- fail (printf "ollama.ollama.models.run must include %q so the configured model is warmed and loaded into GPU-backed Ollama at startup." $configuredModelName) -}}
+{{- end -}}
+{{- $keepAliveInfinite := false -}}
+{{- range ($ollamaValues.extraEnv | default list) -}}
+{{- if and (eq .name "OLLAMA_KEEP_ALIVE") (eq (printf "%v" (.value | default "")) "-1") -}}
+{{- $keepAliveInfinite = true -}}
+{{- end -}}
+{{- end -}}
+{{- if not $keepAliveInfinite -}}
+{{- fail "ollama.extraEnv must set OLLAMA_KEEP_ALIVE to \"-1\" for GPU profiles so Ollama keeps the startup-loaded model resident." -}}
+{{- end -}}
+{{- end -}}

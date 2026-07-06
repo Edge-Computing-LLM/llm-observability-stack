@@ -127,6 +127,9 @@ def test_geforce_profile_uses_repository_modelfile_and_gpu_label() -> None:
     assert "nvidia.com/gpu.present: \"true\"" in manifest
     assert "node-role.kubernetes.io/worker" not in manifest
     assert "nvidia.com/gpu: 1" in manifest
+    assert "OLLAMA_KEEP_ALIVE" in manifest
+    assert 'value: "-1"' in manifest
+    assert '/bin/ollama run gemma3-1b-it-gguf-local "Reply with exactly: model ready"' in manifest
     assert "PARAMETER num_ctx 1024" in manifest
     assert 'helm.sh/resource-policy: keep' in manifest
     assert "readOnly: true" in manifest
@@ -252,6 +255,41 @@ def test_model_cleanup_is_rejected() -> None:
     )
     assert render.returncode != 0
     assert "models.clean must stay false" in _combined_output(render)
+
+
+@pytest.mark.skipif(shutil.which("helm") is None, reason="helm binary is not available")
+def test_nvidia_profile_rejects_missing_startup_model_residency() -> None:
+    missing_run = _run(
+        [
+            "helm",
+            "template",
+            "llm-observability-stack",
+            ".",
+            "-f",
+            "values.geforce-940m-k3s.yaml",
+            "--set",
+            "ollama.ollama.models.run={}",
+        ]
+    )
+    assert missing_run.returncode != 0
+    assert "ollama.ollama.models.run must include" in _combined_output(missing_run)
+
+    finite_keep_alive = _run(
+        [
+            "helm",
+            "template",
+            "llm-observability-stack",
+            ".",
+            "-f",
+            "values.geforce-940m-k3s.yaml",
+            "--set",
+            "ollama.extraEnv[0].name=OLLAMA_KEEP_ALIVE",
+            "--set",
+            "ollama.extraEnv[0].value=10m",
+        ]
+    )
+    assert finite_keep_alive.returncode != 0
+    assert "OLLAMA_KEEP_ALIVE" in _combined_output(finite_keep_alive)
 
 
 @pytest.mark.skipif(shutil.which("helm") is None, reason="helm binary is not available")

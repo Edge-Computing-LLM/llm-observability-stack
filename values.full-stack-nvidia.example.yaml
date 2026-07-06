@@ -60,6 +60,19 @@ ollama:
       type: nvidia
       number: 1
       nvidiaResource: nvidia.com/gpu
+    models:
+      run:
+        - gemma3-1b-it-gguf-local
+      runPrompt: "Reply with exactly: model ready"
+  extraEnv:
+    - name: OLLAMA_KEEP_ALIVE
+      value: "-1"
+    - name: OLLAMA_NUM_PARALLEL
+      value: "1"
+    - name: OLLAMA_MAX_LOADED_MODELS
+      value: "1"
+    - name: OLLAMA_CONTEXT_LENGTH
+      value: "1024"
 
 
 openWebUI:
