@@ -7,16 +7,19 @@ The documentation is organized around private LLM deployment and observability o
 ## Start Here
 
 1. [QUICKSTART.md](QUICKSTART.md)
-2. [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
-3. [XUBUNTU-K3S-NVIDIA-RUNBOOK.md](XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
-4. [ARCHITECTURE.md](ARCHITECTURE.md)
-5. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
-6. [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
+2. [K3S-NVIDIA-EDGE-DEPENDENCY.md](K3S-NVIDIA-EDGE-DEPENDENCY.md)
+3. [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
+4. [XUBUNTU-K3S-NVIDIA-RUNBOOK.md](XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
+5. [ARCHITECTURE.md](ARCHITECTURE.md)
+6. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
+7. [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
 
 ## Core Guides
 
 - [QUICKSTART.md](QUICKSTART.md)
   - Fast local setup for k3s, values files, image build/import, install, and first validation.
+- [K3S-NVIDIA-EDGE-DEPENDENCY.md](K3S-NVIDIA-EDGE-DEPENDENCY.md)
+  - Required install order and ownership boundary between `k3s-nvidia-edge` and this LLM stack.
 - [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
   - Canonical comparison of git-tracked defaults, local example values, GPU profiles, CPU profiles, and private overrides.
 - [XUBUNTU-K3S-NVIDIA-RUNBOOK.md](XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
@@ -62,6 +65,7 @@ The documentation is organized around private LLM deployment and observability o
 ## Suggested Reading Paths
 
 - First deploy:
+  - [K3S-NVIDIA-EDGE-DEPENDENCY.md](K3S-NVIDIA-EDGE-DEPENDENCY.md)
   - [QUICKSTART.md](QUICKSTART.md)
   - [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
   - [XUBUNTU-K3S-NVIDIA-RUNBOOK.md](XUBUNTU-K3S-NVIDIA-RUNBOOK.md)

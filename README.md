@@ -6,6 +6,16 @@ This repository packages a Helm-based stack for k3s and Kubernetes with Ollama/G
 
 GitHub repository: <https://github.com/Edge-Computing-LLM/llm-observability-stack>
 
+## Required Base Layer For Local NVIDIA k3s
+
+For local NVIDIA GPU deployments, deploy [`k3s-nvidia-edge`](https://github.com/Edge-Computing-LLM/k3s-nvidia-edge) first. This repository expects the GPU substrate to already exist before GPU profiles such as `values.geforce-940m-k3s.yaml` are installed.
+
+`k3s-nvidia-edge` owns k3s, k3s containerd NVIDIA runtime wiring, GPU Operator, NVIDIA device plugin, DCGM exporter, Node Feature Discovery, `RuntimeClass/nvidia`, and the allocatable `nvidia.com/gpu` resource. `llm-observability-stack` then deploys Ollama, Open WebUI, OpenTelemetry, dashboards, benchmarks, and application-level observability on top of that base layer.
+
+Read the full dependency guide before installing GPU profiles:
+
+- [k3s-nvidia-edge dependency](docs/K3S-NVIDIA-EDGE-DEPENDENCY.md)
+
 ## What This Stack Provides
 
 - Local private LLM serving through Ollama and legally obtained GGUF models.
@@ -131,6 +141,7 @@ llm-observability-stack/
 
 - Linux host or cluster with k3s/Kubernetes reachable through `kubectl`.
 - Helm 3 or 4.
+- For local NVIDIA k3s GPU profiles: `k3s-nvidia-edge` deployed and validated first.
 - NVIDIA driver and NVIDIA Container Toolkit for GPU profiles.
 - NVIDIA device plugin or GPU Operator exposing `nvidia.com/gpu` for GPU mode.
 - A legally obtained GGUF model available on node storage.
@@ -140,6 +151,8 @@ Quick checks:
 
 ```bash
 kubectl get nodes -o wide
+helm list -n gpu-operator
+kubectl get pods -n gpu-operator
 kubectl get runtimeclass nvidia
 kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" gpu="}{.status.allocatable.nvidia\.com/gpu}{"\n"}{end}'
 helm version
@@ -160,9 +173,18 @@ helm template llm-observability-stack . \
 
 Review the machine-specific model host path before using this profile on another system. The profile schedules on nodes with `nvidia.com/gpu.present=true`, which supports a single-node k3s control-plane/worker laptop without requiring a separate worker label.
 
+Deploy and validate `k3s-nvidia-edge` first:
+
 ```bash
-MODEL_DIR=/absolute/path/to/gguf-models ./hack/prepare-single-node-k3s.sh
-./hack/install-nvidia-device-plugin.sh
+cd /media/waqasm86/External1/Waqas-Projects/Project-Edge-Computing-LLM/k3s-nvidia-edge
+bin/k3s-nvidia-edge install --yes --sudo=false --use-local-chart --skip-base-package-install --skip-toolkit-install --skip-k3s-install
+bin/k3s-nvidia-edge validate --yes
+```
+
+Then deploy the LLM stack:
+
+```bash
+cd /media/waqasm86/External1/Waqas-Projects/Project-Edge-Computing-LLM/llm-observability-stack
 
 helm upgrade --install llm-observability-stack . \
   -n llm-observability --create-namespace \
@@ -265,6 +287,7 @@ The strict GPU check requires an active cluster with an allocatable NVIDIA GPU.
 - [Local k3s NVIDIA runbook](docs/LOCAL-K3S-NVIDIA-RUNBOOK.md)
 - [Operations runbook](docs/OPERATIONS-RUNBOOK.md)
 - [Configuration profiles](docs/CONFIG-PROFILES.md)
+- [k3s-nvidia-edge dependency](docs/K3S-NVIDIA-EDGE-DEPENDENCY.md)
 - [GitHub publishing guide](docs/GITHUB-PUBLISHING.md)
 
 ## Security and Evidence Boundaries
@@ -281,7 +304,7 @@ The strict GPU check requires an active cluster with an allocatable NVIDIA GPU.
 kubectl get pods -A -o wide
 kubectl describe pod -n llm-observability -l app.kubernetes.io/name=ollama
 kubectl logs -n llm-observability deployment/ollama --tail=200
-kubectl get pods -n nvidia-device-plugin
+kubectl get pods -n gpu-operator
 kubectl get nodes -o json | jq '.items[].status.allocatable'
 watch -n 0.5 nvidia-smi
 ```
@@ -294,6 +317,7 @@ Start with [docs/README.md](docs/README.md), then use:
 
 - [Architecture](docs/ARCHITECTURE.md)
 - [Configuration profiles](docs/CONFIG-PROFILES.md)
+- [k3s-nvidia-edge dependency](docs/K3S-NVIDIA-EDGE-DEPENDENCY.md)
 - [Quickstart](docs/QUICKSTART.md)
 - [Operations runbook](docs/OPERATIONS-RUNBOOK.md)
 - [Xubuntu k3s NVIDIA runbook](docs/XUBUNTU-K3S-NVIDIA-RUNBOOK.md)

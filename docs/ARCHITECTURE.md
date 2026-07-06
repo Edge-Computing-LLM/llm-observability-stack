@@ -2,6 +2,8 @@
 
 This document explains how `llm-observability-stack` is put together, which components own which responsibilities, and how traffic moves through the local k3s deployment.
 
+For local NVIDIA GPU deployments, this repository is not the cluster bootstrap layer. Deploy and validate `k3s-nvidia-edge` first, then deploy `llm-observability-stack` on top of the ready k3s/NVIDIA substrate. See [k3s-nvidia-edge dependency](K3S-NVIDIA-EDGE-DEPENDENCY.md).
+
 ## 1. Design Goals
 
 - Keep the stack understandable on a single local node
@@ -80,7 +82,9 @@ Optional and disabled by default. These exist for troubleshooting and demo scena
 
 ### 2.8 NVIDIA and observability operators
 
-The root chart vendors and controls the NVIDIA and observability integration points required for local GPU-aware LLM operations:
+The root chart vendors NVIDIA-related charts for portability and non-local profiles, but the verified local k3s/NVIDIA path treats `k3s-nvidia-edge` as the owner of the GPU substrate. Keep GPU Operator, NVIDIA device plugin, and DCGM exporter disabled here when `k3s-nvidia-edge` is installed.
+
+Available integration points:
 
 - `gpu-operator` for clusters that need NVIDIA driver/toolkit/device-plugin/DCGM lifecycle management.
 - `nvidia-device-plugin` plus `dcgm-exporter` for lightweight workstation or k3s clusters where host drivers and container runtime are already installed.
@@ -90,13 +94,20 @@ The root chart vendors and controls the NVIDIA and observability integration poi
 
 ## 3. Traffic Flow
 
-Primary user path:
+Primary user path for the full proxy profile:
 
 1. Browser -> `open-webui` Service
 2. `open-webui` pod -> `langchain-demo` Service
 3. `langchain-demo` pod -> `ollama` Service
 4. `langchain-demo` -> OpenTelemetry API when tracing is enabled
 5. `langchain-demo` -> OpenTelemetry Collector when OpenTelemetry is enabled
+
+Primary user path for `values.geforce-940m-k3s.yaml`:
+
+1. Browser -> `open-webui` Service
+2. `open-webui` pod -> `ollama` Service
+3. `ollama` pod -> NVIDIA GPU through `RuntimeClass/nvidia` and `nvidia.com/gpu`
+4. OpenTelemetry Collector remains available for OTLP ingest
 
 Supporting path:
 
@@ -161,3 +172,16 @@ This repository is optimized for:
 - observability walkthroughs
 
 It is not trying to be a generic multi-node production platform.
+
+## 9. Upstream Base Layer
+
+The verified local NVIDIA flow depends on `k3s-nvidia-edge` for:
+
+- k3s and k3s containerd runtime preparation
+- GPU Operator installation in namespace `gpu-operator`
+- `RuntimeClass/nvidia`
+- allocatable `nvidia.com/gpu`
+- DCGM exporter and device plugin lifecycle
+- CUDA pod validation
+
+`llm-observability-stack` should be installed only after those checks pass.

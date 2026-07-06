@@ -21,6 +21,8 @@ kubectl describe node "$(kubectl get nodes -o jsonpath='{.items[0].metadata.name
 helm version
 ```
 
+Read [K3S-NVIDIA-EDGE-DEPENDENCY.md](K3S-NVIDIA-EDGE-DEPENDENCY.md) if the GPU Operator, RuntimeClass, or `nvidia.com/gpu` checks are not already passing.
+
 ## 2. Prepare Local Values
 
 For the verified local single-node k3s/NVIDIA workflow layered on top of `k3s-nvidia-edge`, use
