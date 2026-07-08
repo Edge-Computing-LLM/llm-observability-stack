@@ -1,6 +1,9 @@
 # Local k3s NVIDIA Runbook
 
-This runbook deploys `llm-observability-stack` on a local Xubuntu 24 host with k3s, NVIDIA GPU support, local GGUF storage, Ollama, Open WebUI, Prometheus/Grafana, DCGM exporter, and the vendored OpenTelemetry Collector chart.
+This runbook deploys `llm-observability-stack` on a local Xubuntu 24 host after
+`k3s-nvidia-edge` has prepared k3s, the NVIDIA runtime, GPU Operator, device
+plugin, RuntimeClass, and DCGM exporter. This chart installs Ollama, Open WebUI,
+Prometheus/Grafana, OpenTelemetry Collector, and LLM observability resources.
 
 ## 1. Enter the Project
 
@@ -28,10 +31,12 @@ kubectl get pods -A | grep -Ei 'nvidia|device-plugin|dcgm'
 kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" gpu="}{.status.allocatable.nvidia\.com/gpu}{"\n"}{end}'
 ```
 
-If the device plugin is not installed, install it using the local helper:
+If `RuntimeClass/nvidia` or `nvidia.com/gpu` is missing, install or repair the
+base layer first:
 
 ```bash
-./hack/install-nvidia-device-plugin.sh
+edge install infra --yes
+edge validate infra
 ```
 
 ## 4. Verify the Local GGUF Model
@@ -77,7 +82,6 @@ docker.io/library/busybox:1.38.0
 ghcr.io/jkroepke/kube-webhook-certgen:1.8.3
 ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s:0.153.0
 ghcr.io/open-webui/open-webui:0.8.10
-nvcr.io/nvidia/k8s/dcgm-exporter:4.5.3-4.8.2-distroless
 ollama/ollama:0.17.7
 quay.io/kiwigrid/k8s-sidecar:2.7.3
 quay.io/prometheus-operator/prometheus-operator:v0.91.0

@@ -8,13 +8,13 @@ and host-path ownership would make that topology unreliable.
 ## Prepare the combined node
 
 ```bash
-./hack/prepare-single-node-k3s.sh
-./hack/install-nvidia-device-plugin.sh
+edge install infra --yes
+edge validate infra
 kubectl get nodes --show-labels
 ```
 
-The scripts retain the existing control-plane role and add worker, GPU-present, and model-host
-labels. The device plugin must expose one `nvidia.com/gpu` before Ollama is installed.
+The base layer must expose one `nvidia.com/gpu` and `RuntimeClass/nvidia` before
+Ollama is installed.
 
 ## Deploy the exact local GGUF model
 

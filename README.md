@@ -2,11 +2,12 @@
 
 Kubernetes-native observability, benchmarking, and operations tooling for private LLM inference on local edge systems.
 
-Go CLI documentation: [docs/cli.md](docs/cli.md).
+Preferred organization CLI: [`edge-cli`](https://github.com/Edge-Computing-LLM/edge-cli).
+Repo-local legacy/helper CLI documentation: [docs/cli.md](docs/cli.md).
 
-This repository packages a Helm-based stack for k3s and Kubernetes with Ollama/GGUF model serving, Open WebUI, an OpenTelemetry GenAI-instrumented FastAPI proxy, Prometheus, Grafana, OpenTelemetry Collector, blackbox probes, benchmark metrics, and optional NVIDIA GPU monitoring through the NVIDIA runtime, device plugin, GPU Operator, and DCGM-compatible dashboards.
+This repository packages a Helm-based application and observability stack for k3s and Kubernetes with Ollama/GGUF model serving, Open WebUI, an OpenTelemetry GenAI-instrumented FastAPI proxy, Prometheus, Grafana, OpenTelemetry Collector, blackbox probes, benchmark metrics, and NVIDIA/DCGM-compatible dashboards.
 
-The repository also includes a Go CLI named `llm-observability`. It reuses `github.com/Edge-Computing-LLM/k3s-nvidia-edge/pkg/edgebase` for base-layer checks and keeps application-specific Helm, validation, and benchmark workflows in this repository.
+The repository also includes a Go CLI named `llm-observability` for repo-local helper workflows. New end-to-end installs should use `edge-cli`, which deploys `k3s-nvidia-edge` first and then this chart.
 
 GitHub repository: <https://github.com/Edge-Computing-LLM/llm-observability-stack>
 
@@ -15,6 +16,8 @@ GitHub repository: <https://github.com/Edge-Computing-LLM/llm-observability-stac
 For local NVIDIA GPU deployments, deploy [`k3s-nvidia-edge`](https://github.com/Edge-Computing-LLM/k3s-nvidia-edge) first. This repository expects the GPU substrate to already exist before GPU profiles such as `values.geforce-940m-k3s.yaml` are installed.
 
 `k3s-nvidia-edge` owns k3s, k3s containerd NVIDIA runtime wiring, GPU Operator, NVIDIA device plugin, DCGM exporter, Node Feature Discovery, `RuntimeClass/nvidia`, and the allocatable `nvidia.com/gpu` resource. `llm-observability-stack` then deploys Ollama, Open WebUI, OpenTelemetry, dashboards, benchmarks, and application-level observability on top of that base layer.
+
+An empty local k3s cluster with only CoreDNS, local-path-provisioner, and other default k3s system components is a valid starting point before the base layer is deployed. Run `edge install infra` or validate `k3s-nvidia-edge` before installing GPU profiles from this repository.
 
 Read the full dependency guide before installing GPU profiles:
 
@@ -25,7 +28,7 @@ Read the full dependency guide before installing GPU profiles:
 - Local private LLM serving through Ollama and legally obtained GGUF models.
 - Kubernetes deployment through Helm with k3s-friendly profiles.
 - NVIDIA GPU scheduling with `runtimeClassName: nvidia` and `nvidia.com/gpu` when a GPU is available.
-- CPU-only deployment profiles for MacOS/minikube and k3s systems without NVIDIA GPUs.
+- Optional CPU validation profiles for development clusters without NVIDIA GPUs.
 - Open WebUI for browser-based interaction with local models.
 - A FastAPI proxy with LLM request metrics for TTFT, latency, tokens per second, prompt tokens, generated tokens, active requests, and errors.
 - Prometheus, Grafana, Alertmanager, kube-state-metrics, node exporter, ServiceMonitors, probes, and alert rules.
@@ -58,6 +61,7 @@ Evidence and reproduction:
 
 - [Single-node k3s GeForce 940M guide](docs/SINGLE-NODE-K3S-GEFORCE-940M.md)
 - [Local k3s NVIDIA deployment report - 2026-07-02](docs/LOCAL-K3S-NVIDIA-REPORT-2026-07-02.md)
+- [Live layered validation - 2026-07-08](docs/LIVE-VALIDATION-2026-07-08.md)
 - [Verified local GPU results](docs/VERIFIED-LOCAL-GPU-RESULTS.md)
 - [Xubuntu k3s NVIDIA runbook](docs/XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
 - [Sanitized benchmark artifact](artifacts/geforce-940m-benchmark.json)
@@ -82,7 +86,7 @@ These numbers prove constrained local edge feasibility. They do not claim enterp
 
 ## Platform Components
 
-- Vendored Helm charts for Ollama, Open WebUI, NVIDIA GPU Operator, NVIDIA device plugin, DCGM exporter, kube-prometheus-stack, OpenTelemetry Collector, and OpenTelemetry Operator.
+- Vendored Helm charts for Ollama, Open WebUI, kube-prometheus-stack, OpenTelemetry Collector, and OpenTelemetry Operator.
 - FastAPI OpenTelemetry GenAI-instrumented proxy with Prometheus metrics.
 - TTFT, latency, token, throughput, active-request, HTTP, and error telemetry.
 - Optional kube-prometheus-stack, Grafana, Alertmanager, node exporter, and kube-state-metrics from the root umbrella chart.
@@ -115,7 +119,7 @@ Prometheus + Grafana + Alertmanager
         +-- ServiceMonitors, probes, benchmark Pushgateway, Kubernetes metrics
 ```
 
-The verified laptop profile uses Ollama/GGUF. The same observability contract can be used on larger RTX workstations, GPU Operator/DCGM clusters, NIM endpoints, or cloud GPU clusters.
+The verified laptop profile uses Ollama/GGUF. The same observability contract can be used on larger local RTX workstations with the NVIDIA substrate prepared by `k3s-nvidia-edge`.
 
 ## Repository Layout
 
@@ -149,7 +153,16 @@ Build the CLI:
 go build -o bin/llm-observability ./cmd/llm-observability
 ```
 
-Recommended local CLI flow when `k3s-nvidia-edge` is already healthy:
+Preferred local CLI flow from the organization control plane:
+
+```bash
+edge install infra --yes
+edge validate infra
+edge install observability --profile geforce-940m-k3s --yes
+edge validate observability
+```
+
+Repo-local helper flow when `k3s-nvidia-edge` is already healthy:
 
 ```bash
 bin/llm-observability doctor
@@ -163,7 +176,7 @@ bin/llm-observability validate
 - Helm 3 or 4.
 - For local NVIDIA k3s GPU profiles: `k3s-nvidia-edge` deployed and validated first.
 - NVIDIA driver and NVIDIA Container Toolkit for GPU profiles.
-- NVIDIA device plugin or GPU Operator exposing `nvidia.com/gpu` for GPU mode.
+- `RuntimeClass/nvidia` and `nvidia.com/gpu` provided by `k3s-nvidia-edge` for GPU mode.
 - A legally obtained GGUF model available on node storage.
 - Python 3.11 for tests and benchmark tooling.
 
@@ -193,12 +206,11 @@ helm template llm-observability-stack . \
 
 Review the machine-specific model host path before using this profile on another system. The profile schedules on nodes with `nvidia.com/gpu.present=true`, which supports a single-node k3s control-plane/worker laptop without requiring a separate worker label.
 
-Deploy and validate `k3s-nvidia-edge` first:
+Preferred: deploy and validate the base layer through `edge-cli` first:
 
 ```bash
-cd /media/waqasm86/External1/Waqas-Projects/Project-Edge-Computing-LLM/k3s-nvidia-edge
-bin/k3s-nvidia-edge install --yes --sudo=false --use-local-chart --skip-base-package-install --skip-toolkit-install --skip-k3s-install
-bin/k3s-nvidia-edge validate --yes
+edge install infra --yes
+edge validate infra
 ```
 
 Then deploy the LLM stack:
@@ -213,7 +225,7 @@ helm upgrade --install llm-observability-stack . \
 ./hack/test-geforce-940m-inference.sh
 ```
 
-### C. Full-stack NVIDIA profile
+### C. Full observability NVIDIA profile
 
 ```bash
 helm upgrade --install llm-observability-stack . \
@@ -221,7 +233,10 @@ helm upgrade --install llm-observability-stack . \
   -f values.full-stack-nvidia.example.yaml
 ```
 
-Use private values files or existing Kubernetes Secrets for OpenTelemetry and Open WebUI secrets. Never commit secrets.
+This installs the LLM and observability layer only. It does not install GPU
+Operator, NVIDIA device plugin, or DCGM exporter. Use private values files or
+existing Kubernetes Secrets for OpenTelemetry and Open WebUI secrets. Never
+commit secrets.
 
 ### D. Local full-stack k3s profile
 

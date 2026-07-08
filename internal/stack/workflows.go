@@ -27,17 +27,10 @@ func Install(ctx context.Context, opts Options) error {
 	}
 	r := runner(opts)
 	if opts.WithBase {
-		baseOpts := baseOptions(opts)
-		baseRunner := edgebase.NewRunner(baseOpts)
-		if err := edgebase.Doctor(ctx, baseRunner, baseOpts); err != nil {
-			return err
-		}
-		if err := edgebase.Install(ctx, baseRunner, baseOpts); err != nil {
-			return err
-		}
+		return fmt.Errorf("--with-base is deprecated for llm-observability-stack. Use edge-cli and run edge install infra before edge install observability")
 	} else if GPUProfile(opts.Profile) {
 		if err := baseReady(ctx, r, opts); err != nil {
-			return fmt.Errorf("base NVIDIA layer is not ready; run with --with-base to install it or fix k3s-nvidia-edge first: %w", err)
+			return fmt.Errorf("base NVIDIA layer is not ready; run edge install infra or validate k3s-nvidia-edge first: %w", err)
 		}
 	}
 	for _, step := range installSteps(opts) {
@@ -91,11 +84,7 @@ func Uninstall(ctx context.Context, opts Options) error {
 		}
 	}
 	if opts.WithBase {
-		baseOpts := baseOptions(opts)
-		baseOpts.UninstallK3s = false
-		if err := edgebase.Uninstall(ctx, edgebase.NewRunner(baseOpts), baseOpts); err != nil {
-			return err
-		}
+		return fmt.Errorf("--with-base is deprecated for llm-observability-stack. Use edge-cli uninstall all for reverse-order layer removal")
 	}
 	return nil
 }

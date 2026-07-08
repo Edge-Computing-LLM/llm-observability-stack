@@ -76,8 +76,8 @@ nvidia:
   gpuCount: 1
 
 gpu-operator:
-  # Cluster-level installer. Enable this when the cluster does not already have NVIDIA
-  # drivers, container toolkit, device plugin, and DCGM exporter managed elsewhere.
+  # Legacy compatibility key only. The chart no longer vendors or installs GPU Operator.
+  # Use k3s-nvidia-edge, normally through edge-cli, to own the NVIDIA substrate.
   enabled: false
   nfd:
     enabled: true
@@ -93,7 +93,7 @@ gpu-operator:
       enabled: true
 
 nvidia-device-plugin:
-  # Lightweight alternative to gpu-operator when host drivers/toolkit already exist.
+  # Legacy compatibility key only. The chart no longer installs the NVIDIA device plugin.
   enabled: false
   allowDefaultNamespace: true
   fullnameOverride: nvidia-device-plugin
@@ -114,7 +114,8 @@ nvidia-device-plugin:
       memory: 256Mi
 
 dcgm-exporter:
-  # Enable with nvidia-device-plugin, or leave disabled when gpu-operator manages DCGM.
+  # Legacy compatibility key only. The chart no longer installs DCGM exporter.
+  # Use monitoring.dcgmExporter.serviceMonitor to observe an existing exporter.
   enabled: false
   fullnameOverride: dcgm-exporter
   runtimeClassName: nvidia

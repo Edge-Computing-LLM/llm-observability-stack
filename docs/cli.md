@@ -1,14 +1,14 @@
 # llm-observability CLI
 
-`llm-observability` is the Go CLI for this repository. It manages the LLM application and observability layer that runs on top of the `k3s-nvidia-edge` base layer.
+`llm-observability` is the repo-local Go helper CLI. Use `edge-cli` as the
+primary organization-level CLI for end-to-end installs and uninstalls.
 
 ## Architecture Boundary
 
 - `k3s-nvidia-edge` owns the local Linux, k3s, k3s containerd, NVIDIA runtime, GPU Operator, NVIDIA device plugin, DCGM exporter, Node Feature Discovery, `RuntimeClass/nvidia`, and `nvidia.com/gpu` validation layer.
 - `llm-observability-stack` owns Ollama, Open WebUI, Open WebUI Redis, OpenTelemetry Collector, optional Prometheus/Grafana, optional LangChain/FastAPI proxy, benchmark tooling, notebooks, and local model configuration.
-- The `llm-observability` CLI imports reusable base workflows from `github.com/Edge-Computing-LLM/k3s-nvidia-edge/pkg/edgebase`.
+- `edge-cli` owns cross-repository ordering: infra first, observability second.
 - The CLI does not import `k3s-nvidia-edge/internal/...`.
-- This is an incremental step toward a future organization-level CLI spanning Edge-Computing-LLM repositories.
 
 ## Build
 
@@ -35,7 +35,6 @@ bin/llm-observability status
 bin/llm-observability validate
 bin/llm-observability benchmark --model gemma3-1b-it-gguf-local --runs 3
 bin/llm-observability uninstall --yes
-bin/llm-observability uninstall --with-base --yes
 bin/llm-observability print-commands --profile geforce-940m-k3s
 ```
 
@@ -86,10 +85,12 @@ bin/llm-observability install --profile geforce-940m-k3s --skip-base --yes
 bin/llm-observability validate
 ```
 
-If the base layer is not installed yet:
+If the base layer is not installed yet, use `edge-cli`:
 
 ```bash
-bin/llm-observability install --profile geforce-940m-k3s --with-base --yes
+edge install infra --yes
+edge validate infra
+edge install observability --profile geforce-940m-k3s --yes
 ```
 
 By default, install and uninstall commands are dry-run unless `--yes` is provided.
@@ -137,10 +138,10 @@ Keep the namespace:
 bin/llm-observability uninstall --keep-namespace --yes
 ```
 
-Also uninstall the base GPU layer:
+Remove all layers through `edge-cli` when you need reverse-order cleanup:
 
 ```bash
-bin/llm-observability uninstall --with-base --yes
+edge uninstall all --yes
 ```
 
-The base layer is never removed unless `--with-base` is explicitly passed.
+The repo-local `--with-base` flag is deprecated and returns an error.

@@ -1,6 +1,9 @@
 package stack
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestProfileValuesFile(t *testing.T) {
 	tests := map[string]string{
@@ -41,6 +44,16 @@ func TestHelmInstallDisablesBaseLayerChartsForGPUProfiles(t *testing.T) {
 		if !stringsContains(cmd, want) {
 			t.Fatalf("install command missing %q in:\n%s", want, cmd)
 		}
+	}
+}
+
+func TestInstallWithBaseIsDeprecated(t *testing.T) {
+	opts := DefaultOptions()
+	opts.WithBase = true
+	opts.DryRun = true
+	err := Install(context.Background(), opts)
+	if err == nil || !stringsContains(err.Error(), "edge-cli") {
+		t.Fatalf("Install with --with-base error = %v, want edge-cli deprecation", err)
 	}
 }
 

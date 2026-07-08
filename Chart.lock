@@ -1,13 +1,4 @@
 dependencies:
-- name: gpu-operator
-  repository: file://charts/gpu-operator
-  version: v1.0.0-devel
-- name: nvidia-device-plugin
-  repository: file://charts/nvidia-device-plugin
-  version: 0.19.2
-- name: dcgm-exporter
-  repository: file://charts/dcgm-exporter
-  version: 4.8.2
 - name: ollama
   repository: file://charts/ollama
   version: 1.50.0
@@ -23,5 +14,5 @@ dependencies:
 - name: opentelemetry-operator
   repository: file://charts/opentelemetry-operator
   version: 0.115.0
-digest: sha256:7a8de8212f1051cbddc881e9d7d865424f83be907ccd7d5da91491038579eba5
-generated: "2026-06-16T14:22:44.167855506+05:00"
+digest: sha256:9a3e5dc71273d49fd4f3e8a46e8142ca5c83ffb8163c9666c97f4a558af01480
+generated: "2026-07-08T19:18:56.195921069+05:00"

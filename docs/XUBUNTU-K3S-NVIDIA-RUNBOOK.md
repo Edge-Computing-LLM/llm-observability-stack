@@ -107,7 +107,10 @@ kubectl exec -n llm-observability deploy/ollama -- ollama list
 
 ## Full Local k3s/NVIDIA Profile
 
-This profile runs Ollama, Open WebUI, LangChain proxy, Python toolbox, OpenTelemetry Collector, Prometheus, Grafana, Alertmanager, node exporter, kube-state-metrics, and DCGM exporter.
+This profile runs Ollama, Open WebUI, LangChain proxy, Python toolbox,
+OpenTelemetry Collector, Prometheus, Grafana, Alertmanager, node exporter, and
+kube-state-metrics. It may observe the DCGM exporter from the base layer through
+ServiceMonitor resources, but it does not deploy DCGM exporter.
 
 ```bash
 MODEL_DIR=/media/waqasm86/External1/Waqas-Projects/repos-llamatelemetry/llamatelemetry-xubuntu24/models

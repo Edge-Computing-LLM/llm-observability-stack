@@ -3,7 +3,7 @@ LLM Observability Stack Run and Git Publish Instructions
 Target system:
 - Xubuntu 24
 - local k3s Kubernetes
-- NVIDIA GPU runtime and device plugin
+- NVIDIA GPU runtime and device plugin from k3s-nvidia-edge
 - project path:
   /media/waqasm86/External1/Waqas-Projects/Project-Edge-Computing-LLM/llm-observability-stack
 
@@ -27,10 +27,10 @@ Check that k3s sees the NVIDIA GPU:
 
 kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" gpu="}{.status.allocatable.nvidia\.com/gpu}{"\n"}{end}'
 
-If gpu= is empty, prepare the node and install the NVIDIA device plugin:
+If gpu= is empty, prepare and validate the base layer first:
 
-./hack/prepare-single-node-k3s.sh
-./hack/install-nvidia-device-plugin.sh
+edge install infra --yes
+edge validate infra
 
 3. Verify the local GGUF model exists
 

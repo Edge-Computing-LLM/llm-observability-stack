@@ -104,7 +104,7 @@ ollama:
       number: 1
       nvidiaResource: ${GPU_RESOURCE}
 dcgm-exporter:
-  enabled: true
+  enabled: false
 monitoring:
   dcgmExporter:
     serviceMonitor:

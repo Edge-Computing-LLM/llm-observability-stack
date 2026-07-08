@@ -38,14 +38,14 @@ opentelemetry:
     genAI:
       enabled: true
 
-# This local k3s node already has nvidia-device-plugin installed as a separate release.
-# Keep the vendored NVIDIA installer charts available but disabled to avoid duplicate DaemonSets.
+# This local k3s node already has the NVIDIA substrate from k3s-nvidia-edge.
+# Do not install GPU Operator, NVIDIA device plugin, or DCGM exporter from this chart.
 gpu-operator:
   enabled: false
 nvidia-device-plugin:
   enabled: false
 dcgm-exporter:
-  enabled: true
+  enabled: false
 
 networkPolicy:
   enabled: false

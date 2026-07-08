@@ -107,6 +107,9 @@ def test_full_stack_nvidia_profile_renders_observability_resources() -> None:
     assert "kind: PrometheusRule" in manifest
     assert "name: llm-observability-dashboards" in manifest
     assert "llm_observability_time_to_first_token_seconds" in manifest
+    assert "name: nvidia-device-plugin" not in manifest
+    assert "name: dcgm-exporter" not in manifest
+    assert "kind: ClusterPolicy" not in manifest
 
 
 @pytest.mark.skipif(shutil.which("helm") is None, reason="helm binary is not available")
@@ -139,6 +142,9 @@ def test_geforce_profile_uses_repository_modelfile_and_gpu_label() -> None:
     assert "http://langchain-demo:8000/ollama" not in manifest
     assert "name: langchain-demo" not in manifest
     assert "/bin/ollama rm" not in manifest
+    assert "name: nvidia-device-plugin" not in manifest
+    assert "name: dcgm-exporter" not in manifest
+    assert "kind: ClusterPolicy" not in manifest
 
     default_render = _run(["helm", "template", "llm-observability-stack", "."])
     assert default_render.returncode == 0, _combined_output(default_render)
@@ -239,6 +245,8 @@ def test_generated_nvidia_overlay_uses_gpu_resource_without_static_node_label() 
     assert "runtimeClassName: \"nvidia\"" in manifest
     assert "nvidia.com/gpu: 1" in manifest
     assert "nvidia.com/gpu.present" not in manifest
+    assert "name: nvidia-device-plugin" not in manifest
+    assert "name: dcgm-exporter" not in manifest
 
 
 @pytest.mark.skipif(shutil.which("helm") is None, reason="helm binary is not available")
@@ -293,6 +301,23 @@ def test_nvidia_profile_rejects_missing_startup_model_residency() -> None:
 
 
 @pytest.mark.skipif(shutil.which("helm") is None, reason="helm binary is not available")
+def test_base_layer_chart_enables_are_rejected() -> None:
+    for key in ("gpu-operator.enabled", "nvidia-device-plugin.enabled", "dcgm-exporter.enabled"):
+        render = _run(
+            [
+                "helm",
+                "template",
+                "llm-observability-stack",
+                ".",
+                "--set",
+                f"{key}=true",
+            ]
+        )
+        assert render.returncode != 0
+        assert "k3s-nvidia-edge" in _combined_output(render)
+
+
+@pytest.mark.skipif(shutil.which("helm") is None, reason="helm binary is not available")
 def test_helm_package_stays_below_secret_limit_budget(tmp_path: Path) -> None:
     package = _run(["helm", "package", ".", "-d", str(tmp_path)])
     assert package.returncode == 0, _combined_output(package)
@@ -320,15 +345,20 @@ def test_helm_package_stays_below_secret_limit_budget(tmp_path: Path) -> None:
         "llm-observability-stack/dashboards/benchmark-results.json",
         "llm-observability-stack/python-toolbox/examples/otel_genai_inference_traces.py",
         "llm-observability-stack/python-toolbox/examples/otel_genai_trace_seed_every_5m.py",
-        "llm-observability-stack/charts/gpu-operator/Chart.yaml",
-        "llm-observability-stack/charts/nvidia-device-plugin/Chart.yaml",
-        "llm-observability-stack/charts/dcgm-exporter/Chart.yaml",
         "llm-observability-stack/charts/kube-prometheus-stack/Chart.yaml",
         "llm-observability-stack/charts/opentelemetry-collector/Chart.yaml",
         "llm-observability-stack/charts/opentelemetry-operator/Chart.yaml",
     ]
     for required_file in required_files:
         assert required_file in names, required_file
+
+    removed_substrate_files = [
+        "llm-observability-stack/charts/gpu-operator/Chart.yaml",
+        "llm-observability-stack/charts/nvidia-device-plugin/Chart.yaml",
+        "llm-observability-stack/charts/dcgm-exporter/Chart.yaml",
+    ]
+    for removed_file in removed_substrate_files:
+        assert removed_file not in names, removed_file
 
 
 @pytest.mark.skipif(shutil.which("helm") is None, reason="helm binary is not available")
