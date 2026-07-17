@@ -1,0 +1,27 @@
+# Modelfile for the locally retained Ollama Qwen 1.8B Chat Q4_K_M GGUF.
+#
+# Upstream: https://ollama.com/library/qwen:1.8b-chat-q4_K_M
+# GGUF SHA-256: ef0125bcc77278420b64229fc29e235435c517f67ab7aa8546a9f5f7be644cef
+# License: Tongyi Qianwen Research License (non-commercial use unless separately licensed).
+#
+# The GeForce 940M has 1 GiB VRAM. Live tuning on this host showed that 24 GPU
+# layers use 860 MiB, while 23 GPU layers use 824 MiB. Keep num_batch at 1:
+# larger batches make this Qwen architecture reserve a CUDA graph buffer that
+# does not fit on this GPU.
+
+FROM /models/gguf/qwen-1.8b-chat-q4_K_M.gguf
+
+TEMPLATE """<|im_start|>system
+{{ .System }}<|im_end|>
+<|im_start|>user
+{{ .Prompt }}<|im_end|>
+<|im_start|>assistant
+"""
+
+PARAMETER stop "<|im_start|>"
+PARAMETER stop "<|im_end|>"
+PARAMETER num_gpu 23
+PARAMETER num_ctx 256
+PARAMETER num_batch 1
+PARAMETER num_predict 128
+PARAMETER temperature 0

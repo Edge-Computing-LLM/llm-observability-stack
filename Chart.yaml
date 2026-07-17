@@ -13,9 +13,6 @@ kubeVersion: ">=1.27.0-0"
 home: https://github.com/Edge-Computing-LLM/llm-observability-stack
 sources:
   - https://github.com/prometheus-community/helm-charts
-  - https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/
-  - https://github.com/NVIDIA/k8s-device-plugin
-  - https://github.com/NVIDIA/dcgm-exporter
   - https://github.com/open-telemetry/opentelemetry-helm-charts
   - https://github.com/otwld/ollama-helm
   - https://github.com/open-webui/helm-charts
@@ -37,18 +34,6 @@ keywords:
   - opentelemetry
   - genai
 dependencies:
-  - name: gpu-operator
-    version: v1.0.0-devel
-    repository: file://charts/gpu-operator
-    condition: gpu-operator.enabled
-  - name: nvidia-device-plugin
-    version: 0.19.2
-    repository: file://charts/nvidia-device-plugin
-    condition: nvidia-device-plugin.enabled
-  - name: dcgm-exporter
-    version: 4.8.2
-    repository: file://charts/dcgm-exporter
-    condition: dcgm-exporter.enabled
   - name: ollama
     version: 1.50.0
     repository: file://charts/ollama

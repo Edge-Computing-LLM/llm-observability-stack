@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.11
 """Watch endpoint changes for a single service.
 
 Requires:
-  pip install kubernetes
+  python3.11 -m pip install kubernetes
 
 Example:
-  python docs/scripts/watch_endpoints.py --namespace llm-observability --service ollama --timeout 600
+  python3.11 docs/scripts/watch_endpoints.py --namespace llm-observability --service ollama --timeout 600
 """
 
 from __future__ import annotations

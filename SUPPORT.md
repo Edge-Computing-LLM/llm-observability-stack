@@ -4,8 +4,8 @@
 
 Use GitHub Issues for setup, debugging, and enhancement questions:
 
-- Repository: https://github.com/waqasm86/llm-observability-stack
-- New issue: https://github.com/waqasm86/llm-observability-stack/issues/new
+- Repository: https://github.com/Edge-Computing-LLM/llm-observability-stack
+- New issue: https://github.com/Edge-Computing-LLM/llm-observability-stack/issues/new
 
 ## What to Include
 

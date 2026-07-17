@@ -53,8 +53,8 @@ The prompt path `/media/waqasm86/External1/Project-Llamatelemetry/Project-Llamat
 
 Observed alignment:
 
-- `llm-observability-stack` keeps GPU Operator, NVIDIA device plugin, DCGM exporter, kube-prometheus-stack, OpenTelemetry, Ollama, and Open WebUI as vendored Helm dependencies.
-- The local deployment correctly avoids installing duplicate NVIDIA device-plugin/operator components when the cluster already has GPU Operator.
+- `llm-observability-stack` now keeps GPU Operator, NVIDIA device plugin, and DCGM exporter out of its Helm dependency list. Those remain owned by `k3s-nvidia-edge`.
+- The local deployment avoids installing duplicate NVIDIA device-plugin/operator components when the cluster already has GPU Operator.
 - The local profile now follows the single-node k3s reality by using GPU capability detection instead of requiring a `node-role.kubernetes.io/worker=true` selector.
 
 ## Project Changes Applied

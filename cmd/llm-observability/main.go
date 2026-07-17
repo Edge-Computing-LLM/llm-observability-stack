@@ -31,7 +31,7 @@ Common flags:
   --release NAME       Helm release name (default "llm-observability-stack")
   --values FILE        additional values file; may be repeated
   --set KEY=VALUE      additional Helm --set override; may be repeated
-  --with-base          install or uninstall k3s-nvidia-edge base layer too
+  --with-base          deprecated; use edge-cli to install or uninstall the base layer
   --skip-base          do not install base, but still check it for GPU profiles
   --dry-run            print mutating commands without executing them
   --yes                execute mutating commands
@@ -42,9 +42,9 @@ Examples:
   llm-observability install --profile geforce-940m-k3s --skip-base --yes
   llm-observability status
   llm-observability validate
-  llm-observability benchmark --model gemma3-1b-it-gguf-local --runs 3
+  llm-observability benchmark --model qwen-1-8b-chat-q4-k-m-local --runs 3
   llm-observability uninstall --yes
-  llm-observability uninstall --with-base --yes
+  edge uninstall all --yes
 `
 
 func main() {
@@ -63,7 +63,7 @@ func main() {
 	fs.StringVar(&opts.Release, "release", opts.Release, "Helm release name")
 	fs.Var(&values, "values", "additional Helm values file; may be repeated")
 	fs.Var(&sets, "set", "additional Helm --set override; may be repeated")
-	fs.BoolVar(&opts.WithBase, "with-base", false, "include k3s-nvidia-edge base install/uninstall")
+	fs.BoolVar(&opts.WithBase, "with-base", false, "deprecated; use edge-cli for k3s-nvidia-edge base operations")
 	fs.BoolVar(&opts.SkipBase, "skip-base", false, "skip base installation")
 	fs.BoolVar(&opts.DryRun, "dry-run", false, "print mutating commands without executing them")
 	fs.BoolVar(&opts.Yes, "yes", false, "execute mutating commands")

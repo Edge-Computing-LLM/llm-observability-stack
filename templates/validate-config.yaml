@@ -29,6 +29,15 @@ Validate cross-chart secret wiring to avoid drift between:
 {{- $gpuOperator := (get .Values "gpu-operator") | default dict -}}
 {{- $devicePlugin := (get .Values "nvidia-device-plugin") | default dict -}}
 {{- $dcgmExporter := (get .Values "dcgm-exporter") | default dict -}}
+{{- if (get $gpuOperator "enabled") -}}
+{{- fail "gpu-operator.enabled is no longer supported in llm-observability-stack. Deploy the NVIDIA substrate with k3s-nvidia-edge first, then install this chart." -}}
+{{- end -}}
+{{- if (get $devicePlugin "enabled") -}}
+{{- fail "nvidia-device-plugin.enabled is no longer supported in llm-observability-stack. Deploy the NVIDIA substrate with k3s-nvidia-edge first, then install this chart." -}}
+{{- end -}}
+{{- if (get $dcgmExporter "enabled") -}}
+{{- fail "dcgm-exporter.enabled is no longer supported in llm-observability-stack. Observe the DCGM exporter provided by k3s-nvidia-edge/GPU Operator with monitoring.dcgmExporter.serviceMonitor instead." -}}
+{{- end -}}
 {{- if and (get $gpuOperator "enabled") (get $devicePlugin "enabled") -}}
 {{- fail "gpu-operator.enabled and nvidia-device-plugin.enabled must not both be true. gpu-operator already manages the NVIDIA device plugin." -}}
 {{- end -}}

@@ -34,11 +34,11 @@ gpu-operator:
   enabled: false
 
 nvidia-device-plugin:
-  enabled: true
+  enabled: false
   migStrategy: none
 
 dcgm-exporter:
-  enabled: true
+  enabled: false
   serviceMonitor:
     additionalLabels:
       release: kube-prometheus-stack

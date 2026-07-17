@@ -61,6 +61,9 @@ python-toolbox/examples/service_dns_check.py
 
 # Vendored chart docs/assets are not needed at install time
 charts/*.tgz
+charts/gpu-operator/
+charts/nvidia-device-plugin/
+charts/dcgm-exporter/
 charts/ollama/README.md
 charts/ollama/LICENSE
 charts/ollama/artifacthub-repo.yml

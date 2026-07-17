@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.11
 """Comprehensive namespace inventory for llm-observability in-action."""
 
 from __future__ import annotations

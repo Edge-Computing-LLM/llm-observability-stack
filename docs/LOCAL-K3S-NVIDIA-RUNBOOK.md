@@ -1,6 +1,9 @@
 # Local k3s NVIDIA Runbook
 
-This runbook deploys `llm-observability-stack` on a local Xubuntu 24 host with k3s, NVIDIA GPU support, local GGUF storage, Ollama, Open WebUI, Prometheus/Grafana, DCGM exporter, and the vendored OpenTelemetry Collector chart.
+This runbook deploys `llm-observability-stack` on a local Xubuntu 24 host after
+`k3s-nvidia-edge` has prepared k3s, the NVIDIA runtime, GPU Operator, device
+plugin, RuntimeClass, and DCGM exporter. This chart installs Ollama, Open WebUI,
+Prometheus/Grafana, OpenTelemetry Collector, and LLM observability resources.
 
 ## 1. Enter the Project
 
@@ -28,19 +31,26 @@ kubectl get pods -A | grep -Ei 'nvidia|device-plugin|dcgm'
 kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" gpu="}{.status.allocatable.nvidia\.com/gpu}{"\n"}{end}'
 ```
 
-If the device plugin is not installed, install it using the local helper:
+If `RuntimeClass/nvidia` or `nvidia.com/gpu` is missing, install or repair the
+base layer first:
 
 ```bash
-./hack/install-nvidia-device-plugin.sh
+edge install infra --yes
+edge validate infra
 ```
 
 ## 4. Verify the Local GGUF Model
 
-The default local enterprise profile expects:
+The GeForce 940M profile expects:
 
 ```bash
-ls -lh /media/waqasm86/External1/Waqas-Projects/repos-llamatelemetry/llamatelemetry-xubuntu24/models/gemma-3-1b-it-Q4_K_M.gguf
+ls -lh /media/waqasm86/External1/Waqas-Projects/repos-llamatelemetry/llamatelemetry-xubuntu24/models/qwen-1.8b-chat-q4_K_M.gguf
+sha256sum /media/waqasm86/External1/Waqas-Projects/repos-llamatelemetry/llamatelemetry-xubuntu24/models/qwen-1.8b-chat-q4_K_M.gguf
 ```
+
+The expected SHA-256 is
+`ef0125bcc77278420b64229fc29e235435c517f67ab7aa8546a9f5f7be644cef`.
+Other profiles may retain their Gemma defaults.
 
 The chart mounts that host directory read-only into Ollama at `/models/gguf`, and the Ollama PVC is annotated with `helm.sh/resource-policy: keep`.
 
@@ -77,7 +87,6 @@ docker.io/library/busybox:1.38.0
 ghcr.io/jkroepke/kube-webhook-certgen:1.8.3
 ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s:0.153.0
 ghcr.io/open-webui/open-webui:0.8.10
-nvcr.io/nvidia/k8s/dcgm-exporter:4.5.3-4.8.2-distroless
 ollama/ollama:0.17.7
 quay.io/kiwigrid/k8s-sidecar:2.7.3
 quay.io/prometheus-operator/prometheus-operator:v0.91.0
@@ -145,7 +154,7 @@ The NVIDIA profiles render Ollama with:
 ```text
 OLLAMA_KEEP_ALIVE=-1
 ollama.ollama.models.run:
-  - gemma3-1b-it-gguf-local
+  - qwen-1-8b-chat-q4-k-m-local
 ```
 
 At container startup, the chart creates the local GGUF-backed model and then runs a small warmup prompt so Ollama loads the model into its GPU-enabled runner. `OLLAMA_KEEP_ALIVE=-1` keeps that loaded runner resident instead of unloading it after an idle timeout.
@@ -170,7 +179,7 @@ From another terminal:
 curl -s http://127.0.0.1:11434/api/tags | jq
 curl -s http://127.0.0.1:11434/api/generate \
   -H 'Content-Type: application/json' \
-  -d '{"model":"gemma3-1b-it-gguf-local","prompt":"Reply with one short sentence.","stream":false}' | jq
+  -d '{"model":"qwen-1-8b-chat-q4-k-m-local","prompt":"Reply with one short sentence.","stream":false}' | jq
 ```
 
 ## 10. Verify OpenTelemetry Collector

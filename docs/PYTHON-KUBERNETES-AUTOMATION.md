@@ -11,15 +11,13 @@ Profile note:
 ## 1. Install and Environment
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install kubernetes
+/usr/local/bin/python3.11 -m pip install kubernetes
 ```
 
 Or use project script requirements:
 
 ```bash
-pip install -r docs/scripts/requirements.txt
+/usr/local/bin/python3.11 -m pip install -r docs/scripts/requirements.txt
 ```
 
 ## 2. Authentication Modes
@@ -54,9 +52,9 @@ config.load_incluster_config()
 Quick usage:
 
 ```bash
-python docs/scripts/network_inventory.py --namespace llm-observability
-python docs/scripts/service_path_inspector.py --namespace llm-observability --service ollama
-python docs/scripts/watch_endpoints.py --namespace llm-observability --service open-webui --timeout 600
+/usr/local/bin/python3.11 docs/scripts/network_inventory.py --namespace llm-observability
+/usr/local/bin/python3.11 docs/scripts/service_path_inspector.py --namespace llm-observability --service ollama
+/usr/local/bin/python3.11 docs/scripts/watch_endpoints.py --namespace llm-observability --service open-webui --timeout 600
 ```
 
 ## 4. Practical Python Examples

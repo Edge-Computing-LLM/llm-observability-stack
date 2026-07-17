@@ -20,7 +20,7 @@ spec:
             severity: warning
           annotations:
             summary: LLM request error rate is above the configured threshold
-            runbook_url: https://github.com/waqasm86/llm-observability-stack/blob/main/docs/OPERATIONS-RUNBOOK.md
+            runbook_url: https://github.com/Edge-Computing-LLM/llm-observability-stack/blob/main/docs/OPERATIONS-RUNBOOK.md
         - alert: LLMHighP95Latency
           expr: |
             histogram_quantile(0.95,

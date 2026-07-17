@@ -1,12 +1,12 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.11
 """Print a networking inventory for a Kubernetes namespace.
 
 Requires:
-  pip install kubernetes
+  python3.11 -m pip install kubernetes
 
 Examples:
-  python docs/scripts/network_inventory.py --namespace llm-observability
-  python docs/scripts/network_inventory.py --namespace llm-observability --context my-k3s
+  python3.11 docs/scripts/network_inventory.py --namespace llm-observability
+  python3.11 docs/scripts/network_inventory.py --namespace llm-observability --context my-k3s
 """
 
 from __future__ import annotations

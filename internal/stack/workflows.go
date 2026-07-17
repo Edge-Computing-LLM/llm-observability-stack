@@ -27,17 +27,10 @@ func Install(ctx context.Context, opts Options) error {
 	}
 	r := runner(opts)
 	if opts.WithBase {
-		baseOpts := baseOptions(opts)
-		baseRunner := edgebase.NewRunner(baseOpts)
-		if err := edgebase.Doctor(ctx, baseRunner, baseOpts); err != nil {
-			return err
-		}
-		if err := edgebase.Install(ctx, baseRunner, baseOpts); err != nil {
-			return err
-		}
+		return fmt.Errorf("--with-base is deprecated for llm-observability-stack. Use edge-cli and run edge install infra before edge install observability")
 	} else if GPUProfile(opts.Profile) {
 		if err := baseReady(ctx, r, opts); err != nil {
-			return fmt.Errorf("base NVIDIA layer is not ready; run with --with-base to install it or fix k3s-nvidia-edge first: %w", err)
+			return fmt.Errorf("base NVIDIA layer is not ready; run edge install infra or validate k3s-nvidia-edge first: %w", err)
 		}
 	}
 	for _, step := range installSteps(opts) {
@@ -91,11 +84,7 @@ func Uninstall(ctx context.Context, opts Options) error {
 		}
 	}
 	if opts.WithBase {
-		baseOpts := baseOptions(opts)
-		baseOpts.UninstallK3s = false
-		if err := edgebase.Uninstall(ctx, edgebase.NewRunner(baseOpts), baseOpts); err != nil {
-			return err
-		}
+		return fmt.Errorf("--with-base is deprecated for llm-observability-stack. Use edge-cli uninstall all for reverse-order layer removal")
 	}
 	return nil
 }
@@ -170,7 +159,7 @@ func baseReadySteps(opts Options) []edgebase.Step {
 func stackDoctorSteps(opts Options) []edgebase.Step {
 	ns := shellQuote(opts.Namespace)
 	steps := []edgebase.Step{
-		{Name: "Required commands", Command: "missing=0; for c in kubectl helm python3; do command -v $c >/dev/null && echo \"$c: $(command -v $c)\" || { echo \"$c: missing\"; missing=1; }; done; exit $missing"},
+		{Name: "Required commands", Command: "missing=0; for c in kubectl helm python3.11; do command -v $c >/dev/null && echo \"$c: $(command -v $c)\" || { echo \"$c: missing\"; missing=1; }; done; exit $missing"},
 		{Name: "Helm release", Command: fmt.Sprintf("helm status %s -n %s || true", shellQuote(opts.Release), ns)},
 		{Name: "LLM namespace", Command: fmt.Sprintf("kubectl get namespace %s || true", ns)},
 		{Name: "LLM workloads", Command: fmt.Sprintf("kubectl get pods,deploy,statefulset,svc,pvc -n %s -o wide || true", ns)},
@@ -277,7 +266,7 @@ func helmInstallCommand(opts Options) string {
 
 func benchmarkCommand(opts Options) string {
 	return withRoot(fmt.Sprintf(`set -euo pipefail
-command -v python3 >/dev/null
+command -v python3.11 >/dev/null
 kubectl rollout status deploy/ollama -n %s --timeout=%s
 pf_log="$(mktemp)"
 kubectl port-forward -n %s svc/ollama 11434:11434 >"$pf_log" 2>&1 &
@@ -285,7 +274,7 @@ pf_pid="$!"
 cleanup() { kill "$pf_pid" >/dev/null 2>&1 || true; rm -f "$pf_log"; }
 trap cleanup EXIT
 sleep 3
-python3 benchmarks/ollama_benchmark.py --url http://127.0.0.1:11434/api/generate --model %s --runs %d --warmup-runs 1 --prompt %s --output %s`,
+python3.11 benchmarks/ollama_benchmark.py --url http://127.0.0.1:11434/api/generate --model %s --runs %d --warmup-runs 1 --prompt %s --output %s`,
 		shellQuote(opts.Namespace),
 		shellQuote(opts.Timeout),
 		shellQuote(opts.Namespace),

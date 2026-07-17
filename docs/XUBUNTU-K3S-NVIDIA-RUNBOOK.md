@@ -107,7 +107,10 @@ kubectl exec -n llm-observability deploy/ollama -- ollama list
 
 ## Full Local k3s/NVIDIA Profile
 
-This profile runs Ollama, Open WebUI, LangChain proxy, Python toolbox, OpenTelemetry Collector, Prometheus, Grafana, Alertmanager, node exporter, kube-state-metrics, and DCGM exporter.
+This profile runs Ollama, Open WebUI, LangChain proxy, Python toolbox,
+OpenTelemetry Collector, Prometheus, Grafana, Alertmanager, node exporter, and
+kube-state-metrics. It may observe the DCGM exporter from the base layer through
+ServiceMonitor resources, but it does not deploy DCGM exporter.
 
 ```bash
 MODEL_DIR=/media/waqasm86/External1/Waqas-Projects/repos-llamatelemetry/llamatelemetry-xubuntu24/models
@@ -184,7 +187,7 @@ Ollama generation:
 ```bash
 curl -s http://127.0.0.1:11434/api/generate \
   -H 'Content-Type: application/json' \
-  -d '{"model":"gemma3-1b-it-gguf-local:latest","prompt":"Reply with one short sentence.","stream":false}' | jq
+  -d '{"model":"qwen-1-8b-chat-q4-k-m-local:latest","prompt":"Reply with one short sentence.","stream":false}' | jq
 ```
 
 LangChain proxy:
@@ -226,7 +229,7 @@ Keep benchmark outputs under `artifacts/` and commit only sanitized evidence.
 ```bash
 python3.11 benchmarks/ollama_benchmark.py \
   --url 'http://127.0.0.1:11434/api/generate' \
-  --model gemma3-1b-it-gguf-local:latest \
+  --model qwen-1-8b-chat-q4-k-m-local:latest \
   --warmup-runs 1 \
   --runs 3 \
   --output artifacts/local-benchmark.json

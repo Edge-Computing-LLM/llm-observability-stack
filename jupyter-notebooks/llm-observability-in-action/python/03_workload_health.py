@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.11
 """Check rollout/availability health for namespace workloads."""
 
 from __future__ import annotations

@@ -25,6 +25,8 @@ This directory contains the local image workflow helpers for `llm-observability-
   - writes `.generated/values.runtime-detected.yaml`
   - enables NVIDIA scheduling when `nvidia.com/gpu` is advertised
   - disables NVIDIA runtime and GPU requests when only CPU capacity is available
+  - remains a thin repo-local Helm overlay helper; durable accelerator detection
+    and ordered installation are implemented in Go by `edge-cli`
 
 ## Typical Usage
 

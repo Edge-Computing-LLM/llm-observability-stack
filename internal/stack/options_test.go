@@ -1,6 +1,9 @@
 package stack
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestProfileValuesFile(t *testing.T) {
 	tests := map[string]string{
@@ -30,6 +33,16 @@ func TestGPUProfile(t *testing.T) {
 	}
 }
 
+func TestGeForceDefaultsUseQwenAndPython311(t *testing.T) {
+	opts := DefaultOptions()
+	if opts.Model != "qwen-1-8b-chat-q4-k-m-local" {
+		t.Fatalf("default model = %q, want Qwen local alias", opts.Model)
+	}
+	if !stringsContains(benchmarkCommand(opts), "python3.11 benchmarks/ollama_benchmark.py") {
+		t.Fatalf("benchmark command must use Python 3.11")
+	}
+}
+
 func TestHelmInstallDisablesBaseLayerChartsForGPUProfiles(t *testing.T) {
 	cmd := helmInstallCommand(DefaultOptions())
 	for _, want := range []string{
@@ -41,6 +54,16 @@ func TestHelmInstallDisablesBaseLayerChartsForGPUProfiles(t *testing.T) {
 		if !stringsContains(cmd, want) {
 			t.Fatalf("install command missing %q in:\n%s", want, cmd)
 		}
+	}
+}
+
+func TestInstallWithBaseIsDeprecated(t *testing.T) {
+	opts := DefaultOptions()
+	opts.WithBase = true
+	opts.DryRun = true
+	err := Install(context.Background(), opts)
+	if err == nil || !stringsContains(err.Error(), "edge-cli") {
+		t.Fatalf("Install with --with-base error = %v, want edge-cli deprecation", err)
 	}
 }
 

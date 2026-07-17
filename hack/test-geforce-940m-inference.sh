@@ -2,7 +2,7 @@
 set -euo pipefail
 
 NAMESPACE="${NAMESPACE:-llm-observability}"
-MODEL="${MODEL:-gemma3-1b-it-gguf-local}"
+MODEL="${MODEL:-qwen-1-8b-chat-q4-k-m-local}"
 PROMPT="${PROMPT:-In one short sentence, explain why GPU observability matters.}"
 
 gpu="$(kubectl get nodes -o jsonpath='{range .items[*]}{.status.allocatable.nvidia\.com/gpu}{end}')"

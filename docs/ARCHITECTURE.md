@@ -4,7 +4,15 @@ This document explains how `llm-observability-stack` is put together, which comp
 
 For local NVIDIA GPU deployments, this repository is not the cluster bootstrap layer. Deploy and validate `k3s-nvidia-edge` first, then deploy `llm-observability-stack` on top of the ready k3s/NVIDIA substrate. See [k3s-nvidia-edge dependency](K3S-NVIDIA-EDGE-DEPENDENCY.md).
 
-The Go CLI in `cmd/llm-observability` follows the same boundary. It imports `github.com/Edge-Computing-LLM/k3s-nvidia-edge/pkg/edgebase` for base-layer workflows and keeps LLM stack workflows in `internal/stack`.
+The preferred end-to-end CLI is `edge-cli`. The Go CLI in `cmd/llm-observability`
+is a repo-local helper for this chart and should not be used as the primary
+cross-repository installer.
+
+The optional
+[`qwen-gguf-observability`](https://github.com/Edge-Computing-LLM/qwen-gguf-observability)
+repository is a read-only evidence consumer. It observes selected Kubernetes,
+Helm, Ollama, and GPU status after deployment; it owns no chart resources,
+Modelfile, model lifecycle, or telemetry backend.
 
 ## 1. Design Goals
 
@@ -95,14 +103,17 @@ Optional root-level resource set. It supports Open WebUI websocket/state flows w
 
 Optional and disabled by default. These exist for troubleshooting and demo scenarios, not for the default happy path.
 
-### 2.8 NVIDIA and observability operators
+### 2.8 NVIDIA Metrics Integration
 
-The root chart vendors NVIDIA-related charts for portability and non-local profiles, but the verified local k3s/NVIDIA path treats `k3s-nvidia-edge` as the owner of the GPU substrate. Keep GPU Operator, NVIDIA device plugin, and DCGM exporter disabled here when `k3s-nvidia-edge` is installed.
+The root chart no longer vendors NVIDIA substrate charts. The verified local
+k3s/NVIDIA path treats `k3s-nvidia-edge` as the owner of GPU Operator, NVIDIA
+device plugin, Node Feature Discovery, RuntimeClass, allocatable GPU resources,
+and DCGM exporter.
 
 Available integration points:
 
-- `gpu-operator` for clusters that need NVIDIA driver/toolkit/device-plugin/DCGM lifecycle management.
-- `nvidia-device-plugin` plus `dcgm-exporter` for lightweight workstation or k3s clusters where host drivers and container runtime are already installed.
+- `monitoring.dcgmExporter.serviceMonitor` can observe an existing DCGM exporter
+  Service created by the base layer.
 - `kube-prometheus-stack` for Prometheus Operator, Prometheus, Grafana, Alertmanager, node exporter, and kube-state-metrics.
 - `opentelemetry-collector` for a directly managed OTLP collector Deployment and Service.
 - `opentelemetry-operator` remains available for clusters that need an operator-managed `OpenTelemetryCollector` custom resource.
@@ -202,3 +213,10 @@ The verified local NVIDIA flow depends on `k3s-nvidia-edge` for:
 - CUDA pod validation
 
 `llm-observability-stack` should be installed only after those checks pass.
+
+## 10. Downstream evidence companion
+
+After this stack is healthy, `qwen-gguf-observability` can validate the narrow
+GeForce/Qwen runtime contract and write sanitized JSON or Markdown evidence.
+Deployment changes discovered by those checks must be made here or in the
+infrastructure repository, not copied into the evidence tool.

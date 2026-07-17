@@ -146,7 +146,7 @@ Ollama API test:
 curl -s http://localhost:11434/api/tags | jq
 curl -s http://localhost:11434/api/chat \
   -H 'Content-Type: application/json' \
-  -d '{"model":"gemma3-1b-it-gguf-local","stream":false,"messages":[{"role":"user","content":"health check"}]}' | jq
+  -d '{"model":"qwen-1-8b-chat-q4-k-m-local","stream":false,"messages":[{"role":"user","content":"health check"}]}' | jq
 ```
 
 LangChain demo test:

@@ -9,6 +9,8 @@ values.local-*.yaml
 *.key
 *.crt
 *.kubeconfig
+kubeconfig
+kubeconfig*
 
 # Generated render/debug artifacts
 .generated/
@@ -43,6 +45,9 @@ pictures/
 charts/*.tgz
 charts/**/*.tgz
 monitoring/charts/*.tgz
+llm-observability-stack-*.tgz
+*.tar.gz
+*.zip
 # Large model/data artifacts (keep out of git)
 *.gguf
 *.safetensors
@@ -84,6 +89,7 @@ rendered-with-etcd.yaml
 *.private.yaml
 jupyter-notebooks/python*-pip-list.txt
 local-run-output/
+validation-output/
 *.kube-report.json
 *.kubeconfig.bak
 evidence-local-run/

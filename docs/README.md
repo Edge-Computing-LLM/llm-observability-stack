@@ -6,14 +6,26 @@ The documentation is organized around private LLM deployment and observability o
 
 ## Start Here
 
-1. [QUICKSTART.md](QUICKSTART.md)
-2. [cli.md](cli.md)
-3. [K3S-NVIDIA-EDGE-DEPENDENCY.md](K3S-NVIDIA-EDGE-DEPENDENCY.md)
-4. [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
-5. [XUBUNTU-K3S-NVIDIA-RUNBOOK.md](XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
-6. [ARCHITECTURE.md](ARCHITECTURE.md)
-7. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
-8. [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
+1. [QWEN-1.8B-LIVE-VALIDATION-2026-07-18.md](QWEN-1.8B-LIVE-VALIDATION-2026-07-18.md)
+2. [LIVE-VALIDATION-2026-07-17.md](LIVE-VALIDATION-2026-07-17.md)
+3. [QUICKSTART.md](QUICKSTART.md)
+4. [cli.md](cli.md)
+5. [K3S-NVIDIA-EDGE-DEPENDENCY.md](K3S-NVIDIA-EDGE-DEPENDENCY.md)
+6. [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
+7. [XUBUNTU-K3S-NVIDIA-RUNBOOK.md](XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
+8. [ARCHITECTURE.md](ARCHITECTURE.md)
+9. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
+10. [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
+11. [LANGUAGE-BOUNDARIES.md](LANGUAGE-BOUNDARIES.md)
+
+External companion:
+
+- [`qwen-gguf-observability`](https://github.com/Edge-Computing-LLM/qwen-gguf-observability)
+  provides read-only Qwen runtime contract checks and sanitized evidence. It
+  does not replace this repository's Helm, Modelfile, or benchmark assets.
+- [`Frontend-Edge-LLM-Observability`](https://github.com/Edge-Computing-LLM/Frontend-Edge-LLM-Observability)
+  owns the TypeScript/Vue presentation layer and does not receive direct
+  Kubernetes credentials from this chart.
 
 ## Core Guides
 
@@ -31,6 +43,8 @@ The documentation is organized around private LLM deployment and observability o
   - Existing local k3s/NVIDIA command reference.
 - [ARCHITECTURE.md](ARCHITECTURE.md)
   - Component ownership, request paths, service exposure, and configuration boundaries.
+- [LANGUAGE-BOUNDARIES.md](LANGUAGE-BOUNDARIES.md)
+  - Go, Python 3.11, Bash, Helm/YAML, and frontend ownership rules.
 - [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
   - Day-0 and day-1 tasks: deploy, verify, port-forward, rebuild images, debug, and clean up.
 - [NOTEBOOKS-GUIDE.md](NOTEBOOKS-GUIDE.md)
@@ -52,9 +66,9 @@ The documentation is organized around private LLM deployment and observability o
 ## Local Validation
 
 - [VERIFIED-LOCAL-GPU-RESULTS.md](VERIFIED-LOCAL-GPU-RESULTS.md)
-  - Sanitized local GPU benchmark and deployment results.
+  - Historical Gemma-era sanitized GPU benchmark and deployment results.
 - [LOCAL-K3S-NVIDIA-REPORT-2026-07-02.md](LOCAL-K3S-NVIDIA-REPORT-2026-07-02.md)
-  - Local k3s/NVIDIA status report for the Xubuntu 24 system.
+  - Historical Gemma-era k3s/NVIDIA status report for the Xubuntu 24 system.
 - [SINGLE-NODE-K3S-GEFORCE-940M.md](SINGLE-NODE-K3S-GEFORCE-940M.md)
   - Low-memory GeForce 940M profile notes and constraints.
 - [../validation/README.md](../validation/README.md)
