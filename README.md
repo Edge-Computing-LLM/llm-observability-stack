@@ -156,9 +156,7 @@ go build -o bin/llm-observability ./cmd/llm-observability
 Preferred local CLI flow from the organization control plane:
 
 ```bash
-edge install infra --yes
-edge validate infra
-edge install observability --profile geforce-940m-k3s --yes
+edge install all --accelerator auto --yes
 edge validate observability
 ```
 
@@ -192,6 +190,11 @@ helm version
 ```
 
 The local bootstrap helper detects the Kubernetes runtime before installing. It uses NVIDIA mode when Kubernetes advertises `nvidia.com/gpu`; otherwise it writes a CPU-only overlay and runs the same edge LLM observability path without NVIDIA runtime or GPU resource requests.
+
+The organization CLI exposes the same policy directly. The full installer uses
+host detection, while `edge install observability --accelerator auto --yes` uses
+Kubernetes allocatable GPU capacity. Explicit `cpu` and `nvidia` modes are also
+available for deterministic automation.
 
 ## Quick Start
 

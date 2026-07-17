@@ -7,9 +7,7 @@
 {{- end }}
 3. Confirm the GGUF host path exists on every node eligible for Ollama scheduling.
 4. Preferred install:
-   edge install infra --yes
-   edge validate infra
-   edge install observability --profile geforce-940m-k3s --yes
+   edge install all --accelerator auto --yes
 
 Endpoints after install:
 {{- if .Values.ollama.enabled }}

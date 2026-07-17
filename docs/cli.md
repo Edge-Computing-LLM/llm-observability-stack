@@ -88,9 +88,7 @@ bin/llm-observability validate
 If the base layer is not installed yet, use `edge-cli`:
 
 ```bash
-edge install infra --yes
-edge validate infra
-edge install observability --profile geforce-940m-k3s --yes
+edge install all --accelerator auto --yes
 ```
 
 By default, install and uninstall commands are dry-run unless `--yes` is provided.

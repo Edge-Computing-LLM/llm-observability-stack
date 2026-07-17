@@ -39,16 +39,6 @@ jobs:
             --set open-webui.webuiSecret.existingSecretName= \
             >/tmp/rendered-full-stack-nvidia.yaml
 
-      - name: Build and validate monitoring chart
-        run: |
-          if [ ! -d monitoring ]; then
-            echo "monitoring chart is not present in this repository; skipping optional monitoring chart validation"
-            exit 0
-          fi
-          helm dependency build monitoring
-          helm lint monitoring
-          helm template llm-monitoring monitoring >/tmp/rendered-monitoring.yaml
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

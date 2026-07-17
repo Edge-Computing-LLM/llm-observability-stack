@@ -1,5 +1,5 @@
 blank_issues_enabled: true
 contact_links:
   - name: Support Guide
-    url: https://github.com/waqasm86/llm-observability-stack/blob/main/SUPPORT.md
+    url: https://github.com/Edge-Computing-LLM/llm-observability-stack/blob/main/SUPPORT.md
     about: Check support and troubleshooting guidance before opening an issue.
