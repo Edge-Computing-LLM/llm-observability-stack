@@ -6,9 +6,7 @@ These scripts use the official Kubernetes Python client and are focused on your 
 
 ```bash
 PYTHON_BIN="${PYTHON_BIN:-python3.11}"
-"${PYTHON_BIN}" -m venv .venv
-source .venv/bin/activate
-pip install -r python/requirements.txt
+"${PYTHON_BIN}" -m pip install -r python/requirements.txt
 ```
 
 ## Scripts

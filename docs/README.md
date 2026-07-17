@@ -16,12 +16,16 @@ The documentation is organized around private LLM deployment and observability o
 8. [ARCHITECTURE.md](ARCHITECTURE.md)
 9. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
 10. [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
+11. [LANGUAGE-BOUNDARIES.md](LANGUAGE-BOUNDARIES.md)
 
 External companion:
 
 - [`qwen-gguf-observability`](https://github.com/Edge-Computing-LLM/qwen-gguf-observability)
   provides read-only Qwen runtime contract checks and sanitized evidence. It
   does not replace this repository's Helm, Modelfile, or benchmark assets.
+- [`Frontend-Edge-LLM-Observability`](https://github.com/Edge-Computing-LLM/Frontend-Edge-LLM-Observability)
+  owns the TypeScript/Vue presentation layer and does not receive direct
+  Kubernetes credentials from this chart.
 
 ## Core Guides
 
@@ -39,6 +43,8 @@ External companion:
   - Existing local k3s/NVIDIA command reference.
 - [ARCHITECTURE.md](ARCHITECTURE.md)
   - Component ownership, request paths, service exposure, and configuration boundaries.
+- [LANGUAGE-BOUNDARIES.md](LANGUAGE-BOUNDARIES.md)
+  - Go, Python 3.11, Bash, Helm/YAML, and frontend ownership rules.
 - [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
   - Day-0 and day-1 tasks: deploy, verify, port-forward, rebuild images, debug, and clean up.
 - [NOTEBOOKS-GUIDE.md](NOTEBOOKS-GUIDE.md)

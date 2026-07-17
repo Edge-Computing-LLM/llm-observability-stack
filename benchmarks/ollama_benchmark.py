@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.11
 """Run repeatable Ollama streaming benchmarks and optionally publish summary metrics."""
 
 from __future__ import annotations

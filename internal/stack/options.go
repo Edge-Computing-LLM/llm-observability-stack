@@ -31,7 +31,7 @@ func DefaultOptions() Options {
 		Namespace:   "llm-observability",
 		Release:     "llm-observability-stack",
 		Timeout:     "5m",
-		Model:       "gemma3-1b-it-gguf-local",
+		Model:       "qwen-1-8b-chat-q4-k-m-local",
 		Runs:        3,
 		Prompt:      "Explain GPU observability in one concise sentence.",
 		Output:      "artifacts/benchmark-local.json",

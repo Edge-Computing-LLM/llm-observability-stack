@@ -77,6 +77,11 @@ The companion repository performs read-only runtime contract checks and
 captures sanitized evidence. This chart remains the source of truth for the
 Modelfile, Helm values, model lifecycle, and workload configuration.
 
+The separate
+[`Frontend-Edge-LLM-Observability`](https://github.com/Edge-Computing-LLM/Frontend-Edge-LLM-Observability)
+project provides the TypeScript/Vue dashboard. It consumes controlled DCGM and
+future telemetry endpoints; frontend source is not duplicated in this chart.
+
 ## Who This Is For
 
 - Developers running private LLMs on local Linux systems.

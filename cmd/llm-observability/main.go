@@ -42,7 +42,7 @@ Examples:
   llm-observability install --profile geforce-940m-k3s --skip-base --yes
   llm-observability status
   llm-observability validate
-  llm-observability benchmark --model gemma3-1b-it-gguf-local --runs 3
+  llm-observability benchmark --model qwen-1-8b-chat-q4-k-m-local --runs 3
   llm-observability uninstall --yes
   edge uninstall all --yes
 `

@@ -33,6 +33,16 @@ func TestGPUProfile(t *testing.T) {
 	}
 }
 
+func TestGeForceDefaultsUseQwenAndPython311(t *testing.T) {
+	opts := DefaultOptions()
+	if opts.Model != "qwen-1-8b-chat-q4-k-m-local" {
+		t.Fatalf("default model = %q, want Qwen local alias", opts.Model)
+	}
+	if !stringsContains(benchmarkCommand(opts), "python3.11 benchmarks/ollama_benchmark.py") {
+		t.Fatalf("benchmark command must use Python 3.11")
+	}
+}
+
 func TestHelmInstallDisablesBaseLayerChartsForGPUProfiles(t *testing.T) {
 	cmd := helmInstallCommand(DefaultOptions())
 	for _, want := range []string{

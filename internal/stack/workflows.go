@@ -159,7 +159,7 @@ func baseReadySteps(opts Options) []edgebase.Step {
 func stackDoctorSteps(opts Options) []edgebase.Step {
 	ns := shellQuote(opts.Namespace)
 	steps := []edgebase.Step{
-		{Name: "Required commands", Command: "missing=0; for c in kubectl helm python3; do command -v $c >/dev/null && echo \"$c: $(command -v $c)\" || { echo \"$c: missing\"; missing=1; }; done; exit $missing"},
+		{Name: "Required commands", Command: "missing=0; for c in kubectl helm python3.11; do command -v $c >/dev/null && echo \"$c: $(command -v $c)\" || { echo \"$c: missing\"; missing=1; }; done; exit $missing"},
 		{Name: "Helm release", Command: fmt.Sprintf("helm status %s -n %s || true", shellQuote(opts.Release), ns)},
 		{Name: "LLM namespace", Command: fmt.Sprintf("kubectl get namespace %s || true", ns)},
 		{Name: "LLM workloads", Command: fmt.Sprintf("kubectl get pods,deploy,statefulset,svc,pvc -n %s -o wide || true", ns)},
@@ -266,7 +266,7 @@ func helmInstallCommand(opts Options) string {
 
 func benchmarkCommand(opts Options) string {
 	return withRoot(fmt.Sprintf(`set -euo pipefail
-command -v python3 >/dev/null
+command -v python3.11 >/dev/null
 kubectl rollout status deploy/ollama -n %s --timeout=%s
 pf_log="$(mktemp)"
 kubectl port-forward -n %s svc/ollama 11434:11434 >"$pf_log" 2>&1 &
@@ -274,7 +274,7 @@ pf_pid="$!"
 cleanup() { kill "$pf_pid" >/dev/null 2>&1 || true; rm -f "$pf_log"; }
 trap cleanup EXIT
 sleep 3
-python3 benchmarks/ollama_benchmark.py --url http://127.0.0.1:11434/api/generate --model %s --runs %d --warmup-runs 1 --prompt %s --output %s`,
+python3.11 benchmarks/ollama_benchmark.py --url http://127.0.0.1:11434/api/generate --model %s --runs %d --warmup-runs 1 --prompt %s --output %s`,
 		shellQuote(opts.Namespace),
 		shellQuote(opts.Timeout),
 		shellQuote(opts.Namespace),

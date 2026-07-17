@@ -7,9 +7,7 @@ They are designed to run from host or CI and do not require `python-toolbox` to 
 ## Install
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r docs/scripts/requirements.txt
+/usr/local/bin/python3.11 -m pip install -r docs/scripts/requirements.txt
 ```
 
 ## Scripts
@@ -23,7 +21,7 @@ Purpose:
 Usage:
 
 ```bash
-python docs/scripts/network_inventory.py --namespace llm-observability
+/usr/local/bin/python3.11 docs/scripts/network_inventory.py --namespace llm-observability
 ```
 
 ### 2) `service_path_inspector.py`
@@ -35,9 +33,9 @@ Purpose:
 Usage:
 
 ```bash
-python docs/scripts/service_path_inspector.py --namespace llm-observability --service ollama
-python docs/scripts/service_path_inspector.py --namespace llm-observability --service open-webui
-python docs/scripts/service_path_inspector.py --namespace llm-observability --service langchain-demo
+/usr/local/bin/python3.11 docs/scripts/service_path_inspector.py --namespace llm-observability --service ollama
+/usr/local/bin/python3.11 docs/scripts/service_path_inspector.py --namespace llm-observability --service open-webui
+/usr/local/bin/python3.11 docs/scripts/service_path_inspector.py --namespace llm-observability --service langchain-demo
 ```
 
 ### 3) `watch_endpoints.py`
@@ -49,7 +47,7 @@ Purpose:
 Usage:
 
 ```bash
-python docs/scripts/watch_endpoints.py --namespace llm-observability --service ollama --timeout 600
+/usr/local/bin/python3.11 docs/scripts/watch_endpoints.py --namespace llm-observability --service ollama --timeout 600
 ```
 
 ## Config options

@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.11
 """Trace a Kubernetes Service to selectors, Pods, Endpoints, and EndpointSlices.
 
 Requires:
-  pip install kubernetes
+  python3.11 -m pip install kubernetes
 
 Example:
-  python docs/scripts/service_path_inspector.py --namespace llm-observability --service ollama
+  python3.11 docs/scripts/service_path_inspector.py --namespace llm-observability --service ollama
 """
 
 from __future__ import annotations

@@ -7,7 +7,7 @@ if [[ "${1:-}" == "--strict-gpu" ]]; then
   STRICT_GPU=true
 fi
 
-PYTHON_BIN="${PYTHON_BIN:-python3}"
+PYTHON_BIN="${PYTHON_BIN:-python3.11}"
 
 for command in helm kubectl "$PYTHON_BIN"; do
   command -v "$command" >/dev/null || { echo "missing required command: $command" >&2; exit 1; }
@@ -18,7 +18,7 @@ helm lint .
 helm template llm-observability-stack . >/dev/null
 helm template llm-observability-stack . \
   -f values.full-stack-nvidia.example.yaml \
-  --set opentelemetry.tracing.enabled="" \
+  --set opentelemetry.tracing.enabled=false \
   --set openWebUI.existingSecret="" \
   --set open-webui.webuiSecret.existingSecretName="" >/dev/null
 "$PYTHON_BIN" -m pytest -q tests
