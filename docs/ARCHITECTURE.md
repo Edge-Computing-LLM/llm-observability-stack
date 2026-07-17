@@ -8,6 +8,12 @@ The preferred end-to-end CLI is `edge-cli`. The Go CLI in `cmd/llm-observability
 is a repo-local helper for this chart and should not be used as the primary
 cross-repository installer.
 
+The optional
+[`qwen-gguf-observability`](https://github.com/Edge-Computing-LLM/qwen-gguf-observability)
+repository is a read-only evidence consumer. It observes selected Kubernetes,
+Helm, Ollama, and GPU status after deployment; it owns no chart resources,
+Modelfile, model lifecycle, or telemetry backend.
+
 ## 1. Design Goals
 
 - Keep the stack understandable on a single local node
@@ -207,3 +213,10 @@ The verified local NVIDIA flow depends on `k3s-nvidia-edge` for:
 - CUDA pod validation
 
 `llm-observability-stack` should be installed only after those checks pass.
+
+## 10. Downstream evidence companion
+
+After this stack is healthy, `qwen-gguf-observability` can validate the narrow
+GeForce/Qwen runtime contract and write sanitized JSON or Markdown evidence.
+Deployment changes discovered by those checks must be made here or in the
+infrastructure repository, not copied into the evidence tool.

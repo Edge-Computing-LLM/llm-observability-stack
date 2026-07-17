@@ -17,6 +17,12 @@ The documentation is organized around private LLM deployment and observability o
 9. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
 10. [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
 
+External companion:
+
+- [`qwen-gguf-observability`](https://github.com/Edge-Computing-LLM/qwen-gguf-observability)
+  provides read-only Qwen runtime contract checks and sanitized evidence. It
+  does not replace this repository's Helm, Modelfile, or benchmark assets.
+
 ## Core Guides
 
 - [QUICKSTART.md](QUICKSTART.md)
@@ -54,9 +60,9 @@ The documentation is organized around private LLM deployment and observability o
 ## Local Validation
 
 - [VERIFIED-LOCAL-GPU-RESULTS.md](VERIFIED-LOCAL-GPU-RESULTS.md)
-  - Sanitized local GPU benchmark and deployment results.
+  - Historical Gemma-era sanitized GPU benchmark and deployment results.
 - [LOCAL-K3S-NVIDIA-REPORT-2026-07-02.md](LOCAL-K3S-NVIDIA-REPORT-2026-07-02.md)
-  - Local k3s/NVIDIA status report for the Xubuntu 24 system.
+  - Historical Gemma-era k3s/NVIDIA status report for the Xubuntu 24 system.
 - [SINGLE-NODE-K3S-GEFORCE-940M.md](SINGLE-NODE-K3S-GEFORCE-940M.md)
   - Low-memory GeForce 940M profile notes and constraints.
 - [../validation/README.md](../validation/README.md)

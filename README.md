@@ -44,18 +44,21 @@ The current local deployment target is a single-node Xubuntu 24 system running k
 - k3s node: combined control-plane and worker.
 - NVIDIA device plugin resource: `nvidia.com/gpu: 1`.
 - RuntimeClass: `nvidia`.
-- Model: Gemma 3 1B IT Q4_K_M GGUF.
+- Model: Qwen 1.8B Chat Q4_K_M GGUF through the local alias
+  `qwen-1-8b-chat-q4-k-m-local`.
 
-Measured after one warmup and three streaming benchmark requests:
+Measured after deployment, warmup, and exact-response, arithmetic, and
+translation inference checks:
 
 | Metric | Result |
 |---|---:|
-| TTFT p50 | 0.377 s |
-| TTFT p95 | 0.381 s |
-| Mean throughput | 11.69 tokens/s |
-| End-to-end p95 | 6.97 s |
-| Peak GPU utilization | 52% |
-| VRAM usage | 554 MiB |
+| Model size | Approximately 1.2 GB |
+| CUDA layers | 23/25 |
+| Processor split | 27% CPU / 73% GPU |
+| Context / batch | 256 / 1 |
+| Observed throughput | 9.75-15.78 tokens/s |
+| VRAM usage | 824 MiB used / 152 MiB free |
+| Residency | `Forever` |
 
 Evidence and reproduction:
 
@@ -66,8 +69,13 @@ Evidence and reproduction:
 - [Xubuntu k3s NVIDIA runbook](docs/XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
 - [Sanitized benchmark artifact](artifacts/geforce-940m-benchmark.json)
 - [GeForce 940M Helm profile](values.geforce-940m-k3s.yaml)
+- [Qwen GGUF runtime evidence companion](https://github.com/Edge-Computing-LLM/qwen-gguf-observability)
 
 These numbers prove constrained local edge feasibility. They do not claim enterprise load, concurrency, fleet reliability, or production readiness.
+
+The companion repository performs read-only runtime contract checks and
+captures sanitized evidence. This chart remains the source of truth for the
+Modelfile, Helm values, model lifecycle, and workload configuration.
 
 ## Who This Is For
 

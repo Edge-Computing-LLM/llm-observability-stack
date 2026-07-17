@@ -8,6 +8,8 @@ primary organization-level CLI for end-to-end installs and uninstalls.
 - `k3s-nvidia-edge` owns the local Linux, k3s, k3s containerd, NVIDIA runtime, GPU Operator, NVIDIA device plugin, DCGM exporter, Node Feature Discovery, `RuntimeClass/nvidia`, and `nvidia.com/gpu` validation layer.
 - `llm-observability-stack` owns Ollama, Open WebUI, Open WebUI Redis, OpenTelemetry Collector, optional Prometheus/Grafana, optional LangChain/FastAPI proxy, benchmark tooling, notebooks, and local model configuration.
 - `edge-cli` owns cross-repository ordering: infra first, observability second.
+- `qwen-gguf-observability` optionally consumes the deployed state for read-only
+  contract checks and evidence; it owns no install or uninstall workflow.
 - The CLI does not import `k3s-nvidia-edge/internal/...`.
 
 ## Build
@@ -33,7 +35,7 @@ bin/llm-observability doctor
 bin/llm-observability install --profile geforce-940m-k3s --skip-base --yes
 bin/llm-observability status
 bin/llm-observability validate
-bin/llm-observability benchmark --model gemma3-1b-it-gguf-local --runs 3
+bin/llm-observability benchmark --model qwen-1-8b-chat-q4-k-m-local --runs 3
 bin/llm-observability uninstall --yes
 bin/llm-observability print-commands --profile geforce-940m-k3s
 ```
@@ -114,7 +116,7 @@ The benchmark command wraps the existing Python client:
 
 ```bash
 bin/llm-observability benchmark \
-  --model gemma3-1b-it-gguf-local \
+  --model qwen-1-8b-chat-q4-k-m-local \
   --runs 3 \
   --prompt "Explain edge GPU observability in one sentence." \
   --output artifacts/benchmark-local.json

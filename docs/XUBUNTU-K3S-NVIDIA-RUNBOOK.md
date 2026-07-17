@@ -187,7 +187,7 @@ Ollama generation:
 ```bash
 curl -s http://127.0.0.1:11434/api/generate \
   -H 'Content-Type: application/json' \
-  -d '{"model":"gemma3-1b-it-gguf-local:latest","prompt":"Reply with one short sentence.","stream":false}' | jq
+  -d '{"model":"qwen-1-8b-chat-q4-k-m-local:latest","prompt":"Reply with one short sentence.","stream":false}' | jq
 ```
 
 LangChain proxy:
@@ -229,7 +229,7 @@ Keep benchmark outputs under `artifacts/` and commit only sanitized evidence.
 ```bash
 python3.11 benchmarks/ollama_benchmark.py \
   --url 'http://127.0.0.1:11434/api/generate' \
-  --model gemma3-1b-it-gguf-local:latest \
+  --model qwen-1-8b-chat-q4-k-m-local:latest \
   --warmup-runs 1 \
   --runs 3 \
   --output artifacts/local-benchmark.json
