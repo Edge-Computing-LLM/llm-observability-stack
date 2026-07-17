@@ -126,14 +126,16 @@ def test_geforce_profile_uses_repository_modelfile_and_gpu_label() -> None:
     )
     assert render.returncode == 0, _combined_output(render)
     manifest = render.stdout
-    assert "gemma-3-1b-it-Q4_K_M.gguf" in manifest
+    assert "qwen-1.8b-chat-q4_K_M.gguf" in manifest
     assert "nvidia.com/gpu.present: \"true\"" in manifest
     assert "node-role.kubernetes.io/worker" not in manifest
     assert "nvidia.com/gpu: 1" in manifest
     assert "OLLAMA_KEEP_ALIVE" in manifest
     assert 'value: "-1"' in manifest
-    assert '/bin/ollama run gemma3-1b-it-gguf-local "Reply with exactly: model ready"' in manifest
-    assert "PARAMETER num_ctx 1024" in manifest
+    assert '/bin/ollama run qwen-1-8b-chat-q4-k-m-local "Reply with exactly: model ready"' in manifest
+    assert "PARAMETER num_gpu 23" in manifest
+    assert "PARAMETER num_ctx 256" in manifest
+    assert "PARAMETER num_batch 1" in manifest
     assert 'helm.sh/resource-policy: keep' in manifest
     assert "readOnly: true" in manifest
     assert "name: open-webui" in manifest
@@ -340,6 +342,7 @@ def test_helm_package_stays_below_secret_limit_budget(tmp_path: Path) -> None:
     required_files = [
         "llm-observability-stack/langchain-demo/app.py",
         "llm-observability-stack/Modelfile.gemma-3-1b-it-gguf",
+        "llm-observability-stack/Modelfile.qwen-1.8b-chat-q4_K_M",
         "llm-observability-stack/dashboards/llm-overview.json",
         "llm-observability-stack/dashboards/nvidia-gpu.json",
         "llm-observability-stack/dashboards/benchmark-results.json",

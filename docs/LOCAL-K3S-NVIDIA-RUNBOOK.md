@@ -41,11 +41,16 @@ edge validate infra
 
 ## 4. Verify the Local GGUF Model
 
-The default local enterprise profile expects:
+The GeForce 940M profile expects:
 
 ```bash
-ls -lh /media/waqasm86/External1/Waqas-Projects/repos-llamatelemetry/llamatelemetry-xubuntu24/models/gemma-3-1b-it-Q4_K_M.gguf
+ls -lh /media/waqasm86/External1/Waqas-Projects/repos-llamatelemetry/llamatelemetry-xubuntu24/models/qwen-1.8b-chat-q4_K_M.gguf
+sha256sum /media/waqasm86/External1/Waqas-Projects/repos-llamatelemetry/llamatelemetry-xubuntu24/models/qwen-1.8b-chat-q4_K_M.gguf
 ```
+
+The expected SHA-256 is
+`ef0125bcc77278420b64229fc29e235435c517f67ab7aa8546a9f5f7be644cef`.
+Other profiles may retain their Gemma defaults.
 
 The chart mounts that host directory read-only into Ollama at `/models/gguf`, and the Ollama PVC is annotated with `helm.sh/resource-policy: keep`.
 
@@ -149,7 +154,7 @@ The NVIDIA profiles render Ollama with:
 ```text
 OLLAMA_KEEP_ALIVE=-1
 ollama.ollama.models.run:
-  - gemma3-1b-it-gguf-local
+  - qwen-1-8b-chat-q4-k-m-local
 ```
 
 At container startup, the chart creates the local GGUF-backed model and then runs a small warmup prompt so Ollama loads the model into its GPU-enabled runner. `OLLAMA_KEEP_ALIVE=-1` keeps that loaded runner resident instead of unloading it after an idle timeout.
@@ -174,7 +179,7 @@ From another terminal:
 curl -s http://127.0.0.1:11434/api/tags | jq
 curl -s http://127.0.0.1:11434/api/generate \
   -H 'Content-Type: application/json' \
-  -d '{"model":"gemma3-1b-it-gguf-local","prompt":"Reply with one short sentence.","stream":false}' | jq
+  -d '{"model":"qwen-1-8b-chat-q4-k-m-local","prompt":"Reply with one short sentence.","stream":false}' | jq
 ```
 
 ## 10. Verify OpenTelemetry Collector

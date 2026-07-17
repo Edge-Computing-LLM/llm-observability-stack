@@ -14,16 +14,16 @@ nvidia:
 
 ollamaModel:
   enabled: true
-  name: gemma3-1b-it-gguf-local
+  name: qwen-1-8b-chat-q4-k-m-local
   createAtStartup: true
   warmupPrompt: Say hello in one short sentence.
   gguf:
     enabled: true
     hostPath: /media/waqasm86/External1/Waqas-Projects/repos-llamatelemetry/llamatelemetry-xubuntu24/models
-    filename: gemma-3-1b-it-Q4_K_M.gguf
+    filename: qwen-1.8b-chat-q4_K_M.gguf
     mountPath: /models/gguf
   modelfile:
-    file: Modelfile.gemma-3-1b-it-gguf
+    file: Modelfile.qwen-1.8b-chat-q4_K_M
 
 ollama:
   enabled: true
@@ -43,10 +43,10 @@ ollama:
     models:
       pull: []
       run:
-        - gemma3-1b-it-gguf-local
+        - qwen-1-8b-chat-q4-k-m-local
       runPrompt: "Reply with exactly: model ready"
       create:
-        - name: gemma3-1b-it-gguf-local
+        - name: qwen-1-8b-chat-q4-k-m-local
           configMapRef: ollama-local-modelfile
           configMapKeyRef: Modelfile
   persistentVolume:
@@ -82,7 +82,7 @@ ollama:
     - name: OLLAMA_MAX_LOADED_MODELS
       value: "1"
     - name: OLLAMA_CONTEXT_LENGTH
-      value: "1024"
+      value: "256"
 
 openWebUI:
   enabled: true
@@ -156,7 +156,7 @@ open-webui:
     - name: RAG_EMBEDDING_ENGINE
       value: ollama
     - name: RAG_EMBEDDING_MODEL
-      value: gemma3-1b-it-gguf-local
+      value: qwen-1-8b-chat-q4-k-m-local
     - name: RAG_EMBEDDING_MODEL_AUTO_UPDATE
       value: "False"
     - name: RAG_RERANKING_MODEL_AUTO_UPDATE

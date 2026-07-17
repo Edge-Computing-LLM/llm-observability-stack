@@ -209,6 +209,11 @@ helm template llm-observability-stack . \
 
 Review the machine-specific model host path before using this profile on another system. The profile schedules on nodes with `nvidia.com/gpu.present=true`, which supports a single-node k3s control-plane/worker laptop without requiring a separate worker label.
 
+This profile uses the locally retained Qwen 1.8B Chat Q4_K_M GGUF and
+`Modelfile.qwen-1.8b-chat-q4_K_M`. On the 1 GiB GeForce 940M it pins 23/25
+layers to CUDA, limits batch size to 1, uses a 256-token context, and keeps the
+model loaded indefinitely. The measured steady-state allocation is 824 MiB VRAM.
+
 Preferred: deploy and validate the base layer through `edge-cli` first:
 
 ```bash
@@ -219,7 +224,7 @@ edge validate infra
 Then deploy the LLM stack:
 
 ```bash
-cd /media/waqasm86/External1/Waqas-Projects/Project-Edge-Computing-LLM/llm-observability-stack
+cd /media/waqasm86/External1/Waqas-Projects/Project-Linux-Kubernetes-Nvidia/Project-Edge-Computing-LLM/llm-observability-stack
 
 helm upgrade --install llm-observability-stack . \
   -n llm-observability --create-namespace \
@@ -290,7 +295,7 @@ Run the public benchmark from another terminal:
 
 ```bash
 ./benchmarks/ollama_benchmark.py \
-  --model gemma3-1b-it-gguf-local \
+  --model qwen-1-8b-chat-q4-k-m-local \
   --warmup-runs 1 \
   --runs 10 \
   --output artifacts/benchmark-local.json

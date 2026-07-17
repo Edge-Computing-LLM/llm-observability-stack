@@ -35,7 +35,7 @@ In another terminal:
 curl -s http://127.0.0.1:11434/api/tags | jq
 curl -s http://127.0.0.1:11434/api/generate \
   -H 'Content-Type: application/json' \
-  -d '{"model":"gemma3-1b-it-gguf-local","prompt":"Reply with one short sentence.","stream":false}' | jq
+  -d '{"model":"qwen-1-8b-chat-q4-k-m-local","prompt":"Reply with one short sentence.","stream":false}' | jq
 kubectl logs -n llm-observability deployment/ollama | grep -Ei 'cuda|gpu|offload|memory'
 ```
 
@@ -44,16 +44,23 @@ profile points Open WebUI directly at the in-cluster Ollama service (`http://oll
 not deploy GPU Operator, NVIDIA device plugin, or DCGM exporter workloads. Those remain owned by the
 base `k3s-nvidia-edge` layer.
 
-The profile reads `Modelfile.gemma-3-1b-it-gguf` directly and mounts the verified host directory.
+The profile reads `Modelfile.qwen-1.8b-chat-q4_K_M` directly and mounts the verified host directory.
 It starts Ollama plus Open WebUI for local browser inference once the GPU baseline is healthy.
 
-Verified on June 15, 2026:
+The official Qwen GGUF is approximately 1.2 GB and cannot fit entirely in the
+GeForce 940M's 1 GiB VRAM. The profile pins 23 of 25 repeating layers to CUDA,
+uses a batch size of 1 and context of 256, and keeps the model resident with
+`OLLAMA_KEEP_ALIVE=-1`. This measured configuration uses 824 MiB VRAM; 24 layers
+used 860 MiB and exceeded the configured 850 MiB ceiling.
+
+Verified on July 18, 2026:
 
 - k3s node role: `control-plane,worker`
 - device resource: one allocatable `nvidia.com/gpu`
-- model: `gemma3-1b-it-gguf-local:latest`, 806 MB
-- Ollama detection: CUDA compute 5.0, NVIDIA GeForce 940M, approximately 969 MiB free VRAM
-- observed inference: 6.1 seconds, up to 52% GPU utilization and 554 MiB VRAM
+- model: `qwen-1-8b-chat-q4-k-m-local:latest`, approximately 1.2 GB
+- Ollama detection: CUDA compute 5.0, NVIDIA GeForce 940M, 1,024 MiB total VRAM
+- selected runtime: 23/25 layers on CUDA, 824 MiB used, 152 MiB free
+- observed inference: 9.75–15.78 generated tokens/s across arithmetic, translation, and exact-response tests
 
 Run `./hack/test-geforce-940m-inference.sh` to repeat the smoke test.
 
