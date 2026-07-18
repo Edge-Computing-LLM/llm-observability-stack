@@ -128,16 +128,12 @@ ollama:
     - name: OLLAMA_CONTEXT_LENGTH
       value: "1024"
 
-langchainDemo:
+ollamaGateway:
   enabled: true
   image:
-    repository: langchain-demo
-    tag: 0.1.1
+    repository: ollama-gateway
+    tag: 0.2.0
     pullPolicy: IfNotPresent
-  app:
-    workers: 1
-  appFromConfigMap:
-    enabled: true
   service:
     type: ClusterIP
     port: 8000
@@ -152,7 +148,7 @@ langchainDemo:
 openWebUI:
   enabled: true
   auth: false
-  ollamaBaseUrl: http://langchain-demo:8000/ollama
+  ollamaBaseUrl: http://ollama-gateway:8000/ollama
   webuiSecretKey: replace-with-a-32-plus-char-secret
   service:
     type: ClusterIP
@@ -165,10 +161,10 @@ open-webui:
     port: 8080
     containerPort: 8080
   ollamaUrls:
-    - http://langchain-demo:8000/ollama
+    - http://ollama-gateway:8000/ollama
   extraEnvVars:
     - name: OLLAMA_BASE_URL
-      value: http://langchain-demo:8000/ollama
+      value: http://ollama-gateway:8000/ollama
     - name: ENABLE_PERSISTENT_CONFIG
       value: "False"
     - name: WEBUI_AUTH
@@ -189,10 +185,10 @@ open-webui:
 redis:
   enabled: false
 
-pythonToolbox:
+edgeToolbox:
   enabled: true
   image:
-    repository: python-toolbox
+    repository: edge-toolbox
     tag: 0.2.0
     pullPolicy: IfNotPresent
 

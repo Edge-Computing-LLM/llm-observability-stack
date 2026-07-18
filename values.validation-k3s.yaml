@@ -13,9 +13,9 @@ open-webui:
   enabled: false
 redis:
   enabled: false
-langchainDemo:
+ollamaGateway:
   enabled: false
-pythonToolbox:
+edgeToolbox:
   enabled: false
 otelTraceSeeder:
   enabled: false

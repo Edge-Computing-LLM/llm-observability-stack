@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMAGE_REPO="${1:-langchain-demo}"
+IMAGE_REPO="${1:-ollama-gateway}"
 IMAGE_TAG="${2:-0.1.0}"
 FULL_IMAGE="${IMAGE_REPO}:${IMAGE_TAG}"
 TMP_TAR="$(mktemp /tmp/local-image.XXXXXX.tar)"

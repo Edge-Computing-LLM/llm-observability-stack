@@ -12,9 +12,9 @@ Notebook classification is maintained in [../jupyter-notebooks/CATALOG.md](../ju
 2. `02-ollama-api-basics.ipynb`
    - Exercises Ollama directly through its HTTP API.
    - Requires `kubectl port-forward -n llm-observability svc/ollama 11434:11434`.
-3. `03-langchain-proxy-deep-dive.ipynb`
-   - Validates the local FastAPI proxy and compares direct-vs-proxy request behavior.
-   - Requires `kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000`.
+3. `03-ollama-gateway-deep-dive.ipynb`
+   - Validates the local Go Ollama gateway and compares direct-vs-proxy request behavior.
+   - Requires `kubectl port-forward -n llm-observability svc/ollama-gateway 8000:8000`.
 4. `04-opentelemetry-tracing-setup.ipynb`
    - Confirms OpenTelemetry credentials, pushes traced inference traffic, and queries recorded runs.
    - Requires the OpenTelemetry environment variables in the notebook kernel plus the same port-forwards used by `02` and `03`.
@@ -24,9 +24,9 @@ Notebook classification is maintained in [../jupyter-notebooks/CATALOG.md](../ju
 6. `06-custom-modelfile-workflow.ipynb`
    - Focuses on Modelfile customization, optional model creation, and comparison benchmarking.
    - Does not create custom models unless you explicitly enable the relevant cells.
-7. `07-python-toolbox-diagnostics.ipynb`
-   - Uses the in-cluster `python-toolbox` deployment for diagnostics, DNS checks, and script execution.
-   - Assumes `pythonToolbox.enabled: true` in the active release or local values profile.
+7. `07-edge-toolbox-diagnostics.ipynb`
+   - Uses the in-cluster `edge-toolbox` deployment for diagnostics, DNS checks, and script execution.
+   - Assumes `edgeToolbox.enabled: true` in the active release or local values profile.
 8. `08-troubleshooting-etcd-simulations.ipynb`
    - Covers troubleshooting drills, rendered-manifest inspection, and operational failure simulation.
    - Best used after you understand the happy-path stack behavior from notebooks `01` through `07`.
@@ -45,7 +45,7 @@ The repository also contains `llm-observability-stack-example-*.ipynb` notebooks
 
 - `kubectl` must point at the intended local k3s cluster.
 - The Helm release `llm-observability-stack` should be installed in the `llm-observability` namespace.
-- `pythonToolbox.enabled` should remain `true` for the local profile.
+- `edgeToolbox.enabled` should remain `true` for the local profile.
 - Python 3.11 and the `python311` kernelspec should be available.
 - The local machine should have enough RAM and GPU headroom for Ollama inference.
 - If Jupyter is launched from outside the repo, set `LLM_OBSERVABILITY_PROJECT_ROOT` to the chart root before running path-sensitive notebooks.
@@ -64,7 +64,7 @@ Use separate terminals for these when working from the host:
 
 ```bash
 kubectl port-forward -n llm-observability svc/ollama 11434:11434
-kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000
+kubectl port-forward -n llm-observability svc/ollama-gateway 8000:8000
 kubectl port-forward -n llm-observability svc/open-webui 8080:8080
 ```
 
@@ -76,7 +76,7 @@ Typical dependency map:
 - `05` needs browser access to Open WebUI plus OpenTelemetry environment variables if tracing is being validated
 - `06` usually needs Ollama on `localhost:11434`
 - `07` primarily uses the in-cluster toolbox, but some optional checks use `localhost:8000`
-- `09` mostly uses the Kubernetes API directly and only shells into `python-toolbox` for in-cluster probes
+- `09` mostly uses the Kubernetes API directly and only shells into `edge-toolbox` for in-cluster probes
 
 ## Execution Guidance
 
@@ -90,7 +90,7 @@ Typical dependency map:
 
 - `Connection refused` to `localhost:11434` or `localhost:8000`
   - Missing port-forward or the backing pod is not ready.
-- `No running python-toolbox pod found`
+- `No running edge-toolbox pod found`
   - The release is disabled or the deployment needs a restart.
 - Empty OpenTelemetry result tables
   - Credentials are missing, tracing is disabled, or the project name does not match the release configuration.

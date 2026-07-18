@@ -12,12 +12,12 @@ RUNTIME_VALUES_FILE="${RUNTIME_VALUES_FILE:-.generated/values.runtime-detected.y
 cd "${ROOT_DIR}"
 
 args_text=" $* "
-langchain_disabled=false
+gateway_disabled=false
 toolbox_disabled=false
-if [[ "${args_text}" == *"langchainDemo.enabled=false"* ]]; then
-  langchain_disabled=true
+if [[ "${args_text}" == *"ollamaGateway.enabled=false"* ]]; then
+  gateway_disabled=true
 fi
-if [[ "${args_text}" == *"pythonToolbox.enabled=false"* ]]; then
+if [[ "${args_text}" == *"edgeToolbox.enabled=false"* ]]; then
   toolbox_disabled=true
 fi
 
@@ -30,8 +30,7 @@ check_runtime_image() {
     -n "${NAMESPACE}" \
     --image="${image}" \
     --image-pull-policy=Never \
-    --restart=Never \
-    --command -- python --version >/dev/null
+    --restart=Never >/dev/null
 
   sleep 5
   local phase reason
@@ -39,7 +38,7 @@ check_runtime_image() {
   reason="$(kubectl get pod -n "${NAMESPACE}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}' 2>/dev/null || true)"
   kubectl delete pod -n "${NAMESPACE}" "${pod_name}" --ignore-not-found=true >/dev/null 2>&1 || true
 
-  [[ "${phase}" == "Succeeded" && -z "${reason}" ]]
+  [[ ( "${phase}" == "Running" || "${phase}" == "Succeeded" ) && -z "${reason}" ]]
 }
 
 echo "Checking Kubernetes access"
@@ -54,23 +53,23 @@ if [[ "${AUTO_DETECT_RUNTIME}" == "true" ]]; then
 fi
 
 missing_images=()
-if [[ "${langchain_disabled}" == false ]] && ! check_runtime_image image-check-langchain langchain-demo:0.1.1; then
-  missing_images+=("langchain-demo:0.1.1")
+if [[ "${gateway_disabled}" == false ]] && ! check_runtime_image image-check-gateway ollama-gateway:0.2.0; then
+  missing_images+=("ollama-gateway:0.2.0")
 fi
-if [[ "${toolbox_disabled}" == false ]] && ! check_runtime_image image-check-toolbox python-toolbox:0.2.0; then
-  missing_images+=("python-toolbox:0.2.0")
+if [[ "${toolbox_disabled}" == false ]] && ! check_runtime_image image-check-toolbox edge-toolbox:0.2.0; then
+  missing_images+=("edge-toolbox:0.2.0")
 fi
 if (( ${#missing_images[@]} > 0 )); then
   printf 'Missing local image(s) from k3s containerd: %s\n' "${missing_images[*]}" >&2
   cat >&2 <<'EOF'
 Build and import the local images first:
-  ./hack/build-local-image.sh langchain-demo 0.1.1 ./langchain-demo
-  ./hack/import-local-image-to-k3s.sh langchain-demo 0.1.1
-  ./hack/build-local-image.sh python-toolbox 0.2.0 ./python-toolbox
-  ./hack/import-local-image-to-k3s.sh python-toolbox 0.2.0
+  ./hack/build-local-image.sh ollama-gateway 0.2.0 . ollama-gateway/Dockerfile
+  ./hack/import-local-image-to-k3s.sh ollama-gateway 0.2.0
+  ./hack/build-local-image.sh edge-toolbox 0.2.0 . edge-toolbox/Dockerfile
+  ./hack/import-local-image-to-k3s.sh edge-toolbox 0.2.0
 
 Or run a platform-only install:
-  ./hack/bootstrap-enterprise-pilot-k3s.sh --set langchainDemo.enabled=false --set pythonToolbox.enabled=false
+  ./hack/bootstrap-enterprise-pilot-k3s.sh --set ollamaGateway.enabled=false --set edgeToolbox.enabled=false
 EOF
   exit 1
 fi

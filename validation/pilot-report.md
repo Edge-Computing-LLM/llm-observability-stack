@@ -4,7 +4,7 @@ This report summarizes the current local technical validation of `llm-observabil
 
 ## Summary
 
-`llm-observability-stack` deploys local LLM inference and observability components on k3s/Kubernetes. The verified local environment is Xubuntu 24 with k3s, NVIDIA GPU scheduling, Ollama, Open WebUI, a LangChain-compatible FastAPI proxy, OpenTelemetry Collector, Prometheus, Grafana, Alertmanager, DCGM exporter, and diagnostic workloads.
+`llm-observability-stack` deploys local LLM inference and observability components on k3s/Kubernetes. The verified local environment is Xubuntu 24 with k3s, NVIDIA GPU scheduling, Ollama, Open WebUI, a native Go Ollama gateway, OpenTelemetry Collector, Prometheus, Grafana, Alertmanager, DCGM exporter, and diagnostic workloads.
 
 ## Verified Local Environment
 

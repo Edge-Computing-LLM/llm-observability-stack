@@ -21,7 +21,10 @@ Commands:
   install         Install or upgrade the llm-observability-stack Helm release
   status          Print base and LLM stack status
   validate        Run deeper release, pod, service, and optional Ollama checks
-  benchmark       Run the existing Python Ollama benchmark client
+  benchmark       Run the native Go Ollama benchmark client
+  network         Print a namespace networking inventory through kubectl
+  service-path    Trace one Service to its selected Pods and endpoints
+  watch-endpoints Watch endpoint changes for one Service
   uninstall       Uninstall the LLM stack, optionally including the base layer
   print-commands  Print Helm/kubectl commands used by install/validate/uninstall
 
@@ -71,9 +74,11 @@ func main() {
 	fs.BoolVar(&opts.KeepNamespace, "keep-namespace", false, "with uninstall: keep namespace")
 	fs.StringVar(&opts.Model, "model", opts.Model, "with benchmark/validate: Ollama model")
 	fs.IntVar(&opts.Runs, "runs", opts.Runs, "with benchmark: benchmark runs")
+	fs.IntVar(&opts.WarmupRuns, "warmup-runs", opts.WarmupRuns, "with benchmark: warmup runs")
 	fs.StringVar(&opts.Prompt, "prompt", opts.Prompt, "with benchmark: benchmark prompt")
 	fs.StringVar(&opts.Output, "output", opts.Output, "with benchmark: output JSON path")
 	fs.BoolVar(&opts.OllamaSmoke, "ollama-smoke", opts.OllamaSmoke, "with validate: run Ollama smoke test")
+	fs.StringVar(&opts.Service, "service", opts.Service, "with service-path/watch-endpoints: Kubernetes Service")
 
 	if err := fs.Parse(os.Args[2:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -107,6 +112,12 @@ func main() {
 		runErr = stack.Validate(ctx, opts)
 	case "benchmark":
 		runErr = stack.Benchmark(ctx, opts)
+	case "network":
+		runErr = stack.NetworkInventory(ctx, opts)
+	case "service-path":
+		runErr = stack.ServicePath(ctx, opts)
+	case "watch-endpoints":
+		runErr = stack.WatchEndpoints(ctx, opts)
 	case "uninstall":
 		runErr = stack.Uninstall(ctx, opts)
 	case "print-commands":

@@ -48,7 +48,7 @@ For local NVIDIA k3s deployments, all GPU profiles assume `k3s-nvidia-edge` has 
 | Service exposure | `ClusterIP` | `ClusterIP` | `ClusterIP` | `ClusterIP` | `ClusterIP` |
 | OpenTelemetry tracing | enabled | enabled | enabled | collector enabled | enabled |
 | Open WebUI secret key | Empty string | placeholder | placeholder, chart-managed secret | chart-managed secret | placeholder, chart-managed secret |
-| `pythonToolbox.enabled` | `true` | `true` | `true` | `false` | `true` |
+| `edgeToolbox.enabled` | `true` | `true` | `true` | `false` | `true` |
 | `otelTraceSeeder.enabled` | `false` | `false` | `false` | `false` | `false` |
 | `etcd.enabled` | `false` | `false` | `false` | `false` | `false` |
 

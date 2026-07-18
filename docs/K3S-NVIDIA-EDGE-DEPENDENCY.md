@@ -40,7 +40,7 @@ The two projects intentionally own different layers.
 - Open WebUI Redis helper when enabled by the Open WebUI subchart
 - OpenTelemetry Collector and GenAI telemetry paths
 - optional Prometheus/Grafana dashboards and alerting resources
-- optional FastAPI proxy, Python toolbox, benchmarks, notebooks, and diagnostics
+- optional native Go Ollama gateway, Go edge toolbox, benchmarks, notebooks, and diagnostics
 
 Do not enable GPU Operator, standalone NVIDIA device plugin, or standalone DCGM exporter in `llm-observability-stack` when `k3s-nvidia-edge` is already deployed. That would duplicate the GPU substrate that the base layer already owns.
 
@@ -113,8 +113,8 @@ It keeps disabled:
 - root-level `nvidia-device-plugin`
 - root-level `dcgm-exporter`
 - root-level Redis
-- LangChain demo
-- Python toolbox
+- Ollama gateway
+- Go edge toolbox
 - etcd simulation
 
 This keeps the GPU substrate in `k3s-nvidia-edge` and the LLM application layer in `llm-observability-stack`.

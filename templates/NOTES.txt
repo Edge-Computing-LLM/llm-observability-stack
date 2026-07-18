@@ -16,9 +16,9 @@ Endpoints after install:
 {{- if .Values.openWebUI.enabled }}
 - Open WebUI:  http://open-webui:8080
 {{- end }}
-{{- if .Values.langchainDemo.enabled }}
-- LangChain:   http://langchain-demo:8000
-- Open WebUI traced proxy path: http://langchain-demo:8000/ollama/api/*
+{{- if .Values.ollamaGateway.enabled }}
+- LangChain:   http://ollama-gateway:8000
+- Open WebUI traced proxy path: http://ollama-gateway:8000/ollama/api/*
 {{- end }}
 {{- if .Values.otelTraceSeeder.enabled }}
 - OpenTelemetry trace seeder CronJob: otel-trace-seeder (schedule: {{ .Values.otelTraceSeeder.schedule }})

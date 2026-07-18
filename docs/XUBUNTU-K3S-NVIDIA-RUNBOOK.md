@@ -54,8 +54,8 @@ Expected core workloads in the current full local deployment:
 - `ollama`
 - `open-webui`
 - `open-webui-redis`
-- `langchain-demo`
-- `python-toolbox`
+- `ollama-gateway`
+- `edge-toolbox`
 - `opentelemetry-collector`
 - `dcgm-exporter`
 - `kube-prometheus-stack-operator`
@@ -67,16 +67,16 @@ Expected core workloads in the current full local deployment:
 
 ## Build and Import Local Images
 
-Use this when `langchain-demo` or `python-toolbox` source code changes.
+Use this when `ollama-gateway` or `edge-toolbox` source code changes.
 
 ```bash
-docker build -t langchain-demo:0.1.1 ./langchain-demo
-docker build -t python-toolbox:0.2.0 ./python-toolbox
+docker build -t ollama-gateway:0.2.0 ./ollama-gateway
+docker build -t edge-toolbox:0.2.0 ./edge-toolbox
 
-./hack/import-local-image-to-k3s.sh langchain-demo 0.1.1
-./hack/import-local-image-to-k3s.sh python-toolbox 0.2.0
+./hack/import-local-image-to-k3s.sh ollama-gateway 0.2.0
+./hack/import-local-image-to-k3s.sh edge-toolbox 0.2.0
 
-sudo k3s ctr images list | grep -E 'langchain-demo|python-toolbox'
+sudo k3s ctr images list | grep -E 'ollama-gateway|edge-toolbox'
 ```
 
 ## Minimal GPU/Ollama Profile
@@ -107,7 +107,7 @@ kubectl exec -n llm-observability deploy/ollama -- ollama list
 
 ## Full Local k3s/NVIDIA Profile
 
-This profile runs Ollama, Open WebUI, LangChain proxy, Python toolbox,
+This profile runs Ollama, Open WebUI, Ollama gateway, Go edge toolbox,
 OpenTelemetry Collector, Prometheus, Grafana, Alertmanager, node exporter, and
 kube-state-metrics. It may observe the DCGM exporter from the base layer through
 ServiceMonitor resources, but it does not deploy DCGM exporter.
@@ -160,7 +160,7 @@ Run each command in its own terminal when you need local access.
 
 ```bash
 kubectl port-forward -n llm-observability svc/ollama 11434:11434
-kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000
+kubectl port-forward -n llm-observability svc/ollama-gateway 8000:8000
 kubectl port-forward -n llm-observability svc/open-webui 8080:8080
 kubectl port-forward -n llm-observability svc/llm-observability-stack-grafana 3000:80
 kubectl port-forward -n llm-observability svc/opentelemetry-collector 4317:4317 4318:4318 8888:8888
@@ -169,7 +169,7 @@ kubectl port-forward -n llm-observability svc/opentelemetry-collector 4317:4317 
 Useful local URLs:
 
 - Ollama: `http://localhost:11434`
-- LangChain proxy: `http://localhost:8000`
+- Ollama gateway: `http://localhost:8000`
 - Open WebUI: `http://localhost:8080`
 - Grafana: `http://localhost:3000`
 - OpenTelemetry Collector metrics: `http://localhost:8888/metrics`
@@ -190,7 +190,7 @@ curl -s http://127.0.0.1:11434/api/generate \
   -d '{"model":"qwen-1-8b-chat-q4-k-m-local:latest","prompt":"Reply with one short sentence.","stream":false}' | jq
 ```
 
-LangChain proxy:
+Ollama gateway:
 
 ```bash
 curl -s http://127.0.0.1:8000/healthz | jq
@@ -218,8 +218,8 @@ helm template llm-observability-stack . \
   --set open-webui.webuiSecret.existingSecretName= \
   >/tmp/rendered-full-stack-nvidia.yaml
 
-python3.11 -m pytest -q
-PYTHON_BIN=python3.11 ./hack/validate-local-stack.sh --strict-gpu
+go test ./...
+./hack/validate-local-stack.sh --strict-gpu
 ```
 
 ## Benchmark
@@ -227,22 +227,21 @@ PYTHON_BIN=python3.11 ./hack/validate-local-stack.sh --strict-gpu
 Keep benchmark outputs under `artifacts/` and commit only sanitized evidence.
 
 ```bash
-python3.11 benchmarks/ollama_benchmark.py \
-  --url 'http://127.0.0.1:11434/api/generate' \
+bin/llm-observability benchmark \
   --model qwen-1-8b-chat-q4-k-m-local:latest \
   --warmup-runs 1 \
   --runs 3 \
   --output artifacts/local-benchmark.json
 ```
 
-## Python Toolbox Checks
+## Go Edge Toolbox Checks
 
 Run these after the full local profile is running:
 
 ```bash
-kubectl exec -it -n llm-observability deploy/python-toolbox -- python /workspace/examples/service_dns_check.py
-kubectl exec -it -n llm-observability deploy/python-toolbox -- python /workspace/examples/ollama_smoke.py
-kubectl exec -it -n llm-observability deploy/python-toolbox -- python /workspace/examples/redis_ping.py
+kubectl exec -it -n llm-observability deploy/edge-toolbox -- edge-toolbox dns ollama ollama-gateway open-webui open-webui-redis
+kubectl exec -it -n llm-observability deploy/edge-toolbox -- edge-toolbox ollama-smoke
+kubectl exec -it -n llm-observability deploy/edge-toolbox -- edge-toolbox redis-ping
 ```
 
 ## Capture Local Evidence

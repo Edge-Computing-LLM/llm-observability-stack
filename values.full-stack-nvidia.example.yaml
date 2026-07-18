@@ -83,7 +83,7 @@ openWebUI:
 open-webui:
   extraEnvVars:
     - name: OLLAMA_BASE_URL
-      value: http://langchain-demo:8000/ollama
+      value: http://ollama-gateway:8000/ollama
     - name: ENABLE_PERSISTENT_CONFIG
       value: "False"
     - name: WEBUI_AUTH

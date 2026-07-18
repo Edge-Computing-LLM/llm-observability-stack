@@ -8,14 +8,14 @@ This repository is focused on local Kubernetes observability workflows for:
 
 - Ollama
 - Open WebUI
-- LangChain demo + OpenTelemetry tracing
+- Native Go Ollama gateway + OpenTelemetry tracing
 
 Please keep changes aligned with local k3s reproducibility and interview-support use cases.
 
 ## Development Setup
 
 1. Clone the repository.
-2. Install prerequisites: `helm`, `kubectl`, and Docker or `nerdctl`.
+2. Install prerequisites: Go 1.25+, `helm`, `kubectl`, and Docker or `nerdctl`.
 3. Build chart dependencies:
 
 ```bash
@@ -38,7 +38,8 @@ Run these commands before opening a PR:
 helm lint .
 helm template llm-observability-stack . >/tmp/rendered-default.yaml
 helm template llm-observability-stack . -f values.local-k3s.example.yaml >/tmp/rendered-local.yaml
-pytest -q tests/test_helm_smoke.py tests/test_langchain_demo_smoke.py
+go test ./...
+go vet ./...
 ```
 
 If your change touches local runtime behavior, include the command output and manual test notes in the PR description.
@@ -66,15 +67,16 @@ Use the smallest validation set that actually exercises your change:
   - `helm lint .`
   - `helm template llm-observability-stack .`
   - `helm template llm-observability-stack . -f values.local-k3s.example.yaml`
-- Python or template logic changes:
-  - `pytest -q tests/test_helm_smoke.py tests/test_langchain_demo_smoke.py`
+- Go or template logic changes:
+  - `go test ./...`
+  - `go vet ./...`
 - Notebook source changes:
   - `find jupyter-notebooks -type f -name '*.ipynb' ! -path '*/.ipynb_checkpoints/*' -print0 | xargs -0 -n1 jq empty`
 
 ## Documentation and Notebook Style
 
 - Prefer relative paths and environment variables over machine-specific absolute paths.
-- Prefer `PYTHON_BIN` examples over hard-coded interpreter paths in user-facing guides.
+- Keep Python confined to optional Jupyter learning material; runtime and validation examples use Go binaries.
 - Keep secrets out of notebook source and output.
 - When describing runtime defaults, point readers to [docs/CONFIG-PROFILES.md](docs/CONFIG-PROFILES.md) instead of duplicating tables everywhere.
 

@@ -28,7 +28,7 @@ kubectl -n llm-observability get deploy,statefulset -o name
 kubectl get ns --show-labels
 kubectl -n llm-observability get all
 kubectl -n llm-observability get deploy,rs,sts,ds,pod,job,cronjob -o wide
-kubectl -n llm-observability describe deploy/langchain-demo
+kubectl -n llm-observability describe deploy/ollama-gateway
 kubectl -n llm-observability rollout status deployment/ollama
 kubectl -n llm-observability rollout status statefulset/open-webui
 ```
@@ -77,7 +77,7 @@ kubectl -n llm-observability get ingress
 kubectl -n llm-observability get networkpolicy
 kubectl -n llm-observability port-forward svc/open-webui 8080:8080
 kubectl -n llm-observability port-forward svc/ollama 11434:11434
-kubectl -n llm-observability port-forward svc/langchain-demo 8000:8000
+kubectl -n llm-observability port-forward svc/ollama-gateway 8000:8000
 ```
 
 ## Networking advanced / gateway API
@@ -125,6 +125,6 @@ kubectl taint nodes <node-name> key=value:NoSchedule
 kubectl -n llm-observability apply -f file.yaml
 kubectl -n llm-observability delete -f file.yaml
 kubectl -n llm-observability patch deploy/open-webui --type merge -p '{"spec":{"replicas":1}}'
-kubectl -n llm-observability set image deploy/langchain-demo langchain-demo=langchain-demo:0.1.1
-kubectl -n llm-observability scale deploy/langchain-demo --replicas=1
+kubectl -n llm-observability set image deploy/ollama-gateway ollama-gateway=ollama-gateway:0.2.0
+kubectl -n llm-observability scale deploy/ollama-gateway --replicas=1
 ```

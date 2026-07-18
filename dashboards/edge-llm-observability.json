@@ -1,0 +1,332 @@
+{
+  "annotations": {"list": []},
+  "description": "Helm-provisioned replacement for the standalone Edge LLM Observability frontend. Live panels use Prometheus, DCGM exporter, and kube-state-metrics; text panels preserve the validated local Qwen profile and service roles.",
+  "editable": false,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "type": "text",
+      "title": "Edge LLM Observability",
+      "id": 1,
+      "gridPos": {"h": 5, "w": 24, "x": 0, "y": 0},
+      "options": {
+        "mode": "markdown",
+        "content": "# Ubuntu 24 + k3s + NVIDIA GPU\n\nLocal observability for the running k3s NVIDIA stack, live DCGM metrics, and the resident **Qwen 1.8B Chat Q4_K_M** GGUF inference profile. Green readiness panels are derived from current Prometheus samples; runtime-profile and service-inventory panels are chart-owned reference information."
+      }
+    },
+    {
+      "type": "stat",
+      "title": "GPU utilization",
+      "description": "Current average GPU utilization reported by NVIDIA DCGM.",
+      "id": 2,
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 5},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 75}, {"color": "red", "value": 95}]}
+        },
+        "overrides": []
+      },
+      "targets": [{"expr": "avg(DCGM_FI_DEV_GPU_UTIL)", "refId": "A"}]
+    },
+    {
+      "type": "stat",
+      "title": "Framebuffer used",
+      "description": "Used framebuffer as a percentage of used plus free memory.",
+      "id": 3,
+      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 5},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 85}, {"color": "red", "value": 95}]}
+        },
+        "overrides": []
+      },
+      "targets": [{"expr": "100 * sum(DCGM_FI_DEV_FB_USED) / clamp_min(sum(DCGM_FI_DEV_FB_USED) + sum(DCGM_FI_DEV_FB_FREE), 1)", "refId": "A"}]
+    },
+    {
+      "type": "stat",
+      "title": "GPU temperature",
+      "description": "Maximum current GPU temperature.",
+      "id": 4,
+      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 5},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "min": 0,
+          "max": 100,
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 75}, {"color": "red", "value": 85}]}
+        },
+        "overrides": []
+      },
+      "targets": [{"expr": "max(DCGM_FI_DEV_GPU_TEMP)", "refId": "A"}]
+    },
+    {
+      "type": "stat",
+      "title": "Ready workload replicas",
+      "description": "Available deployments, ready StatefulSets, and ready DaemonSets in the GPU and LLM namespaces.",
+      "id": 5,
+      "gridPos": {"h": 6, "w": 6, "x": 18, "y": 5},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}},
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "sum(kube_deployment_status_replicas_available{namespace=~\"gpu-operator|llm-observability\"}) + sum(kube_statefulset_status_replicas_ready{namespace=~\"gpu-operator|llm-observability\"}) + sum(kube_daemonset_status_number_ready{namespace=~\"gpu-operator|llm-observability\"})",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "GPU utilization and memory",
+      "description": "GPU utilization, memory-copy utilization, and framebuffer use from DCGM.",
+      "id": 6,
+      "gridPos": {"h": 10, "w": 12, "x": 0, "y": 11},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100}, "overrides": []},
+      "options": {
+        "legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {"expr": "DCGM_FI_DEV_GPU_UTIL", "legendFormat": "GPU util - {{modelName}}", "refId": "A"},
+        {"expr": "DCGM_FI_DEV_MEM_COPY_UTIL", "legendFormat": "Memory copy - GPU {{gpu}}", "refId": "B"},
+        {"expr": "100 * DCGM_FI_DEV_FB_USED / clamp_min(DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE, 1)", "legendFormat": "Framebuffer used - GPU {{gpu}}", "refId": "C"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Temperature and clocks",
+      "description": "GPU and memory temperature plus SM and memory clocks.",
+      "id": 7,
+      "gridPos": {"h": 10, "w": 12, "x": 12, "y": 11},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {"id": "byRegexp", "options": "/temperature/"},
+            "properties": [{"id": "unit", "value": "celsius"}, {"id": "custom.axisPlacement", "value": "left"}]
+          },
+          {
+            "matcher": {"id": "byRegexp", "options": "/clock/"},
+            "properties": [{"id": "unit", "value": "MHz"}, {"id": "custom.axisPlacement", "value": "right"}]
+          }
+        ]
+      },
+      "options": {
+        "legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {"expr": "DCGM_FI_DEV_GPU_TEMP", "legendFormat": "GPU temperature", "refId": "A"},
+        {"expr": "DCGM_FI_DEV_MEMORY_TEMP", "legendFormat": "Memory temperature", "refId": "B"},
+        {"expr": "DCGM_FI_DEV_SM_CLOCK", "legendFormat": "SM clock", "refId": "C"},
+        {"expr": "DCGM_FI_DEV_MEM_CLOCK", "legendFormat": "Memory clock", "refId": "D"}
+      ]
+    },
+    {
+      "type": "table",
+      "title": "GPU device metrics",
+      "description": "Current framebuffer, clock, PCIe, utilization, and temperature values.",
+      "id": 8,
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 21},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "options": {"cellHeight": "sm", "showHeader": true},
+      "targets": [
+        {"expr": "sum(DCGM_FI_DEV_FB_USED)", "format": "table", "instant": true, "legendFormat": "Framebuffer used MiB", "refId": "A"},
+        {"expr": "sum(DCGM_FI_DEV_FB_FREE)", "format": "table", "instant": true, "legendFormat": "Framebuffer free MiB", "refId": "B"},
+        {"expr": "sum(DCGM_FI_DEV_FB_RESERVED)", "format": "table", "instant": true, "legendFormat": "Framebuffer reserved MiB", "refId": "C"},
+        {"expr": "max(DCGM_FI_DEV_SM_CLOCK)", "format": "table", "instant": true, "legendFormat": "SM clock MHz", "refId": "D"},
+        {"expr": "max(DCGM_FI_DEV_MEM_CLOCK)", "format": "table", "instant": true, "legendFormat": "Memory clock MHz", "refId": "E"},
+        {"expr": "sum(DCGM_FI_DEV_PCIE_REPLAY_COUNTER)", "format": "table", "instant": true, "legendFormat": "PCIe replay counter", "refId": "F"}
+      ]
+    },
+    {
+      "type": "table",
+      "title": "GPU device identity",
+      "description": "Live model, host, driver, PCI bus, UUID, and GPU index labels parsed from DCGM.",
+      "id": 9,
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 21},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "options": {"cellHeight": "sm", "showHeader": true},
+      "targets": [
+        {
+          "expr": "max by (gpu, UUID, modelName, Hostname, DCGM_FI_DRIVER_VERSION, pci_bus_id) (DCGM_FI_DEV_GPU_UTIL)",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {"Time": true, "__name__": true},
+            "renameByName": {
+              "gpu": "GPU",
+              "modelName": "Model",
+              "Hostname": "Node",
+              "DCGM_FI_DRIVER_VERSION": "Driver",
+              "pci_bus_id": "PCI bus",
+              "UUID": "UUID",
+              "Value": "Utilization %"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Cluster workloads",
+      "description": "Live controller readiness for the GPU Operator and LLM namespaces.",
+      "id": 10,
+      "gridPos": {"h": 11, "w": 24, "x": 0, "y": 30},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}},
+        "overrides": []
+      },
+      "options": {"cellHeight": "sm", "showHeader": true},
+      "targets": [
+        {
+          "expr": "kube_deployment_status_replicas_available{namespace=~\"gpu-operator|llm-observability\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "Deployment {{namespace}} / {{deployment}}",
+          "refId": "A"
+        },
+        {
+          "expr": "kube_statefulset_status_replicas_ready{namespace=~\"gpu-operator|llm-observability\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "StatefulSet {{namespace}} / {{statefulset}}",
+          "refId": "B"
+        },
+        {
+          "expr": "kube_daemonset_status_number_ready{namespace=~\"gpu-operator|llm-observability\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "DaemonSet {{namespace}} / {{daemonset}}",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Cluster-internal service inventory",
+      "id": 11,
+      "gridPos": {"h": 11, "w": 12, "x": 0, "y": 41},
+      "options": {
+        "mode": "markdown",
+        "content": "| Namespace | Service | Type | Ports | Purpose |\n|---|---|---|---|---|\n| gpu-operator | nvidia-dcgm-exporter | ClusterIP | 9400/TCP | GPU metrics scrape target |\n| llm-observability | ollama | ClusterIP | 11434/TCP | Qwen GGUF inference API |\n| llm-observability | open-webui | ClusterIP | 8080/TCP | Browser chat service |\n| llm-observability | open-webui-redis | ClusterIP | 6379/TCP | WebUI state and websocket support |\n| llm-observability | opentelemetry-collector | ClusterIP | 4317, 4318, 8888/TCP | OTLP and collector metrics |\n\nKubernetes remains the source of truth. This chart-owned table documents stable service contracts without publishing ClusterIPs."
+      }
+    },
+    {
+      "type": "text",
+      "title": "Validated Qwen runtime profile",
+      "id": 12,
+      "gridPos": {"h": 11, "w": 12, "x": 12, "y": 41},
+      "options": {
+        "mode": "markdown",
+        "content": "| Setting | Validated value |\n|---|---|\n| Model | qwen-1-8b-chat-q4-k-m-local |\n| Artifact | Qwen 1.8B Chat Q4_K_M GGUF |\n| CUDA layers | 23 / 25 |\n| Context | 256 tokens |\n| Batch | 1 |\n| Parallel requests | 1 |\n| Keep alive | Forever (OLLAMA_KEEP_ALIVE=-1) |\n| GPU memory ceiling | 850 MiB contract |\n\nThese are declarative values owned by the GeForce Helm profile. Live memory, temperature, utilization, and readiness appear in Prometheus-backed panels."
+      }
+    },
+    {
+      "type": "stat",
+      "title": "DCGM exporter connected",
+      "description": "Prometheus can scrape the GPU Operator-managed DCGM exporter. One means connected.",
+      "id": 13,
+      "gridPos": {"h": 7, "w": 6, "x": 0, "y": 52},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"options": {"0": {"color": "red", "text": "Disconnected"}, "1": {"color": "green", "text": "Connected"}}, "type": "value"}],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        },
+        "overrides": []
+      },
+      "targets": [{"expr": "max(up{namespace=\"gpu-operator\",service=\"nvidia-dcgm-exporter\"})", "refId": "A"}]
+    },
+    {
+      "type": "stat",
+      "title": "Qwen / Ollama ready",
+      "description": "The Ollama deployment has an available replica.",
+      "id": 14,
+      "gridPos": {"h": 7, "w": 6, "x": 6, "y": 52},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"options": {"0": {"color": "red", "text": "Not ready"}, "1": {"color": "green", "text": "Resident / ready"}}, "type": "value"}],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        },
+        "overrides": []
+      },
+      "targets": [{"expr": "clamp_max(max(kube_deployment_status_replicas_available{namespace=\"llm-observability\",deployment=\"ollama\"}), 1)", "refId": "A"}]
+    },
+    {
+      "type": "stat",
+      "title": "Open WebUI ready",
+      "description": "The browser chat StatefulSet has a ready replica.",
+      "id": 15,
+      "gridPos": {"h": 7, "w": 6, "x": 12, "y": 52},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"options": {"0": {"color": "red", "text": "Not ready"}, "1": {"color": "green", "text": "Ready"}}, "type": "value"}],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        },
+        "overrides": []
+      },
+      "targets": [{"expr": "clamp_max(max(kube_statefulset_status_replicas_ready{namespace=\"llm-observability\",statefulset=\"open-webui\"}), 1)", "refId": "A"}]
+    },
+    {
+      "type": "stat",
+      "title": "OpenTelemetry ready",
+      "description": "The OTLP metrics, traces, and logs collector has an available replica.",
+      "id": 16,
+      "gridPos": {"h": 7, "w": 6, "x": 18, "y": 52},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"options": {"0": {"color": "red", "text": "Not ready"}, "1": {"color": "green", "text": "Ready"}}, "type": "value"}],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        },
+        "overrides": []
+      },
+      "targets": [{"expr": "clamp_max(max(kube_deployment_status_replicas_available{namespace=\"llm-observability\",deployment=\"opentelemetry-collector\"}), 1)", "refId": "A"}]
+    },
+    {
+      "type": "text",
+      "title": "Runtime contract and data provenance",
+      "id": 17,
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 59},
+      "options": {
+        "mode": "markdown",
+        "content": "### LLM observability readiness\n\n- **DCGM exporter:** live GPU utilization, framebuffer, temperatures, PCIe counters, and clocks come from the GPU Operator service.\n- **Qwen runtime:** the GeForce profile requests 23 GPU layers, context 256, batch 1, one parallel request, and infinite keep-alive.\n- **Runtime contract:** qwen-gguf-observability remains the authoritative read-only validator for node, GPU, Helm, pod, model-parameter, residency, and 850 MiB ceiling checks. Grafana visualizes metrics but does not replace that validator.\n- **OpenTelemetry:** the collector accepts OTLP metrics, traces, and logs on the chart-owned service.\n\nPrometheus is authoritative for live numeric and Kubernetes readiness panels. Static text records stable Helm-owned configuration and contains no ClusterIPs, pod identifiers, credentials, or public tunnel hostnames."
+      }
+    }
+  ],
+  "refresh": "15s",
+  "schemaVersion": 41,
+  "tags": ["edge-llm", "ubuntu", "k3s", "nvidia", "dcgm", "qwen", "ollama", "opentelemetry", "helm-provisioned"],
+  "templating": {"list": []},
+  "time": {"from": "now-1h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Edge LLM Observability - Ubuntu + k3s + NVIDIA GPU",
+  "uid": "edge-llm-observability",
+  "version": 1
+}

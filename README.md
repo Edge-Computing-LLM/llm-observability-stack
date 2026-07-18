@@ -5,7 +5,7 @@ Kubernetes-native observability, benchmarking, and operations tooling for privat
 Preferred organization CLI: [`edge-cli`](https://github.com/Edge-Computing-LLM/edge-cli).
 Repo-local legacy/helper CLI documentation: [docs/cli.md](docs/cli.md).
 
-This repository packages a Helm-based application and observability stack for k3s and Kubernetes with Ollama/GGUF model serving, Open WebUI, an OpenTelemetry GenAI-instrumented FastAPI proxy, Prometheus, Grafana, OpenTelemetry Collector, blackbox probes, benchmark metrics, and NVIDIA/DCGM-compatible dashboards.
+This repository packages a Helm-based application and observability stack for k3s and Kubernetes with Ollama/GGUF model serving, Open WebUI, a native Go OpenTelemetry GenAI gateway, Prometheus, Grafana, OpenTelemetry Collector, blackbox probes, benchmark metrics, and NVIDIA/DCGM-compatible dashboards.
 
 The repository also includes a Go CLI named `llm-observability` for repo-local helper workflows. New end-to-end installs should use `edge-cli`, which deploys `k3s-nvidia-edge` first and then this chart.
 
@@ -30,10 +30,10 @@ Read the full dependency guide before installing GPU profiles:
 - NVIDIA GPU scheduling with `runtimeClassName: nvidia` and `nvidia.com/gpu` when a GPU is available.
 - Optional CPU validation profiles for development clusters without NVIDIA GPUs.
 - Open WebUI for browser-based interaction with local models.
-- A FastAPI proxy with LLM request metrics for TTFT, latency, tokens per second, prompt tokens, generated tokens, active requests, and errors.
+- A native Go Ollama gateway with streaming, OpenTelemetry traces, and LLM request metrics for TTFT, latency, active requests, and errors.
 - Prometheus, Grafana, Alertmanager, kube-state-metrics, node exporter, ServiceMonitors, probes, and alert rules.
 - OpenTelemetry Collector endpoints for OTLP traces, metrics, and logs.
-- Optional diagnostics workloads including Python toolbox, Redis checks, OpenTelemetry seeding, and benchmark reporting.
+- Optional native Go diagnostics including DNS/HTTP/TCP checks, Redis checks, OpenTelemetry seeding, and benchmark reporting.
 
 ## Verified Local NVIDIA GPU Deployment
 
@@ -77,10 +77,11 @@ The companion repository performs read-only runtime contract checks and
 captures sanitized evidence. This chart remains the source of truth for the
 Modelfile, Helm values, model lifecycle, and workload configuration.
 
-The separate
-[`Frontend-Edge-LLM-Observability`](https://github.com/Edge-Computing-LLM/Frontend-Edge-LLM-Observability)
-project provides the TypeScript/Vue dashboard. It consumes controlled DCGM and
-future telemetry endpoints; frontend source is not duplicated in this chart.
+The former standalone TypeScript/Vue dashboard has been migrated into the
+chart-owned, Helm-provisioned Grafana dashboard
+[`dashboards/edge-llm-observability.json`](dashboards/edge-llm-observability.json).
+The Grafana version uses Prometheus, DCGM, and kube-state-metrics directly and
+keeps the complete dashboard definition reproducible with the Helm release.
 
 ## Who This Is For
 
@@ -100,15 +101,18 @@ future telemetry endpoints; frontend source is not duplicated in this chart.
 ## Platform Components
 
 - Vendored Helm charts for Ollama, Open WebUI, kube-prometheus-stack, OpenTelemetry Collector, and OpenTelemetry Operator.
-- FastAPI OpenTelemetry GenAI-instrumented proxy with Prometheus metrics.
+- Native Go OpenTelemetry GenAI-instrumented Ollama gateway with Prometheus metrics.
 - TTFT, latency, token, throughput, active-request, HTTP, and error telemetry.
 - Optional kube-prometheus-stack, Grafana, Alertmanager, node exporter, and kube-state-metrics from the root umbrella chart.
 - OpenTelemetry Collector endpoint for OTLP traces, metrics, and logs, with an optional operator-managed collector path.
 - Blackbox endpoint probes and Prometheus alert rules.
 - NVIDIA DCGM dashboard and external DCGM ServiceMonitor integration.
+- A comprehensive Edge LLM dashboard for live GPU metrics, workload
+  readiness, service inventory, the validated Qwen profile, and telemetry
+  readiness.
 - NVIDIA NIM `/v1/metrics` ServiceMonitor path for environments that use NIM.
 - Pushgateway-compatible benchmark reporting.
-- Optional Python diagnostics toolbox, Redis, OpenTelemetry seeder, and etcd failure simulation.
+- Optional Go edge toolbox, Redis, OpenTelemetry seeder, and etcd failure simulation.
 
 ## Runtime Architecture
 
@@ -116,7 +120,7 @@ future telemetry endpoints; frontend source is not duplicated in this chart.
 User or benchmark client
         |
         v
-Open WebUI / FastAPI proxy
+Open WebUI / Go Ollama gateway
         |                \
         |                 +--> OpenTelemetry GenAI traces
         |                 +--> Prometheus /metrics
@@ -147,14 +151,13 @@ llm-observability-stack/
 ├── values.cpu-k3s.yaml
 ├── values.local-k3s.example.yaml
 ├── artifacts/                     # sanitized public benchmark evidence
-├── benchmarks/                    # repeatable inference benchmark clients
-├── cmd/llm-observability/         # Go CLI entrypoint
+├── cmd/                            # Go CLI, gateway, and toolbox entrypoints
 ├── dashboards/                    # LLM, benchmark, and NVIDIA GPU dashboards
-├── internal/stack/                # CLI stack workflows
+├── internal/                       # CLI, gateway, toolbox, benchmark packages
 ├── templates/                     # application monitoring and security manifests
 ├── charts/                        # vendored dependency charts
-├── langchain-demo/                # instrumented FastAPI proxy
-├── python-toolbox/                # in-cluster diagnostics
+├── ollama-gateway/                # native Go gateway image definition
+├── edge-toolbox/                  # native Go in-cluster diagnostics image
 ├── docs/                          # architecture, operations, and local runbooks
 ├── hack/                          # validation, device-plugin, and evidence scripts
 └── tests/                         # Helm and application smoke tests
@@ -189,7 +192,7 @@ bin/llm-observability validate
 - NVIDIA driver and NVIDIA Container Toolkit for GPU profiles.
 - `RuntimeClass/nvidia` and `nvidia.com/gpu` provided by `k3s-nvidia-edge` for GPU mode.
 - A legally obtained GGUF model available on node storage.
-- Python 3.11 for tests and benchmark tooling.
+- Go 1.25 or newer for CLI, gateway, toolbox, benchmark, and tests.
 
 Quick checks:
 
@@ -270,7 +273,7 @@ helm upgrade --install llm-observability-stack . \
   --set kube-prometheus-stack.crds.enabled=false
 ```
 
-Import the local `langchain-demo` and `python-toolbox` images into k3s containerd before enabling those two workloads.
+Import the local `ollama-gateway` and `edge-toolbox` images into k3s containerd before enabling those two workloads.
 
 For a guided local setup, use:
 
@@ -302,14 +305,20 @@ Do not switch an existing release from `values.enterprise-pilot-k3s.yaml` to a p
 ```bash
 kubectl get pods -n llm-observability -o wide
 kubectl port-forward -n llm-observability svc/ollama 11434:11434
+kubectl port-forward -n llm-observability \
+  svc/llm-observability-stack-grafana 3000:80
 ```
 
-Run the public benchmark from another terminal:
+For the GeForce 940M profile, open <http://127.0.0.1:3000> and select
+**Edge LLM Observability - Ubuntu + k3s + NVIDIA GPU**. See
+[`dashboards/README.md`](dashboards/README.md) for provisioning, credentials,
+and dashboard-as-code guidance.
+
+Run the native Go benchmark (it manages a temporary port-forward):
 
 ```bash
-./benchmarks/ollama_benchmark.py \
+bin/llm-observability benchmark \
   --model qwen-1-8b-chat-q4-k-m-local \
-  --warmup-runs 1 \
   --runs 10 \
   --output artifacts/benchmark-local.json
 ```
@@ -330,7 +339,8 @@ helm template llm-observability-stack . \
   --set open-webui.webuiSecret.existingSecretName= \
   >/tmp/rendered-full-stack-nvidia.yaml
 
-pytest -q tests
+go test ./...
+go vet ./...
 ./hack/validate-local-stack.sh
 ./hack/validate-local-stack.sh --strict-gpu
 ```

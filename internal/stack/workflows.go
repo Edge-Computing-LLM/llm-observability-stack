@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Edge-Computing-LLM/k3s-nvidia-edge/pkg/edgebase"
+	"github.com/Edge-Computing-LLM/llm-observability-stack/internal/benchmark"
 )
 
 func Doctor(ctx context.Context, opts Options) error {
@@ -69,11 +71,45 @@ func Validate(ctx context.Context, opts Options) error {
 }
 
 func Benchmark(ctx context.Context, opts Options) error {
-	r := runner(opts)
-	return r.Run(ctx, edgebase.Step{
-		Name:    "Ollama benchmark",
-		Command: benchmarkCommand(opts),
+	if err := runner(opts).Run(ctx, edgebase.Step{Name: "Wait for Ollama", Command: fmt.Sprintf("kubectl rollout status deploy/ollama -n %s --timeout=%s", shellQuote(opts.Namespace), shellQuote(opts.Timeout))}); err != nil {
+		return err
+	}
+	return benchmark.WithPortForward(ctx, opts.Namespace, 15*time.Second, func() error {
+		summary, err := benchmark.Run(ctx, benchmark.Config{URL: "http://127.0.0.1:11434/api/generate", Model: opts.Model, Prompt: opts.Prompt, Output: opts.Output, Runs: opts.Runs, WarmupRuns: opts.WarmupRuns, Timeout: 300 * time.Second})
+		if err != nil {
+			return err
+		}
+		if err := benchmark.Write(opts.Output, summary); err != nil {
+			return err
+		}
+		fmt.Printf("benchmark written to %s\n", opts.Output)
+		return nil
 	})
+}
+
+func NetworkInventory(ctx context.Context, opts Options) error {
+	return runner(opts).Run(ctx, edgebase.Step{Name: "Kubernetes network inventory", Command: fmt.Sprintf("kubectl get pods,services,endpoints,endpointslices.discovery.k8s.io,networkpolicies.networking.k8s.io -n %s -o wide", shellQuote(opts.Namespace))})
+}
+
+func ServicePath(ctx context.Context, opts Options) error {
+	if strings.TrimSpace(opts.Service) == "" {
+		return fmt.Errorf("--service is required")
+	}
+	ns, service := shellQuote(opts.Namespace), shellQuote(opts.Service)
+	command := fmt.Sprintf(`set -e
+kubectl get service -n %s %s -o wide
+selector="$(kubectl get service -n %s %s -o go-template='{{range $key,$value := .spec.selector}}{{printf "%%s=%%s," $key $value}}{{end}}' | sed 's/,$//')"
+if [ -n "$selector" ]; then kubectl get pods -n %s -l "$selector" -o wide; else echo "Service has no selector"; fi
+kubectl get endpoints -n %s %s -o wide
+kubectl get endpointslices.discovery.k8s.io -n %s -l kubernetes.io/service-name=%s -o wide`, ns, service, ns, service, ns, ns, service, ns, service)
+	return runner(opts).Run(ctx, edgebase.Step{Name: "Kubernetes service path", Command: command})
+}
+
+func WatchEndpoints(ctx context.Context, opts Options) error {
+	if strings.TrimSpace(opts.Service) == "" {
+		return fmt.Errorf("--service is required")
+	}
+	return runner(opts).Run(ctx, edgebase.Step{Name: "Watch Kubernetes endpoints", Command: fmt.Sprintf("kubectl get endpoints -n %s %s --watch --request-timeout=%s", shellQuote(opts.Namespace), shellQuote(opts.Service), shellQuote(opts.Timeout))})
 }
 
 func Uninstall(ctx context.Context, opts Options) error {
@@ -159,7 +195,7 @@ func baseReadySteps(opts Options) []edgebase.Step {
 func stackDoctorSteps(opts Options) []edgebase.Step {
 	ns := shellQuote(opts.Namespace)
 	steps := []edgebase.Step{
-		{Name: "Required commands", Command: "missing=0; for c in kubectl helm python3.11; do command -v $c >/dev/null && echo \"$c: $(command -v $c)\" || { echo \"$c: missing\"; missing=1; }; done; exit $missing"},
+		{Name: "Required commands", Command: "missing=0; for c in kubectl helm; do command -v $c >/dev/null && echo \"$c: $(command -v $c)\" || { echo \"$c: missing\"; missing=1; }; done; exit $missing"},
 		{Name: "Helm release", Command: fmt.Sprintf("helm status %s -n %s || true", shellQuote(opts.Release), ns)},
 		{Name: "LLM namespace", Command: fmt.Sprintf("kubectl get namespace %s || true", ns)},
 		{Name: "LLM workloads", Command: fmt.Sprintf("kubectl get pods,deploy,statefulset,svc,pvc -n %s -o wide || true", ns)},
@@ -191,7 +227,7 @@ fi`)},
 func statusSteps(opts Options) []edgebase.Step {
 	ns := shellQuote(opts.Namespace)
 	return []edgebase.Step{
-		{Name: "Base GPU layer", Command: "kubectl get pods -n gpu-operator -o wide || true\nkubectl get runtimeclass nvidia || true\nkubectl get nodes -o custom-columns=NAME:.metadata.name,GPU:.status.allocatable.nvidia\\.com/gpu || true"},
+		{Name: "Base GPU layer", Command: "kubectl get pods -n gpu-operator -o wide || true\nkubectl get runtimeclass nvidia || true\nkubectl get nodes -o custom-columns=NAME:.metadata.name,GPU:.status.allocatable.nvidia\\\\.com/gpu || true"},
 		{Name: "Helm release", Command: fmt.Sprintf("helm status %s -n %s || true", shellQuote(opts.Release), ns)},
 		{Name: "LLM workloads", Command: fmt.Sprintf("kubectl get pods,deploy,statefulset,svc,pvc -n %s -o wide", ns)},
 		{Name: "Services and ports", Command: fmt.Sprintf("kubectl get svc -n %s -o wide", ns)},
@@ -265,23 +301,7 @@ func helmInstallCommand(opts Options) string {
 }
 
 func benchmarkCommand(opts Options) string {
-	return withRoot(fmt.Sprintf(`set -euo pipefail
-command -v python3.11 >/dev/null
-kubectl rollout status deploy/ollama -n %s --timeout=%s
-pf_log="$(mktemp)"
-kubectl port-forward -n %s svc/ollama 11434:11434 >"$pf_log" 2>&1 &
-pf_pid="$!"
-cleanup() { kill "$pf_pid" >/dev/null 2>&1 || true; rm -f "$pf_log"; }
-trap cleanup EXIT
-sleep 3
-python3.11 benchmarks/ollama_benchmark.py --url http://127.0.0.1:11434/api/generate --model %s --runs %d --warmup-runs 1 --prompt %s --output %s`,
-		shellQuote(opts.Namespace),
-		shellQuote(opts.Timeout),
-		shellQuote(opts.Namespace),
-		shellQuote(opts.Model),
-		opts.Runs,
-		shellQuote(opts.Prompt),
-		shellQuote(opts.Output)))
+	return fmt.Sprintf("llm-observability benchmark --namespace %s --model %s --runs %d --prompt %s --output %s", shellQuote(opts.Namespace), shellQuote(opts.Model), opts.Runs, shellQuote(opts.Prompt), shellQuote(opts.Output))
 }
 
 func withRoot(command string) string {

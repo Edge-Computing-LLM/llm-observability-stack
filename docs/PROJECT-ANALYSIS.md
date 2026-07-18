@@ -6,22 +6,22 @@ This repository is a local k3s-focused LLM platform chart:
 
 - Ollama for model serving
 - Open WebUI for chat interface
-- LangChain demo API for integration and tracing checks
-- Python toolbox for in-cluster diagnostics
+- Ollama gateway API for integration and tracing checks
+- Go edge toolbox for in-cluster diagnostics
 
 Current runtime preference in local overrides:
 
 - keep only Open WebUI externally exposed
 - keep Ollama/LangChain internal and access via port-forward as needed
-- disable continuous Python inference jobs
+- disable continuous inference seeding jobs
 
 ## What Is Stable Today
 
 - Umbrella chart and vendored dependencies are pinned and render cleanly.
-- Local image workflow for `langchain-demo` and `python-toolbox` is documented and scriptable.
+- Local image workflow for `ollama-gateway` and `edge-toolbox` is documented and scriptable.
 - GGUF Modelfile creation path is implemented and deployable.
 - CI validates chart linting and template rendering.
-- OpenTelemetry tracing is wired through the `langchain-demo` proxy path (`/ollama/api/*`) for on-demand observability from Open WebUI traffic.
+- OpenTelemetry tracing is wired through the `ollama-gateway` proxy path (`/ollama/api/*`) for on-demand observability from Open WebUI traffic.
 
 ## Main Risk Areas
 
@@ -47,5 +47,5 @@ For full details, use:
 - [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
 - [KUBECTL-COMMAND-REFERENCE.md](KUBECTL-COMMAND-REFERENCE.md)
 - [KUBERNETES-NETWORKING.md](KUBERNETES-NETWORKING.md)
-- [PYTHON-KUBERNETES-AUTOMATION.md](PYTHON-KUBERNETES-AUTOMATION.md)
+- [GO-KUBERNETES-AUTOMATION.md](GO-KUBERNETES-AUTOMATION.md)
 - [scripts/README.md](scripts/README.md)

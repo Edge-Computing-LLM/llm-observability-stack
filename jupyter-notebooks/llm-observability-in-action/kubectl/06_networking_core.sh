@@ -20,7 +20,7 @@ kctl_ns_try get ingress -o wide
 kctl_ns_try get networkpolicy -o wide
 
 log_section "llm-observability service deep dive"
-for svc in "${OPENWEBUI_SERVICE}" "${OLLAMA_SERVICE}" "${LANGCHAIN_SERVICE}"; do
+for svc in "${OPENWEBUI_SERVICE}" "${OLLAMA_SERVICE}" "${OLLAMA_GATEWAY_SERVICE}"; do
   kctl_ns_try get "svc/${svc}" -o wide
   kctl_ns_try describe "svc/${svc}"
   kctl_ns_try get "endpoints/${svc}" -o wide
@@ -28,7 +28,7 @@ for svc in "${OPENWEBUI_SERVICE}" "${OLLAMA_SERVICE}" "${LANGCHAIN_SERVICE}"; do
 done
 
 log_section "DNS names"
-for svc in "${OPENWEBUI_SERVICE}" "${OLLAMA_SERVICE}" "${LANGCHAIN_SERVICE}"; do
+for svc in "${OPENWEBUI_SERVICE}" "${OLLAMA_SERVICE}" "${OLLAMA_GATEWAY_SERVICE}"; do
   printf '%s\n' "${svc}.${K8S_NAMESPACE}.svc.cluster.local"
 done
 
@@ -36,5 +36,5 @@ log_section "Port-forward helpers"
 cat <<CMDS
 kubectl -n ${K8S_NAMESPACE} port-forward svc/${OPENWEBUI_SERVICE} 8080:8080
 kubectl -n ${K8S_NAMESPACE} port-forward svc/${OLLAMA_SERVICE} 11434:11434
-kubectl -n ${K8S_NAMESPACE} port-forward svc/${LANGCHAIN_SERVICE} 8000:8000
+kubectl -n ${K8S_NAMESPACE} port-forward svc/${OLLAMA_GATEWAY_SERVICE} 8000:8000
 CMDS

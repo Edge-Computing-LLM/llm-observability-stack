@@ -10,7 +10,7 @@ NS=llm-observability
 
 Profile note:
 
-- The current local example profile keeps `pythonToolbox.enabled=true` and `otelTraceSeeder.enabled=false`.
+- The current local example profile keeps `edgeToolbox.enabled=true` and `otelTraceSeeder.enabled=false`.
 - See [CONFIG-PROFILES.md](CONFIG-PROFILES.md) before assuming a workload is enabled in a given environment.
 
 ## 1. Cluster and Context Safety
@@ -38,7 +38,7 @@ Detect workload kind first:
 
 ```bash
 kubectl get deploy,statefulset -n $NS
-kubectl get deploy,statefulset -n $NS -o name | grep -E 'ollama|open-webui|langchain-demo|python-toolbox'
+kubectl get deploy,statefulset -n $NS -o name | grep -E 'ollama|open-webui|ollama-gateway|edge-toolbox'
 ```
 
 ```bash
@@ -46,9 +46,9 @@ kubectl get pods -n $NS -o wide
 kubectl get deploy,statefulset -n $NS
 kubectl rollout status deploy/ollama -n $NS
 kubectl rollout status statefulset/open-webui -n $NS
-kubectl rollout status deploy/langchain-demo -n $NS
+kubectl rollout status deploy/ollama-gateway -n $NS
 # optional
-kubectl rollout status deploy/python-toolbox -n $NS
+kubectl rollout status deploy/edge-toolbox -n $NS
 ```
 
 ## 4. Service and Endpoint Checks
@@ -59,7 +59,7 @@ kubectl get endpoints -n $NS
 kubectl get endpointslices -n $NS
 kubectl describe svc ollama -n $NS
 kubectl describe svc open-webui -n $NS
-kubectl describe svc langchain-demo -n $NS
+kubectl describe svc ollama-gateway -n $NS
 ```
 
 ## 5. Pod Detail and Scheduling Checks
@@ -87,9 +87,9 @@ kubectl exec -it -n $NS deploy/ollama -- env | grep -E 'NVIDIA|CUDA|OLLAMA'
 ```bash
 kubectl logs -n $NS deploy/ollama --tail=200
 kubectl logs -n $NS statefulset/open-webui --tail=200
-kubectl logs -n $NS deploy/langchain-demo --tail=200
+kubectl logs -n $NS deploy/ollama-gateway --tail=200
 # optional
-kubectl logs -n $NS deploy/python-toolbox --tail=200
+kubectl logs -n $NS deploy/edge-toolbox --tail=200
 kubectl logs -n $NS deploy/redis --tail=200
 kubectl get events -n $NS --sort-by=.lastTimestamp | tail -n 50
 ```
@@ -105,13 +105,13 @@ kubectl logs -n $NS <POD_NAME> -c <CONTAINER_NAME> --previous --tail=200
 
 ```bash
 # optional
-kubectl exec -it -n $NS deploy/python-toolbox -- bash
-kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/service_dns_check.py
-kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/ollama_smoke.py
-kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/redis_ping.py
-kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/otel_genai_inference_traces.py
-kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/otel_genai_inference_traces.py
-kubectl exec -it -n $NS deploy/python-toolbox -- env OBS_CALL_COUNT_PER_CYCLE=4 OBS_INTERVAL_SECONDS=300 python /workspace/examples/otel_genai_trace_seed_every_5m.py
+kubectl exec -it -n $NS deploy/edge-toolbox -- bash
+kubectl exec -it -n $NS deploy/edge-toolbox -- edge-toolbox dns ollama ollama-gateway open-webui open-webui-redis
+kubectl exec -it -n $NS deploy/edge-toolbox -- edge-toolbox ollama-smoke
+kubectl exec -it -n $NS deploy/edge-toolbox -- edge-toolbox redis-ping
+kubectl exec -it -n $NS deploy/edge-toolbox -- edge-toolbox seed --count 2
+kubectl exec -it -n $NS deploy/edge-toolbox -- edge-toolbox seed --count 2
+kubectl exec -it -n $NS deploy/edge-toolbox -- edge-toolbox seed --count 4
 ```
 
 CronJob checks (only when `otelTraceSeeder.enabled=true`):
@@ -125,11 +125,11 @@ kubectl get pods -n $NS -l job-name
 Quick in-pod DNS/TCP checks:
 
 ```bash
-kubectl exec -it -n $NS deploy/python-toolbox -- nslookup ollama
-kubectl exec -it -n $NS deploy/python-toolbox -- nslookup open-webui
-kubectl exec -it -n $NS deploy/python-toolbox -- nc -vz ollama 11434
-kubectl exec -it -n $NS deploy/python-toolbox -- nc -vz open-webui 8080
-kubectl exec -it -n $NS deploy/python-toolbox -- nc -vz langchain-demo 8000
+kubectl exec -it -n $NS deploy/edge-toolbox -- nslookup ollama
+kubectl exec -it -n $NS deploy/edge-toolbox -- nslookup open-webui
+kubectl exec -it -n $NS deploy/edge-toolbox -- nc -vz ollama 11434
+kubectl exec -it -n $NS deploy/edge-toolbox -- nc -vz open-webui 8080
+kubectl exec -it -n $NS deploy/edge-toolbox -- nc -vz ollama-gateway 8000
 ```
 
 ## 9. Port-forward and Local API Tests
@@ -137,7 +137,7 @@ kubectl exec -it -n $NS deploy/python-toolbox -- nc -vz langchain-demo 8000
 ```bash
 kubectl port-forward -n $NS svc/ollama 11434:11434
 kubectl port-forward -n $NS svc/open-webui 8080:8080
-kubectl port-forward -n $NS svc/langchain-demo 8000:8000
+kubectl port-forward -n $NS svc/ollama-gateway 8000:8000
 ```
 
 Ollama API test:
@@ -149,7 +149,7 @@ curl -s http://localhost:11434/api/chat \
   -d '{"model":"qwen-1-8b-chat-q4-k-m-local","stream":false,"messages":[{"role":"user","content":"health check"}]}' | jq
 ```
 
-LangChain demo test:
+Ollama gateway test:
 
 ```bash
 curl -s http://localhost:8000/healthz | jq
@@ -163,9 +163,9 @@ curl -s http://localhost:8000/invoke \
 ```bash
 kubectl rollout restart deploy/ollama -n $NS
 kubectl rollout restart statefulset/open-webui -n $NS
-kubectl rollout restart deploy/langchain-demo -n $NS
+kubectl rollout restart deploy/ollama-gateway -n $NS
 # optional
-kubectl rollout restart deploy/python-toolbox -n $NS
+kubectl rollout restart deploy/edge-toolbox -n $NS
 kubectl rollout status deploy/ollama -n $NS
 kubectl rollout status statefulset/open-webui -n $NS
 ```
@@ -174,7 +174,7 @@ Undo rollout (if deployment strategy/history allows):
 
 ```bash
 kubectl rollout undo deploy/ollama -n $NS
-kubectl rollout undo deploy/langchain-demo -n $NS
+kubectl rollout undo deploy/ollama-gateway -n $NS
 ```
 
 ## 11. Config and Secret Inspection
@@ -212,7 +212,7 @@ DNS and CoreDNS:
 ```bash
 kubectl get pods -n kube-system -l k8s-app=kube-dns
 kubectl logs -n kube-system -l k8s-app=kube-dns --tail=200
-kubectl exec -it -n $NS deploy/python-toolbox -- cat /etc/resolv.conf
+kubectl exec -it -n $NS deploy/edge-toolbox -- cat /etc/resolv.conf
 ```
 
 Endpoints and EndpointSlices:
@@ -307,16 +307,16 @@ kubectl get endpoints -n $NS ollama -o yaml
 ```bash
 kubectl logs -n $NS statefulset/open-webui --tail=200
 kubectl get svc,endpoints -n $NS open-webui ollama
-kubectl exec -it -n $NS deploy/python-toolbox -- nc -vz ollama 11434
-kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/ollama_smoke.py
+kubectl exec -it -n $NS deploy/edge-toolbox -- nc -vz ollama 11434
+kubectl exec -it -n $NS deploy/edge-toolbox -- edge-toolbox ollama-smoke
 ```
 
-### 19.3 LangChain demo failures
+### 19.3 Ollama gateway failures
 
 ```bash
-kubectl logs -n $NS deploy/langchain-demo --tail=200
-kubectl describe deploy -n $NS langchain-demo
-kubectl port-forward -n $NS svc/langchain-demo 8000:8000
+kubectl logs -n $NS deploy/ollama-gateway --tail=200
+kubectl describe deploy -n $NS ollama-gateway
+kubectl port-forward -n $NS svc/ollama-gateway 8000:8000
 curl -s http://localhost:8000/healthz | jq
 curl -s http://localhost:8000/config | jq
 ```

@@ -13,8 +13,8 @@ kctl_try get ns "${K8S_NAMESPACE}"
 kctl_ns_try get all -l "app.kubernetes.io/instance=${K8S_RELEASE}" -o wide
 
 log_section "Rollout status"
-if resource_exists_ns "deploy/${LANGCHAIN_SERVICE}"; then
-  kctl_ns_try rollout status "deploy/${LANGCHAIN_SERVICE}" --timeout=180s
+if resource_exists_ns "deploy/${OLLAMA_GATEWAY_SERVICE}"; then
+  kctl_ns_try rollout status "deploy/${OLLAMA_GATEWAY_SERVICE}" --timeout=180s
 fi
 
 if resource_exists_ns "deploy/${OPENWEBUI_SERVICE}"; then
@@ -30,7 +30,7 @@ elif resource_exists_ns "deploy/${OLLAMA_SERVICE}"; then
 fi
 
 log_section "Service and endpoint checks"
-for svc in "${OPENWEBUI_SERVICE}" "${OLLAMA_SERVICE}" "${LANGCHAIN_SERVICE}"; do
+for svc in "${OPENWEBUI_SERVICE}" "${OLLAMA_SERVICE}" "${OLLAMA_GATEWAY_SERVICE}"; do
   kctl_ns_try get "svc/${svc}" -o wide
   kctl_ns_try get "endpoints/${svc}" -o wide
   kctl_ns_try get endpointslices.discovery.k8s.io -l "kubernetes.io/service-name=${svc}" -o wide
@@ -58,6 +58,6 @@ cat <<CMDS
 kubectl -n ${K8S_NAMESPACE} port-forward svc/${OLLAMA_SERVICE} 11434:11434
 curl -s http://localhost:11434/api/tags | jq
 
-kubectl -n ${K8S_NAMESPACE} port-forward svc/${LANGCHAIN_SERVICE} 8000:8000
+kubectl -n ${K8S_NAMESPACE} port-forward svc/${OLLAMA_GATEWAY_SERVICE} 8000:8000
 curl -s http://localhost:8000/healthz
 CMDS

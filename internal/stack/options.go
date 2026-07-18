@@ -20,9 +20,11 @@ type Options struct {
 	KeepNamespace bool
 	Model         string
 	Runs          int
+	WarmupRuns    int
 	Prompt        string
 	Output        string
 	OllamaSmoke   bool
+	Service       string
 }
 
 func DefaultOptions() Options {
@@ -33,9 +35,11 @@ func DefaultOptions() Options {
 		Timeout:     "5m",
 		Model:       "qwen-1-8b-chat-q4-k-m-local",
 		Runs:        3,
+		WarmupRuns:  1,
 		Prompt:      "Explain GPU observability in one concise sentence.",
 		Output:      "artifacts/benchmark-local.json",
 		OllamaSmoke: true,
+		Service:     "ollama",
 	}
 }
 

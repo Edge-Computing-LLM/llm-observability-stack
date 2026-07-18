@@ -117,7 +117,7 @@ All expected pods were Running:
 - `alertmanager-kube-prometheus-stack-alertmanager-0` `2/2`
 - `dcgm-exporter` `1/1`
 - `kube-prometheus-stack-operator` `1/1`
-- `langchain-demo` `1/1`
+- `ollama-gateway` `1/1`
 - `llm-observability-stack-grafana` `3/3`
 - `kube-state-metrics` `1/1`
 - `prometheus-node-exporter` `1/1`
@@ -126,7 +126,7 @@ All expected pods were Running:
 - `open-webui-redis` `1/1`
 - `opentelemetry-collector` `1/1`
 - `prometheus-kube-prometheus-stack-prometheus-0` `2/2`
-- `python-toolbox` `1/1`
+- `edge-toolbox` `1/1`
 
 ## Test Results
 

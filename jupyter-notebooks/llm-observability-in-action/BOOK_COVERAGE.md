@@ -22,11 +22,10 @@ This toolkit maps the source domains from a local `kubernetes-in-action-2nd-edit
 - Services, DNS, endpoints, ingress, gateway API, traffic rules (Ch. 11, 12, 13):
   - `kubectl/06_networking_core.sh`
   - `kubectl/07_networking_advanced.sh`
-  - `python/02_service_path_inspector.py`
-  - `python/04_networking_report.py`
+  - `runbooks/run_go_suite.sh` (`network` and `service-path` commands)
 - Controllers and rollout management (Ch. 14, 15, 16, 17):
   - `kubectl/02_namespaces_and_workloads.sh`
-  - `python/03_workload_health.py`
+  - `runbooks/run_go_suite.sh` (`status` and `validate` commands)
 - Batch workloads (Ch. 18):
   - `kubectl/09_jobs_and_batch.sh`
 - LLM stack-specific health integration:

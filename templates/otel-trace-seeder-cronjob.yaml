@@ -1,7 +1,7 @@
 {{- if .Values.otelTraceSeeder.enabled }}
-{{- $imageRepository := default .Values.pythonToolbox.image.repository .Values.otelTraceSeeder.image.repository -}}
-{{- $imageTag := default .Values.pythonToolbox.image.tag .Values.otelTraceSeeder.image.tag -}}
-{{- $imagePullPolicy := default .Values.pythonToolbox.image.pullPolicy .Values.otelTraceSeeder.image.pullPolicy -}}
+{{- $imageRepository := default .Values.edgeToolbox.image.repository .Values.otelTraceSeeder.image.repository -}}
+{{- $imageTag := default .Values.edgeToolbox.image.tag .Values.otelTraceSeeder.image.tag -}}
+{{- $imagePullPolicy := default .Values.edgeToolbox.image.pullPolicy .Values.otelTraceSeeder.image.pullPolicy -}}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -59,13 +59,4 @@ spec:
 {{- end }}
               resources:
 {{ toYaml .Values.otelTraceSeeder.resources | indent 16 }}
-              volumeMounts:
-                - name: seeder-scripts
-                  mountPath: /opt/otel-trace-seeder
-                  readOnly: true
-          volumes:
-            - name: seeder-scripts
-              configMap:
-                name: otel-trace-seeder-scripts
-                defaultMode: 0555
 {{- end }}

@@ -1,6 +1,6 @@
 # llm-observability-stack One-Page Summary
 
-`llm-observability-stack` is a Helm-based local LLM observability stack for k3s and Kubernetes. It packages Ollama/GGUF model serving, Open WebUI, a LangChain-compatible FastAPI proxy, Prometheus metrics, Grafana dashboards, OpenTelemetry Collector, endpoint probes, benchmark tooling, and optional NVIDIA GPU monitoring.
+`llm-observability-stack` is a Helm-based local LLM observability stack for k3s and Kubernetes. It packages Ollama/GGUF model serving, Open WebUI, a native Go Ollama gateway, Prometheus metrics, Grafana dashboards, OpenTelemetry Collector, endpoint probes, benchmark tooling, and optional NVIDIA GPU monitoring.
 
 ## Problem
 
@@ -12,7 +12,7 @@ The stack provides one reproducible deployment path for local inference and obse
 
 - Ollama serves local GGUF models.
 - Open WebUI provides browser access.
-- `langchain-demo` exposes a FastAPI proxy with LLM metrics.
+- `ollama-gateway` exposes a native Go Ollama gateway with LLM metrics.
 - Prometheus and Grafana collect and visualize application, cluster, benchmark, and GPU metrics.
 - OpenTelemetry Collector accepts OTLP telemetry.
 - CPU-only and NVIDIA GPU profiles support development, local validation, and edge deployment.
@@ -24,7 +24,7 @@ The stack provides one reproducible deployment path for local inference and obse
 - `nvidia.com/gpu: 1` advertised by the node.
 - GPU Operator deployed separately in namespace `gpu-operator`.
 - `llm-observability-stack` deployed in namespace `llm-observability`.
-- Full local stack pods Running, including Ollama, Open WebUI, LangChain proxy, OpenTelemetry Collector, Prometheus, Grafana, Alertmanager, DCGM exporter, and Python toolbox.
+- Full local stack pods Running, including Ollama, Open WebUI, Ollama gateway, OpenTelemetry Collector, Prometheus, Grafana, Alertmanager, DCGM exporter, and Go edge toolbox.
 
 ## Key References
 
