@@ -101,7 +101,7 @@ DCGM exporter was deployed and served metrics through `http://dcgm-exporter:9400
 The following monitoring resources were present:
 
 - `ServiceMonitor/dcgm-exporter`
-- `ServiceMonitor/langchain-demo`
+- `ServiceMonitor/ollama-gateway`
 - `ServiceMonitor/opentelemetry-collector`
 - kube-prometheus-stack ServiceMonitors
 - `Probe/llm-stack-http`
@@ -120,7 +120,7 @@ Open WebUI initially refused HTTP while downloading first-start Hugging Face ass
 Benchmark command:
 
 ```bash
-./benchmarks/ollama_benchmark.py \
+bin/llm-observability benchmark \
   --model gemma3-1b-it-gguf-local \
   --warmup-runs 1 \
   --runs 3 \

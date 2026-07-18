@@ -24,7 +24,7 @@ helm list -A
 kubectl get pods,svc,pvc -n llm-observability -o wide
 kubectl get servicemonitors,probes,prometheusrules -A
 kubectl logs -n llm-observability deployment/ollama --tail=100
-kubectl logs -n llm-observability deployment/langchain-demo --tail=100
+kubectl logs -n llm-observability deployment/ollama-gateway --tail=100
 kubectl logs -n llm-observability statefulset/open-webui --tail=100
 ```
 

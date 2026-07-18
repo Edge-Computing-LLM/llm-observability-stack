@@ -64,7 +64,8 @@ resident and prevent a second model from competing for the GPU.
 
 - Gemma was stopped and removed from the Ollama registry; the original read-only
   host GGUF was not deleted.
-- Helm revision 6 is `deployed`.
+- The clean redeployment is Helm revision 1 with chart `0.3.0` and status
+  `deployed`.
 - Ollama was recreated with zero restarts and automatically created/warmed the
   local Qwen alias.
 - Ollama, Open WebUI, Redis, and OpenTelemetry Collector were Ready.
@@ -85,7 +86,7 @@ Static validation also passed:
 
 - Helm dependency build and lint;
 - GeForce profile render with `num_gpu=23`, `num_batch=1`, and `num_ctx=256`;
-- Python 3.11 Helm smoke tests;
+- native Go Helm smoke tests;
 - edge-cli Go tests.
 
 The Qwen model was deliberately left loaded in GPU memory after validation.

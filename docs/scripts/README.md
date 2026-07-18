@@ -1,62 +1,11 @@
-# Python Kubernetes Scripts
+# Replaced documentation scripts
 
-These scripts use the official Python Kubernetes client (`pip install kubernetes`) and focus on networking diagnostics for `llm-observability-stack`.
+The former Python 3.11 Kubernetes scripts were replaced by native Go commands:
 
-They are designed to run from host or CI and do not require `python-toolbox` to be enabled in-cluster.
+| Former script | Go command |
+|---|---|
+| `network_inventory.py` | `bin/llm-observability network` |
+| `service_path_inspector.py` | `bin/llm-observability service-path --service NAME` |
+| `watch_endpoints.py` | `bin/llm-observability watch-endpoints --service NAME` |
 
-## Install
-
-```bash
-/usr/local/bin/python3.11 -m pip install -r docs/scripts/requirements.txt
-```
-
-## Scripts
-
-### 1) `network_inventory.py`
-
-Purpose:
-
-- Print namespace networking inventory for Pods, Services, Endpoints, EndpointSlices, and NetworkPolicies.
-
-Usage:
-
-```bash
-/usr/local/bin/python3.11 docs/scripts/network_inventory.py --namespace llm-observability
-```
-
-### 2) `service_path_inspector.py`
-
-Purpose:
-
-- Trace one Service to its selector, selected Pods, Endpoints, and EndpointSlices.
-
-Usage:
-
-```bash
-/usr/local/bin/python3.11 docs/scripts/service_path_inspector.py --namespace llm-observability --service ollama
-/usr/local/bin/python3.11 docs/scripts/service_path_inspector.py --namespace llm-observability --service open-webui
-/usr/local/bin/python3.11 docs/scripts/service_path_inspector.py --namespace llm-observability --service langchain-demo
-```
-
-### 3) `watch_endpoints.py`
-
-Purpose:
-
-- Watch endpoint changes for a specific Service in near real-time.
-
-Usage:
-
-```bash
-/usr/local/bin/python3.11 docs/scripts/watch_endpoints.py --namespace llm-observability --service ollama --timeout 600
-```
-
-## Config options
-
-All scripts support:
-
-- `--namespace`
-- `--context`
-- `--kubeconfig`
-- `--in-cluster`
-
-Use `--in-cluster` only when running script inside Kubernetes with service account auth.
+See [Native Go Kubernetes automation](../GO-KUBERNETES-AUTOMATION.md).

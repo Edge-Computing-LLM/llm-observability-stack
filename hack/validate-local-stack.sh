@@ -7,9 +7,7 @@ if [[ "${1:-}" == "--strict-gpu" ]]; then
   STRICT_GPU=true
 fi
 
-PYTHON_BIN="${PYTHON_BIN:-python3.11}"
-
-for command in helm kubectl "$PYTHON_BIN"; do
+for command in go helm kubectl; do
   command -v "$command" >/dev/null || { echo "missing required command: $command" >&2; exit 1; }
 done
 
@@ -21,7 +19,8 @@ helm template llm-observability-stack . \
   --set opentelemetry.tracing.enabled=false \
   --set openWebUI.existingSecret="" \
   --set open-webui.webuiSecret.existingSecretName="" >/dev/null
-"$PYTHON_BIN" -m pytest -q tests
+go test ./...
+go vet ./...
 kubectl get nodes
 kubectl get storageclass
 

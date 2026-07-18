@@ -31,7 +31,7 @@ monitoring:
     module: http_2xx
     interval: 30s
     targets:
-      - 'http://langchain-demo.{{ .Values.namespace.name }}.svc.cluster.local:8000/healthz'
+      - 'http://ollama-gateway.{{ .Values.namespace.name }}.svc.cluster.local:8000/healthz'
       - 'http://ollama.{{ .Values.namespace.name }}.svc.cluster.local:11434/api/tags'
       - 'http://open-webui.{{ .Values.namespace.name }}.svc.cluster.local:8080/health'
   prometheusRules:
@@ -400,7 +400,7 @@ openWebUI:
   enabled: true
   fullnameOverride: open-webui
   # Route Open WebUI through the OpenTelemetry-instrumented Ollama proxy.
-  ollamaBaseUrl: http://langchain-demo:8000/ollama
+  ollamaBaseUrl: http://ollama-gateway:8000/ollama
   # Leave empty to auto-generate a strong value when chart-managed secret mode is used.
   # If you provide a value here, it is used as-is.
   webuiSecretKey: ""
@@ -440,7 +440,7 @@ open-webui:
     redis:
       enabled: true
   ollamaUrls:
-    - http://langchain-demo:8000/ollama
+    - http://ollama-gateway:8000/ollama
   enableOpenaiApi: false
   openaiBaseApiUrl: ""
   openaiApiKey: ""
@@ -470,7 +470,7 @@ open-webui:
       memory: 2Gi
   extraEnvVars:
     - name: OLLAMA_BASE_URL
-      value: http://langchain-demo:8000/ollama
+      value: http://ollama-gateway:8000/ollama
     - name: ENABLE_PERSISTENT_CONFIG
       value: "False"
     - name: WEBUI_AUTH
@@ -528,9 +528,9 @@ redis:
       cpu: 500m
       memory: 512Mi
 
-langchainDemo:
+ollamaGateway:
   enabled: true
-  nameOverride: langchain-demo
+  nameOverride: ollama-gateway
   serviceAccount:
     create: true
     name: ""
@@ -548,14 +548,11 @@ langchainDemo:
       drop:
         - ALL
   image:
-    repository: langchain-demo
-    tag: 0.1.1
+    repository: ollama-gateway
+    tag: 0.2.0
     pullPolicy: IfNotPresent
   app:
-    host: 0.0.0.0
     port: 8000
-    # prometheus-client uses an in-process registry; keep one worker unless multiprocess mode is configured.
-    workers: 1
   probes:
     startup:
       enabled: true
@@ -580,9 +577,6 @@ langchainDemo:
       periodSeconds: 20
       timeoutSeconds: 3
       failureThreshold: 6
-  appFromConfigMap:
-    # Mount langchain-demo/app.py from chart files so proxy/tracing code can be updated without rebuilding image.
-    enabled: true
   service:
     type: ClusterIP
     port: 8000
@@ -661,16 +655,16 @@ opentelemetry:
               - debug
 
 
-pythonToolbox:
+edgeToolbox:
   enabled: true
   runtimeClassName: ""
   image:
-    repository: python-toolbox
+    repository: edge-toolbox
     tag: 0.2.0
     pullPolicy: IfNotPresent
   command:
-    - sleep
-    - infinity
+    - /usr/local/bin/edge-toolbox
+    - serve
   resources:
     requests:
       cpu: 50m
@@ -682,7 +676,7 @@ pythonToolbox:
 
 otelTraceSeeder:
   enabled: false
-  # Runs a short Python job every 5 minutes to keep OpenTelemetry GenAI traces flowing.
+  # Runs a short native Go job every 5 minutes to keep OpenTelemetry GenAI traces flowing.
   schedule: "*/5 * * * *"
   suspend: false
   concurrencyPolicy: Forbid
@@ -697,8 +691,8 @@ otelTraceSeeder:
     tag: ""
     pullPolicy: ""
   command:
-    - python
-    - /opt/otel-trace-seeder/otel_genai_inference_traces.py
+    - /usr/local/bin/edge-toolbox
+    - seed
   env:
     inferenceApiUrl: http://ollama:11434/api/chat
     callCount: "2"

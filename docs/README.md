@@ -7,25 +7,28 @@ The documentation is organized around private LLM deployment and observability o
 ## Start Here
 
 1. [QWEN-1.8B-LIVE-VALIDATION-2026-07-18.md](QWEN-1.8B-LIVE-VALIDATION-2026-07-18.md)
-2. [LIVE-VALIDATION-2026-07-17.md](LIVE-VALIDATION-2026-07-17.md)
-3. [QUICKSTART.md](QUICKSTART.md)
-4. [cli.md](cli.md)
-5. [K3S-NVIDIA-EDGE-DEPENDENCY.md](K3S-NVIDIA-EDGE-DEPENDENCY.md)
-6. [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
-7. [XUBUNTU-K3S-NVIDIA-RUNBOOK.md](XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
-8. [ARCHITECTURE.md](ARCHITECTURE.md)
-9. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
-10. [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
-11. [LANGUAGE-BOUNDARIES.md](LANGUAGE-BOUNDARIES.md)
+2. [LIVE-VALIDATION-GO-NATIVE-2026-07-18.md](LIVE-VALIDATION-GO-NATIVE-2026-07-18.md)
+3. [LIVE-VALIDATION-2026-07-17.md](LIVE-VALIDATION-2026-07-17.md)
+4. [QUICKSTART.md](QUICKSTART.md)
+5. [cli.md](cli.md)
+6. [K3S-NVIDIA-EDGE-DEPENDENCY.md](K3S-NVIDIA-EDGE-DEPENDENCY.md)
+7. [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
+8. [XUBUNTU-K3S-NVIDIA-RUNBOOK.md](XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
+9. [ARCHITECTURE.md](ARCHITECTURE.md)
+10. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
+11. [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
+12. [LANGUAGE-BOUNDARIES.md](LANGUAGE-BOUNDARIES.md)
+13. [GO-NATIVE-MIGRATION-2026-07-18.md](GO-NATIVE-MIGRATION-2026-07-18.md)
 
 External companion:
 
 - [`qwen-gguf-observability`](https://github.com/Edge-Computing-LLM/qwen-gguf-observability)
   provides read-only Qwen runtime contract checks and sanitized evidence. It
   does not replace this repository's Helm, Modelfile, or benchmark assets.
-- [`Frontend-Edge-LLM-Observability`](https://github.com/Edge-Computing-LLM/Frontend-Edge-LLM-Observability)
-  owns the TypeScript/Vue presentation layer and does not receive direct
-  Kubernetes credentials from this chart.
+
+Dashboard presentation is now owned by the Helm-provisioned Grafana JSON in
+[`../dashboards/`](../dashboards/); there is no separate browser application or
+browser-side Kubernetes access path.
 
 ## Core Guides
 
@@ -44,7 +47,7 @@ External companion:
 - [ARCHITECTURE.md](ARCHITECTURE.md)
   - Component ownership, request paths, service exposure, and configuration boundaries.
 - [LANGUAGE-BOUNDARIES.md](LANGUAGE-BOUNDARIES.md)
-  - Go, Python 3.11, Bash, Helm/YAML, and frontend ownership rules.
+  - Go-first runtime, optional notebook Python, Bash, and Helm/YAML ownership rules.
 - [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
   - Day-0 and day-1 tasks: deploy, verify, port-forward, rebuild images, debug, and clean up.
 - [NOTEBOOKS-GUIDE.md](NOTEBOOKS-GUIDE.md)
@@ -60,8 +63,8 @@ External companion:
   - Service, EndpointSlice, DNS, ServiceLB, and traffic-path documentation for this stack.
 - [KUBECTL-COMMAND-REFERENCE.md](KUBECTL-COMMAND-REFERENCE.md)
   - High-signal `kubectl` command catalog for local operations.
-- [PYTHON-KUBERNETES-AUTOMATION.md](PYTHON-KUBERNETES-AUTOMATION.md)
-  - Kubernetes Python client usage patterns and script-driven inspection.
+- [GO-KUBERNETES-AUTOMATION.md](GO-KUBERNETES-AUTOMATION.md)
+  - Native Go CLI networking inventory, service-path, and endpoint-watch commands.
 
 ## Local Validation
 
@@ -93,7 +96,7 @@ External companion:
 - Contributor/operator:
   - [../CONTRIBUTING.md](../CONTRIBUTING.md)
   - [KUBECTL-COMMAND-REFERENCE.md](KUBECTL-COMMAND-REFERENCE.md)
-  - [PYTHON-KUBERNETES-AUTOMATION.md](PYTHON-KUBERNETES-AUTOMATION.md)
+  - [GO-KUBERNETES-AUTOMATION.md](GO-KUBERNETES-AUTOMATION.md)
 
 ## Supporting Script Docs
 
@@ -102,8 +105,8 @@ External companion:
 
 ## Related Component Docs
 
-- [../langchain-demo/README.md](../langchain-demo/README.md)
-- [../python-toolbox/README.md](../python-toolbox/README.md)
+- [../ollama-gateway/README.md](../ollama-gateway/README.md)
+- [../edge-toolbox/README.md](../edge-toolbox/README.md)
 - [../hack/README.md](../hack/README.md)
 - [../jupyter-notebooks/README.md](../jupyter-notebooks/README.md)
 - [../jupyter-notebooks/llm-observability-in-action/README.md](../jupyter-notebooks/llm-observability-in-action/README.md)

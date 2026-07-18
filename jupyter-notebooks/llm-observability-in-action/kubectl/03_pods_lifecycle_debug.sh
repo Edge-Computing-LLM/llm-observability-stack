@@ -24,7 +24,7 @@ else
 fi
 
 log_section "Recent logs (key workloads)"
-kctl_ns_try logs "deploy/${LANGCHAIN_SERVICE}" --all-containers=true --tail=120
+kctl_ns_try logs "deploy/${OLLAMA_GATEWAY_SERVICE}" --all-containers=true --tail=120
 if resource_exists_ns "deploy/${OPENWEBUI_SERVICE}"; then
   kctl_ns_try logs "deploy/${OPENWEBUI_SERVICE}" --all-containers=true --tail=120
 elif resource_exists_ns "sts/${OPENWEBUI_SERVICE}"; then

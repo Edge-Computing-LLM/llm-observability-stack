@@ -11,7 +11,7 @@ print_runtime_context
 log_section "ConfigMaps"
 kctl_ns_try get configmap -o wide
 kctl_ns_try describe configmap ollama-local-modelfile
-kctl_ns_try describe configmap langchain-demo-app
+kctl_ns_try describe configmap ollama-gateway-app
 
 log_section "Secrets"
 kctl_ns_try get secret -o custom-columns=NAME:.metadata.name,TYPE:.type,AGE:.metadata.creationTimestamp

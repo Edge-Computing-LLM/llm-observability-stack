@@ -6,7 +6,7 @@ primary organization-level CLI for end-to-end installs and uninstalls.
 ## Architecture Boundary
 
 - `k3s-nvidia-edge` owns the local Linux, k3s, k3s containerd, NVIDIA runtime, GPU Operator, NVIDIA device plugin, DCGM exporter, Node Feature Discovery, `RuntimeClass/nvidia`, and `nvidia.com/gpu` validation layer.
-- `llm-observability-stack` owns Ollama, Open WebUI, Open WebUI Redis, OpenTelemetry Collector, optional Prometheus/Grafana, optional LangChain/FastAPI proxy, benchmark tooling, notebooks, and local model configuration.
+- `llm-observability-stack` owns Ollama, Open WebUI, Open WebUI Redis, OpenTelemetry Collector, optional Prometheus/Grafana, the optional native Go Ollama gateway, benchmark tooling, notebooks, and local model configuration.
 - `edge-cli` owns cross-repository ordering: infra first, observability second.
 - `qwen-gguf-observability` optionally consumes the deployed state for read-only
   contract checks and evidence; it owns no install or uninstall workflow.
@@ -20,13 +20,15 @@ From this repository:
 go build -o bin/llm-observability ./cmd/llm-observability
 ```
 
-During local sibling-repo development, `go.mod` uses:
+`go.mod` pins the published `k3s-nvidia-edge` commit that introduced the
+reusable `pkg/edgebase` package:
 
 ```text
-replace github.com/Edge-Computing-LLM/k3s-nvidia-edge => ../k3s-nvidia-edge
+github.com/Edge-Computing-LLM/k3s-nvidia-edge v0.0.0-20260717201314-0b18be607013
 ```
 
-That keeps the long-term import path clean while allowing local changes in `k3s-nvidia-edge/pkg/edgebase` to be tested immediately. When `k3s-nvidia-edge` publishes a version tag containing `pkg/edgebase`, this can be changed to a normal tagged requirement.
+This lets a standalone clone build without relying on a sibling checkout. Move
+to a normal semantic version after `k3s-nvidia-edge` publishes its next tag.
 
 ## Commands
 
@@ -112,7 +114,7 @@ The base CUDA validation pod from `edgebase` is dry-run unless `--yes` is provid
 
 ## Benchmark
 
-The benchmark command wraps the existing Python client:
+The benchmark command uses the native Go streaming client:
 
 ```bash
 bin/llm-observability benchmark \
@@ -122,7 +124,8 @@ bin/llm-observability benchmark \
   --output artifacts/benchmark-local.json
 ```
 
-It starts a temporary `kubectl port-forward` to `svc/ollama` and then runs `benchmarks/ollama_benchmark.py`.
+It starts a temporary `kubectl port-forward` to `svc/ollama`, measures TTFT,
+duration, tokens, and throughput, and writes versioned JSON evidence.
 
 ## Uninstall
 

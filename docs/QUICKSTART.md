@@ -52,25 +52,25 @@ Profile reference:
 ## 3. Build and Import Local Images
 
 The GeForce 940M profile does not require local app images because Open WebUI connects directly to
-Ollama. Build these images only when you intentionally enable `langchainDemo` or `pythonToolbox` in
+Ollama. Build these images only when you intentionally enable `ollamaGateway` or `edgeToolbox` in
 another profile:
 
 ```bash
-./hack/build-local-image.sh langchain-demo 0.1.1 ./langchain-demo
-./hack/build-local-image.sh python-toolbox 0.2.0 ./python-toolbox
+./hack/build-local-image.sh ollama-gateway 0.2.0 . ollama-gateway/Dockerfile
+./hack/build-local-image.sh edge-toolbox 0.2.0 . edge-toolbox/Dockerfile
 ```
 
 Import them into k3s:
 
 ```bash
-./hack/import-local-image-to-k3s.sh langchain-demo 0.1.1
-./hack/import-local-image-to-k3s.sh python-toolbox 0.2.0
+./hack/import-local-image-to-k3s.sh ollama-gateway 0.2.0
+./hack/import-local-image-to-k3s.sh edge-toolbox 0.2.0
 ```
 
 Verify:
 
 ```bash
-sudo k3s ctr images ls | grep -E 'langchain-demo|python-toolbox'
+sudo k3s ctr images ls | grep -E 'ollama-gateway|edge-toolbox'
 ```
 
 ## 4. Deploy the Chart
@@ -144,7 +144,7 @@ kubectl logs -n llm-observability deploy/open-webui-redis --tail=100
 If notebook API cells fail:
 
 - verify the required port-forwards are active
-- verify `pythonToolbox.enabled` and toolbox pod health
+- verify `edgeToolbox.enabled` and toolbox pod health
 - verify `OTEL_EXPORTER_OTLP_ENDPOINT` and `OTEL_SERVICE_NAME` for tracing notebooks
 
 ## 9. Next Reading

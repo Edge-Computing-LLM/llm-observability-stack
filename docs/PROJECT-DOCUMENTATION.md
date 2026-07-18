@@ -20,8 +20,8 @@ Primary goals:
 
 - Run local LLM inference with Ollama using GGUF models.
 - Provide UI access through Open WebUI.
-- Provide an API integration surface through a FastAPI + LangChain demo app.
-- Provide observability and connectivity triage vian OpenTelemetry and an in-cluster Python toolbox.
+- Provide an API integration surface through a native Go Ollama gateway.
+- Provide observability and connectivity triage vian OpenTelemetry and an in-cluster Go edge toolbox.
 
 The current implementation is a local-ready, production-oriented reference architecture with a
 verified local edge profile. It is not yet customer-production-proven and requires workload-specific
@@ -39,9 +39,9 @@ security, reliability, storage, and scale validation.
   - OpenTelemetry Secret (optional)
   - Open WebUI Secret (optional)
   - Ollama Modelfile ConfigMap
-  - LangChain demo app ConfigMap (optional mount-over-image mode)
-  - LangChain demo Deployment + Service
-  - Python toolbox Deployment (optional)
+  - Ollama gateway app ConfigMap (optional mount-over-image mode)
+  - Ollama gateway Deployment + Service
+  - Go edge toolbox Deployment (optional)
   - OpenTelemetry dashboard seeder CronJob (optional)
   - Optional Redis Deployment/Service/PVC/Secret
   - Optional etcd StatefulSet + Services
@@ -49,10 +49,10 @@ security, reliability, storage, and scale validation.
 ### 2.2 Runtime traffic paths
 
 1. User -> Open WebUI (`open-webui:8080`)
-2. Open WebUI -> LangChain demo proxy (`langchain-demo:8000/ollama`)
-3. LangChain demo proxy -> Ollama (`OLLAMA_UPSTREAM_BASE_URL=http://ollama:11434`)
-4. LangChain demo -> OpenTelemetry API for proxy traces (when configured)
-5. Optional Python toolbox -> OpenTelemetry API (when enabled)
+2. Open WebUI -> Ollama gateway (`ollama-gateway:8000/ollama`)
+3. Ollama gateway -> Ollama (`OLLAMA_UPSTREAM_BASE_URL=http://ollama:11434`)
+4. Ollama gateway -> OpenTelemetry API for proxy traces (when configured)
+5. Optional Go edge toolbox -> OpenTelemetry API (when enabled)
 5. Open WebUI websocket manager -> Redis
    - Default: subchart `open-webui-redis`
    - Optional: custom `redis` resource from root templates
@@ -70,8 +70,8 @@ llm-observability-stack/
 ├── charts/
 │   ├── ollama/                    # vendored dependency
 │   └── open-webui/                # vendored dependency
-├── langchain-demo/                # FastAPI app image source
-├── python-toolbox/                # debug image source + scripts
+├── ollama-gateway/                # native Go gateway image source
+├── edge-toolbox/                # debug image source + scripts
 ├── hack/                          # local image build/import helpers
 ├── files/                         # pre/post change cluster snapshots
 └── docs/                          # documentation
@@ -108,9 +108,9 @@ Key value paths:
 - Subchart runtime config: `open-webui.*`
 - Secret input wrapper: `openWebUI.webuiSecretKey` and `openWebUI.existingSecret`
 
-### 4.3 LangChain demo service
+### 4.3 Ollama gateway service
 
-- Containerized FastAPI app in `langchain-demo/app.py`.
+- Containerized native Go gateway in `cmd/ollama-gateway` and `internal/gateway`.
 - Exposes:
   - `GET /`
   - `GET /healthz`
@@ -119,7 +119,7 @@ Key value paths:
 - Uses `langchain-ollama` (`ChatOllama`) against Ollama API.
 - Can emit tracing to OpenTelemetry when API key is configured.
 
-### 4.4 Python toolbox
+### 4.4 Go edge toolbox
 
 - Utility pod for in-cluster diagnosis.
 - Ships troubleshooting scripts for:
@@ -183,21 +183,21 @@ helm version
 ### 7.1 Build local images
 
 ```bash
-./hack/build-local-image.sh langchain-demo 0.1.1 ./langchain-demo
-./hack/build-local-image.sh python-toolbox 0.2.0 ./python-toolbox
+./hack/build-local-image.sh ollama-gateway 0.2.0 . ollama-gateway/Dockerfile
+./hack/build-local-image.sh edge-toolbox 0.2.0 . edge-toolbox/Dockerfile
 ```
 
 ### 7.2 Import images into k3s containerd
 
 ```bash
-./hack/import-local-image-to-k3s.sh langchain-demo 0.1.1
-./hack/import-local-image-to-k3s.sh python-toolbox 0.2.0
+./hack/import-local-image-to-k3s.sh ollama-gateway 0.2.0
+./hack/import-local-image-to-k3s.sh edge-toolbox 0.2.0
 ```
 
 ### 7.3 Verify images
 
 ```bash
-sudo k3s ctr images ls | grep -E 'langchain-demo|python-toolbox'
+sudo k3s ctr images ls | grep -E 'ollama-gateway|edge-toolbox'
 ```
 
 ## 8. Deploy, Validate, and Upgrade
@@ -255,7 +255,7 @@ Typical service endpoints in namespace:
 
 - Ollama: `http://ollama:11434`
 - Open WebUI: `http://open-webui:8080`
-- LangChain demo: `http://langchain-demo:8000`
+- Ollama gateway: `http://ollama-gateway:8000`
 
 Local access options:
 
@@ -267,7 +267,7 @@ Example:
 ```bash
 kubectl port-forward -n llm-observability svc/open-webui 8080:8080
 kubectl port-forward -n llm-observability svc/ollama 11434:11434
-kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000
+kubectl port-forward -n llm-observability svc/ollama-gateway 8000:8000
 ```
 
 ## 10. Health and Observability Workflow
@@ -276,15 +276,15 @@ kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000
 
 ```bash
 kubectl get pods -n llm-observability
-kubectl logs -n llm-observability deploy/langchain-demo --tail=100
+kubectl logs -n llm-observability deploy/ollama-gateway --tail=100
 kubectl logs -n llm-observability deploy/ollama --tail=100
 kubectl logs -n llm-observability statefulset/open-webui --tail=100
 ```
 
-### 10.2 LangChain demo API
+### 10.2 Ollama gateway API
 
 ```bash
-kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000
+kubectl port-forward -n llm-observability svc/ollama-gateway 8000:8000
 curl -s http://localhost:8000/healthz | jq
 curl -s http://localhost:8000/config | jq
 curl -s http://localhost:8000/invoke \
@@ -292,18 +292,17 @@ curl -s http://localhost:8000/invoke \
   -d '{"prompt":"Say hello in one short sentence."}' | jq
 ```
 
-### 10.3 Python toolbox checks
+### 10.3 Go edge toolbox checks
 
-Only when `pythonToolbox.enabled=true`.
+Only when `edgeToolbox.enabled=true`.
 
 ```bash
-kubectl exec -it -n llm-observability deploy/python-toolbox -- bash
-python /workspace/examples/service_dns_check.py
-python /workspace/examples/ollama_smoke.py
-python /workspace/examples/redis_ping.py
-python /workspace/examples/otel_genai_inference_traces.py
-python /workspace/examples/otel_genai_inference_traces.py
-python /workspace/examples/otel_genai_trace_seed_every_5m.py
+kubectl exec -it -n llm-observability deploy/edge-toolbox -- bash
+edge-toolbox dns ollama ollama-gateway open-webui open-webui-redis
+edge-toolbox http http://ollama:11434/api/tags
+edge-toolbox redis-ping
+edge-toolbox ollama-smoke
+edge-toolbox seed --count 2
 ```
 
 ## 11. Security Guidance
@@ -316,7 +315,7 @@ python /workspace/examples/otel_genai_trace_seed_every_5m.py
 
 ## 12. Common Failure Modes and Fixes
 
-### 12.1 `ImagePullBackOff` on langchain-demo or python-toolbox
+### 12.1 `ImagePullBackOff` on ollama-gateway or edge-toolbox
 
 Cause:
 
@@ -325,13 +324,13 @@ Cause:
 Fix:
 
 ```bash
-./hack/build-local-image.sh langchain-demo 0.1.1 ./langchain-demo
-./hack/import-local-image-to-k3s.sh langchain-demo 0.1.1
-./hack/build-local-image.sh python-toolbox 0.2.0 ./python-toolbox
-./hack/import-local-image-to-k3s.sh python-toolbox 0.2.0
-kubectl rollout restart deploy/langchain-demo -n llm-observability
+./hack/build-local-image.sh ollama-gateway 0.2.0 . ollama-gateway/Dockerfile
+./hack/import-local-image-to-k3s.sh ollama-gateway 0.2.0
+./hack/build-local-image.sh edge-toolbox 0.2.0 . edge-toolbox/Dockerfile
+./hack/import-local-image-to-k3s.sh edge-toolbox 0.2.0
+kubectl rollout restart deploy/ollama-gateway -n llm-observability
 # only if enabled
-kubectl rollout restart deploy/python-toolbox -n llm-observability
+kubectl rollout restart deploy/edge-toolbox -n llm-observability
 ```
 
 ### 12.2 Ollama model not available
@@ -360,7 +359,7 @@ Fix:
 ```bash
 kubectl get svc -n llm-observability ollama open-webui
 kubectl get endpoints -n llm-observability ollama open-webui
-kubectl exec -it -n llm-observability deploy/python-toolbox -- python /workspace/examples/service_dns_check.py
+kubectl exec -it -n llm-observability deploy/edge-toolbox -- edge-toolbox dns ollama ollama-gateway open-webui open-webui-redis
 ```
 
 ### 12.4 Websocket or chat instability with Redis
@@ -403,5 +402,5 @@ kubectl describe pvc -n llm-observability
 
 - `docs/KUBECTL-COMMAND-REFERENCE.md`
 - `docs/KUBERNETES-NETWORKING.md`
-- `docs/PYTHON-KUBERNETES-AUTOMATION.md`
+- `docs/GO-KUBERNETES-AUTOMATION.md`
 - `docs/GITHUB-PUBLISHING.md`

@@ -7,23 +7,20 @@ This folder provides a practical Kubernetes operations toolkit for your local `l
 - `config.env.example` - base runtime variables for your local k3s namespace and services.
 - `lib/common.sh` - shared shell helpers used by all kubectl scripts.
 - `kubectl/` - executable shell scripts grouped by Kubernetes domain.
-- `python/` - Kubernetes Python client scripts for inventory, health, and networking diagnostics.
 - `manifests/networking/` - optional networking manifests (NetworkPolicy and test pod).
-- `runbooks/` - wrappers to run full read-only kubectl and Python suites.
+- `runbooks/` - wrappers to run the read-only kubectl and native Go suites.
 
 ## Quick start
 
 ```bash
 PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
-PYTHON_BIN="${PYTHON_BIN:-python3.11}"
 cd "${PROJECT_ROOT}/jupyter-notebooks/llm-observability-in-action"
 cp config.env.example config.env
 
 # Optional: set K8S_CONTEXT in config.env if multiple contexts exist.
 
 ./runbooks/run_kubectl_suite_readonly.sh
-"${PYTHON_BIN}" -m pip install -r python/requirements.txt
-./runbooks/run_python_suite.sh
+./runbooks/run_go_suite.sh
 ```
 
 ## Mutation safety model
@@ -50,21 +47,19 @@ APPLY_CHANGES=1 ./kubectl/04_configmaps_and_secrets.sh
 7. `07_networking_advanced.sh` - Gateway API, DNS/CNI controls, node-network context.
 8. `08_security_policy.sh` - ServiceAccounts/RBAC/auth checks/pod security labels.
 9. `09_jobs_and_batch.sh` - Jobs/CronJobs execution and diagnostics.
-10. `10_llm_observability_stack_checks.sh` - stack-specific checks for `open-webui`, `ollama`, `langchain-demo`.
+10. `10_llm_observability_stack_checks.sh` - stack-specific checks for `open-webui`, `ollama`, `ollama-gateway`.
 
-## Script index (python)
+## Native Go operations
 
-1. `01_namespace_inventory.py` - broad namespace inventory (workloads + network + config + storage).
-2. `02_service_path_inspector.py` - service -> pods -> endpoints -> routes mapping.
-3. `03_workload_health.py` - rollout/availability health checks with non-zero exit on issues.
-4. `04_networking_report.py` - service selector mapping + endpoint graph report.
-5. `05_watch_events.py` - real-time namespace event stream watcher.
+`runbooks/run_go_suite.sh` uses the repository CLI for release validation,
+namespace inventory, and Service-to-Pod/Endpoint tracing. No Python dependency
+is required for these operations.
 
 ## Networking manifests
 
 - `manifests/networking/netpol.default-deny.yaml`
 - `manifests/networking/netpol.allow-dns.yaml`
-- `manifests/networking/netpol.allow-openwebui-to-langchain.yaml`
+- `manifests/networking/netpol.allow-openwebui-to-ollama-gateway.yaml`
 - `manifests/networking/test-client-pod.yaml`
 
 Apply only when intentionally testing networking behavior:

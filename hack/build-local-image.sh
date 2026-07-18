@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMAGE_REPO="${1:-langchain-demo}"
+IMAGE_REPO="${1:-ollama-gateway}"
 IMAGE_TAG="${2:-0.1.0}"
 BUILD_CONTEXT="${3:-}"
+DOCKERFILE="${4:-}"
 FULL_IMAGE="${IMAGE_REPO}:${IMAGE_TAG}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,12 +14,17 @@ if [[ -z "${BUILD_CONTEXT}" ]]; then
   BUILD_CONTEXT="${REPO_ROOT}/${IMAGE_REPO}"
 fi
 
+build_args=()
+if [[ -n "${DOCKERFILE}" ]]; then
+  build_args+=(--file "${DOCKERFILE}")
+fi
+
 if command -v nerdctl >/dev/null 2>&1; then
   echo "Building ${FULL_IMAGE} with nerdctl into containerd (k8s.io namespace)"
-  sudo nerdctl --namespace k8s.io build -t "${FULL_IMAGE}" "${BUILD_CONTEXT}"
+  sudo nerdctl --namespace k8s.io build "${build_args[@]}" -t "${FULL_IMAGE}" "${BUILD_CONTEXT}"
 else
   echo "nerdctl not found; falling back to docker build for ${FULL_IMAGE}"
-  docker build -t "${FULL_IMAGE}" "${BUILD_CONTEXT}"
+  docker build "${build_args[@]}" -t "${FULL_IMAGE}" "${BUILD_CONTEXT}"
 fi
 
 echo "Done: ${FULL_IMAGE}"

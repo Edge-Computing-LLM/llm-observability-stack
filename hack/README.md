@@ -30,26 +30,26 @@ This directory contains the local image workflow helpers for `llm-observability-
 
 ## Typical Usage
 
-Build/import `langchain-demo`:
+Build/import `ollama-gateway`:
 
 ```bash
-./hack/build-local-image.sh langchain-demo 0.1.1 ./langchain-demo
-./hack/import-local-image-to-k3s.sh langchain-demo 0.1.1
+./hack/build-local-image.sh ollama-gateway 0.2.0 . ollama-gateway/Dockerfile
+./hack/import-local-image-to-k3s.sh ollama-gateway 0.2.0
 ```
 
-Build/import `python-toolbox`:
+Build/import `edge-toolbox`:
 
 ```bash
-./hack/build-local-image.sh python-toolbox 0.2.0 ./python-toolbox
-./hack/import-local-image-to-k3s.sh python-toolbox 0.2.0
+./hack/build-local-image.sh edge-toolbox 0.2.0 . edge-toolbox/Dockerfile
+./hack/import-local-image-to-k3s.sh edge-toolbox 0.2.0
 ```
 
 Bootstrap the local full-stack profile:
 
 ```bash
 ./hack/bootstrap-enterprise-pilot-k3s.sh \
-  --set langchainDemo.enabled=false \
-  --set pythonToolbox.enabled=false
+  --set ollamaGateway.enabled=false \
+  --set edgeToolbox.enabled=false
 ```
 
 Force a CPU-only render or install path for validation:
@@ -61,12 +61,12 @@ helm template llm-observability-stack . \
   -f .generated/values.runtime-detected.yaml
 ```
 
-Enable `langchainDemo` and `pythonToolbox` only after their local images have been imported into k3s containerd.
+Enable `ollamaGateway` and `edgeToolbox` only after their local images have been imported into k3s containerd.
 
 ## When To Use These Scripts
 
-- after changing `langchain-demo/app.py`
-- after changing scripts or dependencies in `python-toolbox/`
+- after changing `cmd/ollama-gateway` or `internal/gateway`
+- after changing scripts or dependencies in `edge-toolbox/`
 - when refreshing local image tags used by the chart
 
 ## After Import
@@ -74,14 +74,14 @@ Enable `langchainDemo` and `pythonToolbox` only after their local images have be
 Restart the matching Kubernetes workload:
 
 ```bash
-kubectl rollout restart deploy/langchain-demo -n llm-observability
-kubectl rollout restart deploy/python-toolbox -n llm-observability
+kubectl rollout restart deploy/ollama-gateway -n llm-observability
+kubectl rollout restart deploy/edge-toolbox -n llm-observability
 ```
 
 Then verify:
 
 ```bash
-kubectl rollout status deploy/langchain-demo -n llm-observability
-kubectl rollout status deploy/python-toolbox -n llm-observability
-sudo k3s ctr images ls | grep -E 'langchain-demo|python-toolbox'
+kubectl rollout status deploy/ollama-gateway -n llm-observability
+kubectl rollout status deploy/edge-toolbox -n llm-observability
+sudo k3s ctr images ls | grep -E 'ollama-gateway|edge-toolbox'
 ```

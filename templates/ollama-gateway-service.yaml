@@ -1,0 +1,18 @@
+{{- if .Values.ollamaGateway.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-gateway
+  namespace: {{ include "llm-observability-stack.namespace" . }}
+  labels:
+    app.kubernetes.io/name: ollama-gateway
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: {{ .Values.ollamaGateway.service.type }}
+  selector:
+    app.kubernetes.io/name: ollama-gateway
+  ports:
+    - name: http
+      port: {{ .Values.ollamaGateway.service.port }}
+      targetPort: http
+{{- end }}

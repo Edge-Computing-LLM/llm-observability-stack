@@ -17,7 +17,7 @@ Modelfile, model lifecycle, or telemetry backend.
 ## 1. Design Goals
 
 - Keep the stack understandable on a single local node
-- Prefer reproducible local images over runtime `pip install`
+- Prefer static Go binaries and reproducible local images
 - Keep Open WebUI easy to reach from the browser
 - Keep internal APIs private by default and expose them only when needed
 - Make observability and networking drills easy to demonstrate
@@ -34,7 +34,8 @@ Responsibilities:
 - install and uninstall this Helm chart
 - report status for Ollama, Open WebUI, Redis, OpenTelemetry Collector, and services
 - validate model loading, Ollama API behavior, and CUDA/offload evidence
-- wrap the existing Python benchmark client
+- run the native Go streaming benchmark client
+- inspect namespace networking, Service paths, and endpoint watches
 - print the Helm and kubectl commands used under the hood
 
 ### 2.1 Root umbrella chart
@@ -45,7 +46,7 @@ The root chart owns:
 - values layering
 - custom templates that glue the subcharts together
 - observability dependencies including kube-prometheus-stack and OpenTelemetry Operator
-- optional resources such as Redis, python-toolbox, and etcd simulations
+- optional resources such as Redis, edge-toolbox, and etcd simulations
 
 Files:
 
@@ -73,9 +74,9 @@ Responsibilities:
 - user/session state
 - Ollama-compatible request flow to the traced proxy path
 
-### 2.4 LangChain demo / proxy
+### 2.4 Native Go Ollama gateway
 
-Source lives in `langchain-demo/`.
+Source lives in `ollama-gateway/`.
 
 Responsibilities:
 
@@ -83,16 +84,17 @@ Responsibilities:
 - simple `/invoke` demo endpoint
 - Ollama-compatible proxy path at `/ollama/*`
 - optional OpenTelemetry-traced proxy runs for Open WebUI traffic
+- Prometheus request, latency, active-request, and TTFT metrics
 
-### 2.5 Python toolbox
+### 2.5 Native Go edge toolbox
 
-Source lives in `python-toolbox/`.
+Source lives in `edge-toolbox/`.
 
 Responsibilities:
 
 - in-cluster diagnostics
 - DNS and service connectivity checks
-- optional OpenTelemetry helper scripts
+- optional OpenTelemetry trace-seeding command
 - notebook support for cluster-side network probing
 
 ### 2.6 Redis
@@ -123,10 +125,10 @@ Available integration points:
 Primary user path for the full proxy profile:
 
 1. Browser -> `open-webui` Service
-2. `open-webui` pod -> `langchain-demo` Service
-3. `langchain-demo` pod -> `ollama` Service
-4. `langchain-demo` -> OpenTelemetry API when tracing is enabled
-5. `langchain-demo` -> OpenTelemetry Collector when OpenTelemetry is enabled
+2. `open-webui` pod -> `ollama-gateway` Service
+3. `ollama-gateway` pod -> `ollama` Service
+4. `ollama-gateway` -> OpenTelemetry API when tracing is enabled
+5. `ollama-gateway` -> OpenTelemetry Collector when OpenTelemetry is enabled
 
 Primary user path for `values.geforce-940m-k3s.yaml`:
 
@@ -137,8 +139,8 @@ Primary user path for `values.geforce-940m-k3s.yaml`:
 
 Supporting path:
 
-1. Notebook or operator -> `kubectl exec` or Kubernetes Python client
-2. `python-toolbox` pod -> internal Services, DNS, OpenTelemetry API
+1. Notebook or operator -> `kubectl exec` or the Go CLI
+2. `edge-toolbox` pod -> internal Services, DNS, OpenTelemetry API
 
 ## 4. Exposure Strategy
 
@@ -146,8 +148,8 @@ Default local pattern:
 
 - `open-webui`: externally reachable for browser use
 - `ollama`: `ClusterIP`
-- `langchain-demo`: `ClusterIP`
-- `python-toolbox`: no public Service, pod-only diagnostics
+- `ollama-gateway`: `ClusterIP`
+- `edge-toolbox`: no public Service, pod-only diagnostics
 
 This keeps the local demo usable while reducing unnecessary surface area.
 
@@ -178,8 +180,9 @@ There are three main configuration layers:
 - `cmd/llm-observability/`: Go CLI entrypoint
 - `internal/stack/`: CLI workflows for this chart and app layer
 - `templates/`: root chart resources, optional OpenTelemetryCollector CR, and integration glue
-- `langchain-demo/app.py`: FastAPI app and traced proxy logic
-- `python-toolbox/examples/`: in-cluster helper scripts
+- `cmd/ollama-gateway` + `internal/gateway`: traced Go gateway
+- `cmd/edge-toolbox` + `internal/toolbox`: in-cluster Go diagnostics
+- `internal/benchmark`: native streaming benchmark and evidence schema
 - `hack/`: local image build/import flow
 - `jupyter-notebooks/`: notebook-driven operational guides
 

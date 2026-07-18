@@ -2,11 +2,11 @@
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "llm-observability-stack.langchainServiceAccountName" -}}
-{{- if .Values.langchainDemo.serviceAccount.create -}}
-{{- default "langchain-demo" .Values.langchainDemo.serviceAccount.name -}}
+{{- define "llm-observability-stack.ollamaGatewayServiceAccountName" -}}
+{{- if .Values.ollamaGateway.serviceAccount.create -}}
+{{- default "ollama-gateway" .Values.ollamaGateway.serviceAccount.name -}}
 {{- else -}}
-{{- default "default" .Values.langchainDemo.serviceAccount.name -}}
+{{- default "default" .Values.ollamaGateway.serviceAccount.name -}}
 {{- end -}}
 {{- end -}}
 

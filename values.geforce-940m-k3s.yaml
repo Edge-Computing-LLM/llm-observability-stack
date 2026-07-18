@@ -3,9 +3,106 @@ namespace:
   name: llm-observability
 
 monitoring:
-  enabled: false
+  enabled: true
+  blackbox:
+    # This compact local profile does not deploy a blackbox exporter.
+    enabled: false
+  dcgmExporter:
+    serviceMonitor:
+      enabled: true
+      namespace: gpu-operator
+      interval: 15s
+      port: gpu-metrics
+      path: /metrics
+      selector:
+        app: nvidia-dcgm-exporter
+  grafanaDashboards:
+    enabled: true
 networkPolicy:
   enabled: false
+
+# A resource-conscious Prometheus/Grafana deployment for the validated
+# single-node GeForce 940M profile. The dashboards under dashboards/*.json are
+# discovered by the Grafana sidecar from the root chart's ConfigMap.
+kube-prometheus-stack:
+  enabled: true
+  crds:
+    enabled: true
+  defaultRules:
+    create: false
+  alertmanager:
+    enabled: false
+  grafana:
+    enabled: true
+    defaultDashboardsEnabled: false
+    adminUser: admin
+    adminPassword: admin
+    persistence:
+      enabled: false
+    sidecar:
+      dashboards:
+        enabled: true
+        label: grafana_dashboard
+        labelValue: "1"
+        searchNamespace: ALL
+        provider:
+          allowUiUpdates: false
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+  prometheus:
+    enabled: true
+    prometheusSpec:
+      retention: 6h
+      retentionSize: 1GB
+      serviceMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelectorNilUsesHelmValues: false
+      probeSelectorNilUsesHelmValues: false
+      ruleSelectorNilUsesHelmValues: false
+      scrapeConfigSelectorNilUsesHelmValues: false
+      resources:
+        requests:
+          cpu: 100m
+          memory: 384Mi
+        limits:
+          cpu: 1000m
+          memory: 1536Mi
+  prometheusOperator:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 300m
+        memory: 256Mi
+  kube-state-metrics:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 300m
+        memory: 256Mi
+  prometheus-node-exporter:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi
+  kubeEtcd:
+    enabled: false
+  kubeControllerManager:
+    enabled: false
+  kubeScheduler:
+    enabled: false
+  kubeProxy:
+    enabled: false
 
 nvidia:
   runtimeClassName: nvidia
@@ -165,9 +262,9 @@ open-webui:
       value: "False"
 redis:
   enabled: false
-langchainDemo:
+ollamaGateway:
   enabled: false
-pythonToolbox:
+edgeToolbox:
   enabled: false
 otelTraceSeeder:
   enabled: false

@@ -15,22 +15,22 @@ git status --short
 
 ## 2. Build and Refresh Local Images
 
-### Rebuild `langchain-demo`
+### Rebuild `ollama-gateway`
 
 ```bash
-./hack/build-local-image.sh langchain-demo 0.1.1 ./langchain-demo
-./hack/import-local-image-to-k3s.sh langchain-demo 0.1.1
-kubectl rollout restart deploy/langchain-demo -n llm-observability
-kubectl rollout status deploy/langchain-demo -n llm-observability
+./hack/build-local-image.sh ollama-gateway 0.2.0 . ollama-gateway/Dockerfile
+./hack/import-local-image-to-k3s.sh ollama-gateway 0.2.0
+kubectl rollout restart deploy/ollama-gateway -n llm-observability
+kubectl rollout status deploy/ollama-gateway -n llm-observability
 ```
 
-### Rebuild `python-toolbox`
+### Rebuild `edge-toolbox`
 
 ```bash
-./hack/build-local-image.sh python-toolbox 0.2.0 ./python-toolbox
-./hack/import-local-image-to-k3s.sh python-toolbox 0.2.0
-kubectl rollout restart deploy/python-toolbox -n llm-observability
-kubectl rollout status deploy/python-toolbox -n llm-observability
+./hack/build-local-image.sh edge-toolbox 0.2.0 . edge-toolbox/Dockerfile
+./hack/import-local-image-to-k3s.sh edge-toolbox 0.2.0
+kubectl rollout restart deploy/edge-toolbox -n llm-observability
+kubectl rollout status deploy/edge-toolbox -n llm-observability
 ```
 
 ## 3. Install, Upgrade, and Roll Back
@@ -79,23 +79,23 @@ kubectl top pods -n llm-observability
 ### Service-specific logs
 
 ```bash
-kubectl logs -n llm-observability deploy/langchain-demo --tail=100
+kubectl logs -n llm-observability deploy/ollama-gateway --tail=100
 kubectl logs -n llm-observability deploy/ollama --tail=100
 kubectl logs -n llm-observability statefulset/open-webui --tail=100
-kubectl logs -n llm-observability deploy/python-toolbox --tail=100
+kubectl logs -n llm-observability deploy/edge-toolbox --tail=100
 ```
 
 ## 5. Access Internal APIs
 
 ```bash
 kubectl port-forward -n llm-observability svc/ollama 11434:11434
-kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000
+kubectl port-forward -n llm-observability svc/ollama-gateway 8000:8000
 ```
 
 Use these for:
 
 - direct Ollama API tests
-- LangChain proxy notebook cells
+- Ollama gateway notebook cells
 - OpenTelemetry traced proxy requests from the host
 
 ## 6. Jupyter Notebook Operations
@@ -111,7 +111,7 @@ cd jupyter-notebooks
 Useful pairings:
 
 - `01` before any major change
-- `07` when validating `python-toolbox`
+- `07` when validating `edge-toolbox`
 - `09` when validating cluster networking
 
 If notebook cells fail:
@@ -123,18 +123,19 @@ If notebook cells fail:
 
 ## 7. In-Cluster Toolbox Checks
 
-Open a shell:
+Run a diagnostic command. The hardened distroless image intentionally has no
+interactive shell:
 
 ```bash
-kubectl exec -it -n llm-observability deploy/python-toolbox -- bash
+kubectl exec -n llm-observability deploy/edge-toolbox -- edge-toolbox dns ollama ollama-gateway
 ```
 
 Run helper scripts:
 
 ```bash
-kubectl exec -it -n llm-observability deploy/python-toolbox -- python /workspace/examples/service_dns_check.py
-kubectl exec -it -n llm-observability deploy/python-toolbox -- python /workspace/examples/ollama_smoke.py
-kubectl exec -it -n llm-observability deploy/python-toolbox -- python /workspace/examples/redis_ping.py
+kubectl exec -it -n llm-observability deploy/edge-toolbox -- edge-toolbox dns ollama ollama-gateway open-webui open-webui-redis
+kubectl exec -it -n llm-observability deploy/edge-toolbox -- edge-toolbox ollama-smoke
+kubectl exec -it -n llm-observability deploy/edge-toolbox -- edge-toolbox redis-ping
 ```
 
 ## 8. GPU Checks
@@ -151,9 +152,9 @@ If scheduling is failing, inspect the node plugin runtime behavior and confirm t
 
 ### `open-webui` works but notebooks fail
 
-- likely missing `kubectl port-forward` for `ollama` and/or `langchain-demo`
+- likely missing `kubectl port-forward` for `ollama` and/or `ollama-gateway`
 
-### `langchain-demo` is unhealthy
+### `ollama-gateway` is unhealthy
 
 - inspect logs
 - confirm the local image tag imported into k3s matches the chart values
@@ -165,9 +166,9 @@ If scheduling is failing, inspect the node plugin runtime behavior and confirm t
 - verify Modelfile render values
 - verify the model exists through `/api/tags`
 
-### `python-toolbox` is present but scripts are missing
+### `edge-toolbox` is present but scripts are missing
 
-- rebuild/import the local `python-toolbox` image
+- rebuild/import the local `edge-toolbox` image
 - restart the toolbox deployment
 
 ## 10. Cleanup and Hygiene
@@ -186,5 +187,5 @@ Before publishing:
 ```bash
 git status --short
 helm lint .
-pytest -q tests
+go test ./...
 ```

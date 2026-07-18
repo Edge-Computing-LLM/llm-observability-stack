@@ -1,0 +1,61 @@
+{{- if .Values.edgeToolbox.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edge-toolbox
+  namespace: {{ include "llm-observability-stack.namespace" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: edge-toolbox
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: edge-toolbox
+    spec:
+{{- if .Values.edgeToolbox.runtimeClassName }}
+      runtimeClassName: {{ .Values.edgeToolbox.runtimeClassName }}
+{{- end }}
+      containers:
+        - name: toolbox
+          image: {{ .Values.edgeToolbox.image.repository }}:{{ .Values.edgeToolbox.image.tag }}
+          imagePullPolicy: {{ .Values.edgeToolbox.image.pullPolicy }}
+          command:
+{{ toYaml .Values.edgeToolbox.command | indent 12 }}
+          env:
+            - name: OLLAMA_BASE_URL
+              value: http://ollama:11434
+            - name: OLLAMA_MODEL
+              value: {{ .Values.ollamaModel.name | quote }}
+            - name: OTEL_SERVICE_NAME
+              value: edge-toolbox
+            - name: OTEL_SERVICE_NAMESPACE
+              value: {{ include "llm-observability-stack.namespace" . | quote }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .Values.opentelemetry.endpoint | quote }}
+            - name: REDIS_HOST
+              value: {{ ternary (default "redis" .Values.redis.fullnameOverride) "open-webui-redis" .Values.redis.enabled | quote }}
+            - name: REDIS_PORT
+              value: "6379"
+{{- range .Values.edgeToolbox.extraEnv }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+{{- end }}
+          resources:
+{{ toYaml .Values.edgeToolbox.resources | indent 12 }}
+          ports:
+            - name: health
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 20
+{{- end }}

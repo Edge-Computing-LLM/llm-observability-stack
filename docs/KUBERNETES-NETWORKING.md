@@ -10,7 +10,7 @@ NS=llm-observability
 
 Profile note:
 
-- The current local example profile keeps `pythonToolbox.enabled=true`.
+- The current local example profile keeps `edgeToolbox.enabled=true`.
 - Verify the active profile in [CONFIG-PROFILES.md](CONFIG-PROFILES.md) and with `helm get values ... -a` before assuming toolbox availability.
 
 ## 1. Networking Topology
@@ -19,14 +19,14 @@ Core in-cluster services:
 
 - `ollama` on port `11434`
 - `open-webui` on port `8080`
-- `langchain-demo` on port `8000`
+- `ollama-gateway` on port `8000`
 - `open-webui-redis` (default mode) or `redis` (custom mode) on `6379`
 
 ### 1.1 Traffic flows
 
 1. Browser -> `open-webui` service
-2. Open WebUI app container -> `langchain-demo` proxy (`OLLAMA_BASE_URLS=http://langchain-demo:8000/ollama`)
-3. LangChain demo -> `ollama` service (`OLLAMA_BASE_URL`)
+2. Open WebUI app container -> `ollama-gateway` proxy (`OLLAMA_BASE_URLS=http://ollama-gateway:8000/ollama`)
+3. Ollama gateway -> `ollama` service (`OLLAMA_BASE_URL`)
 4. Open WebUI websocket manager -> Redis URL (`REDIS_URL` / `WEBSOCKET_REDIS_URL`)
 
 ## 2. Service Discovery and DNS
@@ -40,15 +40,15 @@ Pods resolve services by:
 Check DNS from toolbox pod:
 
 ```bash
-kubectl exec -it -n $NS deploy/python-toolbox -- nslookup ollama
-kubectl exec -it -n $NS deploy/python-toolbox -- nslookup open-webui
-kubectl exec -it -n $NS deploy/python-toolbox -- nslookup langchain-demo
+kubectl exec -it -n $NS deploy/edge-toolbox -- nslookup ollama
+kubectl exec -it -n $NS deploy/edge-toolbox -- nslookup open-webui
+kubectl exec -it -n $NS deploy/edge-toolbox -- nslookup ollama-gateway
 ```
 
 Inspect resolver config in pod:
 
 ```bash
-kubectl exec -it -n $NS deploy/python-toolbox -- cat /etc/resolv.conf
+kubectl exec -it -n $NS deploy/edge-toolbox -- cat /etc/resolv.conf
 ```
 
 Inspect CoreDNS health:
@@ -98,7 +98,7 @@ kubectl get svc -n $NS
 ```bash
 kubectl port-forward -n $NS svc/open-webui 8080:8080
 kubectl port-forward -n $NS svc/ollama 11434:11434
-kubectl port-forward -n $NS svc/langchain-demo 8000:8000
+kubectl port-forward -n $NS svc/ollama-gateway 8000:8000
 ```
 
 ### 4.3 LoadBalancer on local k3s
@@ -133,8 +133,8 @@ kubectl logs -n $NS statefulset/open-webui --tail=200 | grep -Ei 'redis|websocke
 ### 5.2 Check Redis reachability from toolbox
 
 ```bash
-kubectl exec -it -n $NS deploy/python-toolbox -- nc -vz redis 6379
-kubectl exec -it -n $NS deploy/python-toolbox -- nc -vz open-webui-redis 6379
+kubectl exec -it -n $NS deploy/edge-toolbox -- nc -vz redis 6379
+kubectl exec -it -n $NS deploy/edge-toolbox -- nc -vz open-webui-redis 6379
 ```
 
 ## 6. Pod-to-Service and Pod-to-Pod Debugging
@@ -142,16 +142,16 @@ kubectl exec -it -n $NS deploy/python-toolbox -- nc -vz open-webui-redis 6379
 ### 6.1 Toolbox DNS + TCP + HTTP checks
 
 ```bash
-kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/service_dns_check.py
-kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/ollama_smoke.py
+kubectl exec -it -n $NS deploy/edge-toolbox -- edge-toolbox dns ollama ollama-gateway open-webui open-webui-redis
+kubectl exec -it -n $NS deploy/edge-toolbox -- edge-toolbox ollama-smoke
 ```
 
 ### 6.2 Direct health probes
 
 ```bash
-kubectl exec -it -n $NS deploy/python-toolbox -- curl -sS http://ollama:11434/api/tags
-kubectl exec -it -n $NS deploy/python-toolbox -- curl -sS http://langchain-demo:8000/healthz
-kubectl exec -it -n $NS deploy/python-toolbox -- curl -sSI http://open-webui:8080/
+kubectl exec -it -n $NS deploy/edge-toolbox -- curl -sS http://ollama:11434/api/tags
+kubectl exec -it -n $NS deploy/edge-toolbox -- curl -sS http://ollama-gateway:8000/healthz
+kubectl exec -it -n $NS deploy/edge-toolbox -- curl -sSI http://open-webui:8080/
 ```
 
 ## 7. Endpoint Troubleshooting Playbook
@@ -183,15 +183,15 @@ kubectl logs -n $NS <POD> --all-containers --tail=200
 4. Check in-cluster connectivity from toolbox
 
 ```bash
-kubectl exec -it -n $NS deploy/python-toolbox -- nslookup <SERVICE>
-kubectl exec -it -n $NS deploy/python-toolbox -- nc -vz <SERVICE> <PORT>
+kubectl exec -it -n $NS deploy/edge-toolbox -- nslookup <SERVICE>
+kubectl exec -it -n $NS deploy/edge-toolbox -- nc -vz <SERVICE> <PORT>
 ```
 
 5. Check namespace consistency
 
 ```bash
 kubectl get all -n $NS
-kubectl get all -A | grep -E 'ollama|open-webui|langchain-demo|python-toolbox|redis'
+kubectl get all -A | grep -E 'ollama|open-webui|ollama-gateway|edge-toolbox|redis'
 ```
 
 ## 8. Network Policies
@@ -276,14 +276,14 @@ Run this after each deploy/upgrade:
 ```bash
 kubectl get svc,endpoints -n $NS
 kubectl get pods -n $NS -o wide
-kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/service_dns_check.py
-kubectl exec -it -n $NS deploy/python-toolbox -- python /workspace/examples/ollama_smoke.py
-kubectl port-forward -n $NS svc/langchain-demo 8000:8000
+kubectl exec -it -n $NS deploy/edge-toolbox -- edge-toolbox dns ollama ollama-gateway open-webui open-webui-redis
+kubectl exec -it -n $NS deploy/edge-toolbox -- edge-toolbox ollama-smoke
+kubectl port-forward -n $NS svc/ollama-gateway 8000:8000
 curl -s http://localhost:8000/healthz | jq
 ```
 
 ## 14. Related Docs
 
 - `docs/KUBECTL-COMMAND-REFERENCE.md`
-- `docs/PYTHON-KUBERNETES-AUTOMATION.md`
+- `docs/GO-KUBERNETES-AUTOMATION.md`
 - `docs/PROJECT-DOCUMENTATION.md`

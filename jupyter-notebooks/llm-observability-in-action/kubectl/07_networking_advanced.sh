@@ -31,9 +31,9 @@ log_section "Optional in-cluster DNS and connectivity test"
 if [[ "${APPLY_CHANGES}" == "1" ]]; then
   kctl_ns apply -f "${SCRIPT_DIR}/../manifests/networking/test-client-pod.yaml"
   kctl_ns wait --for=condition=Ready pod/k8s-net-debug --timeout=120s
-  kctl_ns exec k8s-net-debug -- nslookup "${LANGCHAIN_SERVICE}.${K8S_NAMESPACE}.svc.cluster.local"
+  kctl_ns exec k8s-net-debug -- nslookup "${OLLAMA_GATEWAY_SERVICE}.${K8S_NAMESPACE}.svc.cluster.local"
   kctl_ns exec k8s-net-debug -- nslookup "${OLLAMA_SERVICE}.${K8S_NAMESPACE}.svc.cluster.local"
-  kctl_ns exec k8s-net-debug -- sh -lc "wget -qO- http://${LANGCHAIN_SERVICE}:8000/healthz || true"
+  kctl_ns exec k8s-net-debug -- sh -lc "wget -qO- http://${OLLAMA_GATEWAY_SERVICE}:8000/healthz || true"
   kctl_ns delete -f "${SCRIPT_DIR}/../manifests/networking/test-client-pod.yaml" --ignore-not-found=true
 else
   log_info "Read-only mode: skipping temporary test pod creation. Set APPLY_CHANGES=1 to run DNS/connectivity pod test."
@@ -43,5 +43,5 @@ log_section "NetworkPolicy apply helpers"
 cat <<CMDS
 APPLY_CHANGES=1 kubectl -n ${K8S_NAMESPACE} apply -f ${SCRIPT_DIR}/../manifests/networking/netpol.default-deny.yaml
 APPLY_CHANGES=1 kubectl -n ${K8S_NAMESPACE} apply -f ${SCRIPT_DIR}/../manifests/networking/netpol.allow-dns.yaml
-APPLY_CHANGES=1 kubectl -n ${K8S_NAMESPACE} apply -f ${SCRIPT_DIR}/../manifests/networking/netpol.allow-openwebui-to-langchain.yaml
+APPLY_CHANGES=1 kubectl -n ${K8S_NAMESPACE} apply -f ${SCRIPT_DIR}/../manifests/networking/netpol.allow-openwebui-to-ollama-gateway.yaml
 CMDS

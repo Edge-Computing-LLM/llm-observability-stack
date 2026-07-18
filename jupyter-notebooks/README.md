@@ -12,19 +12,19 @@ For classification and status, see [CATALOG.md](CATALOG.md).
 2. **02-ollama-api-basics.ipynb**  
    Covers direct Ollama API usage (`/api/tags`, `/api/chat`, streaming mode), multi-prompt benchmarking, and latency charting.
 
-3. **03-langchain-proxy-deep-dive.ipynb**  
-   Explores `langchain-demo` proxy endpoints (`/healthz`, `/config`, `/invoke`, `/ollama/api/*`) and compares direct vs proxy latency.
+3. **03-ollama-gateway-deep-dive.ipynb**
+   Explores `ollama-gateway` proxy endpoints (`/healthz`, `/config`, `/invoke`, `/ollama/api/*`) and compares direct vs proxy latency.
 
 4. **04-opentelemetry-tracing-setup.ipynb**  
    Validates OpenTelemetry credentials, generates traced inference calls, queries runs from your project, and plots observability metrics.
 
 5. **05-open-webui-end-to-end.ipynb**  
-   Validates Browser -> Open WebUI -> LangChain proxy -> Ollama -> OpenTelemetry flow with manual browser prompts plus post-run trace analysis.
+   Validates Browser -> Open WebUI -> Ollama Go gateway -> Ollama -> OpenTelemetry flow with manual browser prompts plus post-run trace analysis.
 
 6. **06-custom-modelfile-workflow.ipynb**  
    Walks through GGUF-backed Modelfile inspection, tuning, optional model creation via Ollama API, and benchmark comparison.
 
-7. **07-python-toolbox-diagnostics.ipynb**  
+7. **07-edge-toolbox-diagnostics.ipynb**
    Covers toolbox deployment checks, in-cluster diagnostic script execution, pod memory profiling, and GPU correlation during inference.
 
 8. **08-troubleshooting-etcd-simulations.ipynb**  
@@ -76,7 +76,7 @@ For notebooks that call internal APIs from the host, keep these ready in separat
 
 ```bash
 kubectl port-forward -n llm-observability svc/ollama 11434:11434
-kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000
+kubectl port-forward -n llm-observability svc/ollama-gateway 8000:8000
 ```
 
 ## Port-Forward Expectations
@@ -85,15 +85,15 @@ Several notebooks assume local access to internal `ClusterIP` services. Keep the
 
 ```bash
 kubectl port-forward -n llm-observability svc/ollama 11434:11434
-kubectl port-forward -n llm-observability svc/langchain-demo 8000:8000
+kubectl port-forward -n llm-observability svc/ollama-gateway 8000:8000
 ```
 
 Notebook-specific expectations:
 
 - `02`, `03`, `04`, and `06` need `localhost:11434` and/or `localhost:8000`
 - `05` assumes browser access to Open WebUI on `localhost:8080`
-- `07` uses `python-toolbox` in-cluster plus optional `localhost:8000` GPU-correlation checks
-- `09` is mostly API-first and uses the Kubernetes Python client plus `python-toolbox`
+- `07` uses `edge-toolbox` in-cluster plus optional `localhost:8000` GPU-correlation checks
+- `09` is mostly API-first and uses the Kubernetes Python client plus `edge-toolbox`
 
 ## Portability Notes
 

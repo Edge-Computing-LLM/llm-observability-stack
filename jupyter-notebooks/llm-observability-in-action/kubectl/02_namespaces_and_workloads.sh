@@ -32,9 +32,9 @@ while IFS= read -r sts_name; do
 done < <(kctl_ns_capture get sts -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
 
 log_section "llm-observability key workloads"
-if resource_exists_ns "deploy/${LANGCHAIN_SERVICE}"; then
-  kctl_ns_try get "deploy/${LANGCHAIN_SERVICE}" -o wide
-  kctl_ns_try describe "deploy/${LANGCHAIN_SERVICE}"
+if resource_exists_ns "deploy/${OLLAMA_GATEWAY_SERVICE}"; then
+  kctl_ns_try get "deploy/${OLLAMA_GATEWAY_SERVICE}" -o wide
+  kctl_ns_try describe "deploy/${OLLAMA_GATEWAY_SERVICE}"
 fi
 
 if resource_exists_ns "deploy/${OPENWEBUI_SERVICE}"; then

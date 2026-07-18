@@ -56,27 +56,27 @@ The chart mounts that host directory read-only into Ollama at `/models/gguf`, an
 
 ## 5. Build and Import Local Images
 
-The `langchain-demo` and `python-toolbox` images are local project images. Build and import them into k3s containerd:
+The `ollama-gateway` and `edge-toolbox` images are local project images. Build and import them into k3s containerd:
 
 ```bash
-./hack/build-local-image.sh langchain-demo 0.1.1 ./langchain-demo
-./hack/import-local-image-to-k3s.sh langchain-demo 0.1.1
+./hack/build-local-image.sh ollama-gateway 0.2.0 . ollama-gateway/Dockerfile
+./hack/import-local-image-to-k3s.sh ollama-gateway 0.2.0
 
-./hack/build-local-image.sh python-toolbox 0.2.0 ./python-toolbox
-./hack/import-local-image-to-k3s.sh python-toolbox 0.2.0
+./hack/build-local-image.sh edge-toolbox 0.2.0 . edge-toolbox/Dockerfile
+./hack/import-local-image-to-k3s.sh edge-toolbox 0.2.0
 ```
 
 Verify:
 
 ```bash
-sudo k3s ctr images ls | grep -E 'langchain-demo|python-toolbox'
+sudo k3s ctr images ls | grep -E 'ollama-gateway|edge-toolbox'
 ```
 
-The images that must be built locally before enabling `langchainDemo` and `pythonToolbox` are:
+The images that must be built locally before enabling `ollamaGateway` and `edgeToolbox` are:
 
 ```text
-langchain-demo:0.1.1
-python-toolbox:0.2.0
+ollama-gateway:0.2.0
+edge-toolbox:0.2.0
 ```
 
 The platform images rendered by the enterprise profile are:
@@ -119,8 +119,8 @@ For a lighter first install without local app images:
 
 ```bash
 ./hack/bootstrap-enterprise-pilot-k3s.sh \
-  --set langchainDemo.enabled=false \
-  --set pythonToolbox.enabled=false
+  --set ollamaGateway.enabled=false \
+  --set edgeToolbox.enabled=false
 ```
 
 After importing local images, enable the workloads with:
@@ -138,7 +138,7 @@ helm upgrade --install llm-observability-stack . \
 kubectl get pods,svc,pvc -n llm-observability -o wide
 kubectl rollout status deploy/ollama -n llm-observability --timeout=300s
 kubectl rollout status deploy/opentelemetry-collector -n llm-observability --timeout=180s
-kubectl rollout status deploy/langchain-demo -n llm-observability --timeout=180s
+kubectl rollout status deploy/ollama-gateway -n llm-observability --timeout=180s
 ```
 
 ## 9. Verify Ollama and the Local Model
@@ -191,7 +191,7 @@ kubectl port-forward -n llm-observability svc/opentelemetry-collector 4317:4317 
 curl -s http://127.0.0.1:8888/metrics | head
 ```
 
-`langchain-demo` sends OTLP to `http://opentelemetry-collector:4317` when OpenTelemetry is enabled.
+`ollama-gateway` sends OTLP to `http://opentelemetry-collector:4317` when OpenTelemetry is enabled.
 
 ## 11. Access Open WebUI and Grafana
 
@@ -217,7 +217,7 @@ password: admin
 ## 12. Run Tests
 
 ```bash
-pytest -q tests
+go test ./...
 ./hack/validate-local-stack.sh
 ./hack/validate-local-stack.sh --strict-gpu
 ```

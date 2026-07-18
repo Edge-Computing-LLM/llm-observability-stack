@@ -14,8 +14,8 @@ fi
 : "${K8S_RELEASE:=llm-observability-stack}"
 : "${OPENWEBUI_SERVICE:=open-webui}"
 : "${OLLAMA_SERVICE:=ollama}"
-: "${LANGCHAIN_SERVICE:=langchain-demo}"
-: "${PYTHON_TOOLBOX_DEPLOYMENT:=python-toolbox}"
+: "${OLLAMA_GATEWAY_SERVICE:=ollama-gateway}"
+: "${EDGE_TOOLBOX_DEPLOYMENT:=edge-toolbox}"
 : "${APPLY_CHANGES:=0}"
 
 KCTL_BIN=(kubectl)
