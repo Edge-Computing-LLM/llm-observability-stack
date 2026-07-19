@@ -44,8 +44,8 @@ The current local deployment target is a single-node Xubuntu 24 system running k
 - k3s node: combined control-plane and worker.
 - NVIDIA device plugin resource: `nvidia.com/gpu: 1`.
 - RuntimeClass: `nvidia`.
-- Model: Qwen 1.8B Chat Q4_K_M GGUF through the local alias
-  `qwen-1-8b-chat-q4-k-m-local`.
+- Model profiles: Qwen 1.8B Chat Q4_K_M, Gemma 3 1B IT Q4_K_M, and
+  Ollama `llama3.2:1b`, deployed one at a time with partial CUDA offload.
 
 Measured after deployment, warmup, and exact-response, arithmetic, and
 translation inference checks:
@@ -69,7 +69,8 @@ Evidence and reproduction:
 - [Xubuntu k3s NVIDIA runbook](docs/XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
 - [Sanitized benchmark artifact](artifacts/geforce-940m-benchmark.json)
 - [GeForce 940M Helm profile](values.geforce-940m-k3s.yaml)
-- [Qwen GGUF runtime evidence companion](https://github.com/Edge-Computing-LLM/qwen-gguf-observability)
+- [Multi-model GGUF runtime evidence companion](https://github.com/Edge-Computing-LLM/gguf-observability)
+- [Sequential three-model deployment and validation](docs/MULTI-MODEL-LOW-VRAM.md)
 
 These numbers prove constrained local edge feasibility. They do not claim enterprise load, concurrency, fleet reliability, or production readiness.
 
@@ -248,6 +249,27 @@ helm upgrade --install llm-observability-stack . \
 
 ./hack/test-geforce-940m-inference.sh
 ```
+
+Select Gemma or Llama by adding the matching overlay after the base GeForce
+values file:
+
+```bash
+# Gemma 3 1B IT Q4_K_M
+helm upgrade --install llm-observability-stack . \
+  -n llm-observability --create-namespace \
+  -f values.geforce-940m-k3s.yaml \
+  -f values.gemma-3-1b-geforce-940m-k3s.yaml
+
+# Llama 3.2 1B
+helm upgrade --install llm-observability-stack . \
+  -n llm-observability --create-namespace \
+  -f values.geforce-940m-k3s.yaml \
+  -f values.llama3.2-1b-geforce-940m-k3s.yaml
+```
+
+Use only one profile at a time on the 1 GiB GPU. The Modelfile `num_gpu`
+setting controls partial layer offload; read-only runtime evidence enforces a
+900 MiB total observed VRAM ceiling.
 
 ### C. Full observability NVIDIA profile
 

@@ -231,7 +231,7 @@
       "gridPos": {"h": 11, "w": 12, "x": 0, "y": 41},
       "options": {
         "mode": "markdown",
-        "content": "| Namespace | Service | Type | Ports | Purpose |\n|---|---|---|---|---|\n| gpu-operator | nvidia-dcgm-exporter | ClusterIP | 9400/TCP | GPU metrics scrape target |\n| llm-observability | ollama | ClusterIP | 11434/TCP | Qwen GGUF inference API |\n| llm-observability | open-webui | ClusterIP | 8080/TCP | Browser chat service |\n| llm-observability | open-webui-redis | ClusterIP | 6379/TCP | WebUI state and websocket support |\n| llm-observability | opentelemetry-collector | ClusterIP | 4317, 4318, 8888/TCP | OTLP and collector metrics |\n\nKubernetes remains the source of truth. This chart-owned table documents stable service contracts without publishing ClusterIPs."
+        "content": "| Namespace | Service | Type | Ports | Purpose |\n|---|---|---|---|---|\n| gpu-operator | nvidia-dcgm-exporter | ClusterIP | 9400/TCP | GPU metrics scrape target |\n| llm-observability | ollama | ClusterIP | 11434/TCP | Selected GGUF model inference API |\n| llm-observability | open-webui | ClusterIP | 8080/TCP | Browser chat service |\n| llm-observability | open-webui-redis | ClusterIP | 6379/TCP | WebUI state and websocket support |\n| llm-observability | opentelemetry-collector | ClusterIP | 4317, 4318, 8888/TCP | OTLP and collector metrics |\n\nKubernetes remains the source of truth. This chart-owned table documents stable service contracts without publishing ClusterIPs."
       }
     },
     {
@@ -315,7 +315,7 @@
       "gridPos": {"h": 8, "w": 24, "x": 0, "y": 59},
       "options": {
         "mode": "markdown",
-        "content": "### LLM observability readiness\n\n- **DCGM exporter:** live GPU utilization, framebuffer, temperatures, PCIe counters, and clocks come from the GPU Operator service.\n- **Qwen runtime:** the GeForce profile requests 23 GPU layers, context 256, batch 1, one parallel request, and infinite keep-alive.\n- **Runtime contract:** qwen-gguf-observability remains the authoritative read-only validator for node, GPU, Helm, pod, model-parameter, residency, and 850 MiB ceiling checks. Grafana visualizes metrics but does not replace that validator.\n- **OpenTelemetry:** the collector accepts OTLP metrics, traces, and logs on the chart-owned service.\n\nPrometheus is authoritative for live numeric and Kubernetes readiness panels. Static text records stable Helm-owned configuration and contains no ClusterIPs, pod identifiers, credentials, or public tunnel hostnames."
+        "content": "### LLM observability readiness\n\n- **DCGM exporter:** live GPU utilization, framebuffer, temperatures, PCIe counters, and clocks come from the GPU Operator service.\n- **Low-VRAM runtime:** model overlays request a small context, batch 1, one parallel request, infinite keep-alive, and model-specific partial GPU layer offload.\n- **Runtime contract:** gguf-observability remains the authoritative read-only validator for node, GPU, Helm, pod, model parameters, residency, and the 900 MiB observed ceiling. Grafana visualizes metrics but does not replace that validator.\n- **OpenTelemetry:** the collector accepts OTLP metrics, traces, and logs on the chart-owned service.\n\nPrometheus is authoritative for live numeric and Kubernetes readiness panels. Static text records stable Helm-owned configuration and contains no ClusterIPs, pod identifiers, credentials, or public tunnel hostnames."
       }
     }
   ],

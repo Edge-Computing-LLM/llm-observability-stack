@@ -4,7 +4,10 @@
 {{- if .Values.ollamaModel.modelfile.file -}}
 {{- $modelfileSource = required (printf "ollamaModel.modelfile.file %q was not packaged in the chart" .Values.ollamaModel.modelfile.file) (.Files.Get .Values.ollamaModel.modelfile.file) -}}
 {{- end -}}
-{{- $modelfile := regexReplaceAll "(?m)^FROM[ \\t]+[^\\r\\n]+$" $modelfileSource (printf "FROM %s" $ggufPath) -}}
+{{- $modelfile := $modelfileSource -}}
+{{- if .Values.ollamaModel.gguf.enabled -}}
+{{- $modelfile = regexReplaceAll "(?m)^FROM[ \\t]+[^\\r\\n]+$" $modelfileSource (printf "FROM %s" $ggufPath) -}}
+{{- end -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:

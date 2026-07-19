@@ -23,8 +23,8 @@ The documentation is organized around private LLM deployment and observability o
 
 External companion:
 
-- [`qwen-gguf-observability`](https://github.com/Edge-Computing-LLM/qwen-gguf-observability)
-  provides read-only Qwen runtime contract checks and sanitized evidence. It
+- [`gguf-observability`](https://github.com/Edge-Computing-LLM/gguf-observability)
+  provides read-only, model-selectable runtime contract checks and sanitized evidence. It
   does not replace this repository's Helm, Modelfile, or benchmark assets.
 
 Dashboard presentation is now owned by the Helm-provisioned Grafana JSON in
@@ -32,6 +32,9 @@ Dashboard presentation is now owned by the Helm-provisioned Grafana JSON in
 browser-side Kubernetes access path.
 
 ## Core Guides
+
+- [MULTI-MODEL-LOW-VRAM.md](MULTI-MODEL-LOW-VRAM.md)
+  - Sequential Qwen, Gemma, and Llama deployment with a 900 MiB observed VRAM ceiling.
 
 - [QUICKSTART.md](QUICKSTART.md)
   - Fast local setup for k3s, values files, image build/import, install, and first validation.

@@ -63,6 +63,37 @@ func TestGeForceProfileContract(t *testing.T) {
 	requireAbsent(t, manifest, "name: ollama-gateway", "name: edge-toolbox", "/bin/ollama rm", "kind: ClusterPolicy")
 }
 
+func TestGeForceModelOverlays(t *testing.T) {
+	tests := []struct {
+		name       string
+		valuesFile string
+		expected   []string
+		absent     []string
+	}{
+		{
+			name:       "gemma local GGUF",
+			valuesFile: "values.gemma-3-1b-geforce-940m-k3s.yaml",
+			expected:   []string{"gemma3-1b-it-gguf-local", "FROM /models/gguf/gemma-3-1b-it-Q4_K_M.gguf", "PARAMETER num_gpu 23", "PARAMETER num_ctx 256", "PARAMETER num_batch 1"},
+		},
+		{
+			name:       "llama registry model",
+			valuesFile: "values.llama3.2-1b-geforce-940m-k3s.yaml",
+			expected:   []string{"llama3-2-1b-local", "llama3.2:1b", "FROM llama3.2:1b", "PARAMETER num_gpu 8", "PARAMETER num_ctx 256", "PARAMETER num_batch 1"},
+			absent:     []string{"FROM /models/gguf/qwen-1.8b-chat-q4_K_M.gguf"},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			manifest, err := helm(t, "template", "llm-observability-stack", ".", "-f", "values.geforce-940m-k3s.yaml", "-f", test.valuesFile)
+			if err != nil {
+				t.Fatal(manifest)
+			}
+			requireContains(t, manifest, test.expected...)
+			requireAbsent(t, manifest, test.absent...)
+		})
+	}
+}
+
 func TestCPUProfileHasNoNVIDIAScheduling(t *testing.T) {
 	manifest, err := helm(t, "template", "llm-observability-stack", ".", "-f", "values.cpu-k3s.yaml")
 	if err != nil {

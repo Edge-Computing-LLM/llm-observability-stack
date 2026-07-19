@@ -1,0 +1,20 @@
+# Low-VRAM derivative of the official Ollama Llama 3.2 1B model.
+#
+# Upstream: https://ollama.com/library/llama3.2:1b
+# License: Llama 3.2 Community License; review the upstream license before use.
+#
+# FROM intentionally references the Ollama registry model. Ollama retains its
+# official chat template and tokenizer metadata while this derivative pins the
+# small-context settings used by the single-node GeForce 940M profile.
+# num_gpu is an offload-layer control, not a hard VRAM quota. The repository's
+# live validation records total device usage and rejects observations above the
+# 900 MiB operational ceiling. Eight GPU layers measured 541 MiB total device
+# use with a 52% CPU / 48% GPU processor split on July 19, 2026.
+
+FROM llama3.2:1b
+
+PARAMETER num_gpu 8
+PARAMETER num_ctx 256
+PARAMETER num_batch 1
+PARAMETER num_predict 128
+PARAMETER temperature 0

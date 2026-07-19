@@ -93,5 +93,5 @@ The Qwen model was deliberately left loaded in GPU memory after validation.
 
 Ongoing read-only contract validation and sanitized evidence capture are kept
 in the complementary
-[`qwen-gguf-observability`](https://github.com/Edge-Computing-LLM/qwen-gguf-observability)
+[`gguf-observability`](https://github.com/Edge-Computing-LLM/gguf-observability)
 repository. This stack remains the deployment and model-configuration owner.
