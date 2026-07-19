@@ -1,5 +1,5 @@
-github.com/Edge-Computing-LLM/k3s-nvidia-edge v0.0.0-20260717201314-0b18be607013 h1:yxsjOaobZcrVBnbF/Usz5HQ77HExRcOVkCi2o8dZhgs=
-github.com/Edge-Computing-LLM/k3s-nvidia-edge v0.0.0-20260717201314-0b18be607013/go.mod h1:+7CsSGQtUt/2vgTNKT6NFOjx5gkIhrNIK4YFw4/IVyA=
+github.com/Edge-Computing-LLM/k3s-nvidia-edge v0.0.0-20260719035336-95f5e6cb9c29 h1:apfG7YGso9zbX4y8ztOoAAeYUv/9ANP2cnUHBZxH76w=
+github.com/Edge-Computing-LLM/k3s-nvidia-edge v0.0.0-20260719035336-95f5e6cb9c29/go.mod h1:+7CsSGQtUt/2vgTNKT6NFOjx5gkIhrNIK4YFw4/IVyA=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/cenkalti/backoff/v5 v5.0.3 h1:ZN+IMa753KfX5hd8vVaMixjnqRZ3y8CuJKRKj1xcsSM=

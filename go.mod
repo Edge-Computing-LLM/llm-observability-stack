@@ -3,7 +3,7 @@ module github.com/Edge-Computing-LLM/llm-observability-stack
 go 1.25.0
 
 require (
-	github.com/Edge-Computing-LLM/k3s-nvidia-edge v0.0.0-20260717201314-0b18be607013
+	github.com/Edge-Computing-LLM/k3s-nvidia-edge v0.0.0-20260719035336-95f5e6cb9c29
 	github.com/prometheus/client_golang v1.23.2
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.44.0

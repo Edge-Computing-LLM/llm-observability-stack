@@ -57,6 +57,18 @@ func TestHelmInstallDisablesBaseLayerChartsForGPUProfiles(t *testing.T) {
 	}
 }
 
+func TestBaseReadinessRejectsStaleNetworkAndUnhealthyOperator(t *testing.T) {
+	all := ""
+	for _, step := range baseReadySteps(DefaultOptions()) {
+		all += step.Name + "\n" + step.Command + "\n"
+	}
+	for _, want := range []string{"k3s node address", "InternalIP", "GPU Operator health", "unhealthy pods"} {
+		if !stringsContains(all, want) {
+			t.Fatalf("base readiness missing %q", want)
+		}
+	}
+}
+
 func TestInstallWithBaseIsDeprecated(t *testing.T) {
 	opts := DefaultOptions()
 	opts.WithBase = true
