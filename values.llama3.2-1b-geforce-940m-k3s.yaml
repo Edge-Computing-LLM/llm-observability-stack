@@ -1,0 +1,41 @@
+# Apply after values.geforce-940m-k3s.yaml to select Ollama's Llama 3.2 1B.
+ollamaModel:
+  name: llama3-2-1b-local
+  gguf:
+    enabled: false
+  modelfile:
+    file: Modelfile.llama3.2-1b
+
+ollama:
+  ollama:
+    models:
+      pull:
+        - llama3.2:1b
+      run:
+        - llama3-2-1b-local
+      runPrompt: "Reply with exactly: model ready"
+      create:
+        - name: llama3-2-1b-local
+          configMapRef: ollama-local-modelfile
+          configMapKeyRef: Modelfile
+
+open-webui:
+  extraEnvVars:
+    - name: OLLAMA_BASE_URL
+      value: http://ollama:11434
+    - name: ENABLE_PERSISTENT_CONFIG
+      value: "False"
+    - name: WEBUI_AUTH
+      value: "False"
+    - name: ENABLE_VERSION_UPDATE_CHECK
+      value: "False"
+    - name: RAG_EMBEDDING_ENGINE
+      value: ollama
+    - name: RAG_EMBEDDING_MODEL
+      value: llama3-2-1b-local
+    - name: RAG_EMBEDDING_MODEL_AUTO_UPDATE
+      value: "False"
+    - name: RAG_RERANKING_MODEL_AUTO_UPDATE
+      value: "False"
+    - name: WHISPER_MODEL_AUTO_UPDATE
+      value: "False"

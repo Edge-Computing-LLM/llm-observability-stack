@@ -6,24 +6,25 @@ The documentation is organized around private LLM deployment and observability o
 
 ## Start Here
 
-1. [QWEN-1.8B-LIVE-VALIDATION-2026-07-18.md](QWEN-1.8B-LIVE-VALIDATION-2026-07-18.md)
-2. [LIVE-VALIDATION-GO-NATIVE-2026-07-18.md](LIVE-VALIDATION-GO-NATIVE-2026-07-18.md)
-3. [LIVE-VALIDATION-2026-07-17.md](LIVE-VALIDATION-2026-07-17.md)
-4. [QUICKSTART.md](QUICKSTART.md)
-5. [cli.md](cli.md)
-6. [K3S-NVIDIA-EDGE-DEPENDENCY.md](K3S-NVIDIA-EDGE-DEPENDENCY.md)
-7. [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
-8. [XUBUNTU-K3S-NVIDIA-RUNBOOK.md](XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
-9. [ARCHITECTURE.md](ARCHITECTURE.md)
-10. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
-11. [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
-12. [LANGUAGE-BOUNDARIES.md](LANGUAGE-BOUNDARIES.md)
-13. [GO-NATIVE-MIGRATION-2026-07-18.md](GO-NATIVE-MIGRATION-2026-07-18.md)
+1. [DEPENDENCY-AUDIT-2026-07-19.md](DEPENDENCY-AUDIT-2026-07-19.md)
+2. [QWEN-1.8B-LIVE-VALIDATION-2026-07-18.md](QWEN-1.8B-LIVE-VALIDATION-2026-07-18.md)
+3. [LIVE-VALIDATION-GO-NATIVE-2026-07-18.md](LIVE-VALIDATION-GO-NATIVE-2026-07-18.md)
+4. [LIVE-VALIDATION-2026-07-17.md](LIVE-VALIDATION-2026-07-17.md)
+5. [QUICKSTART.md](QUICKSTART.md)
+6. [cli.md](cli.md)
+7. [K3S-NVIDIA-EDGE-DEPENDENCY.md](K3S-NVIDIA-EDGE-DEPENDENCY.md)
+8. [CONFIG-PROFILES.md](CONFIG-PROFILES.md)
+9. [XUBUNTU-K3S-NVIDIA-RUNBOOK.md](XUBUNTU-K3S-NVIDIA-RUNBOOK.md)
+10. [ARCHITECTURE.md](ARCHITECTURE.md)
+11. [OPERATIONS-RUNBOOK.md](OPERATIONS-RUNBOOK.md)
+12. [PROJECT-DOCUMENTATION.md](PROJECT-DOCUMENTATION.md)
+13. [LANGUAGE-BOUNDARIES.md](LANGUAGE-BOUNDARIES.md)
+14. [GO-NATIVE-MIGRATION-2026-07-18.md](GO-NATIVE-MIGRATION-2026-07-18.md)
 
 External companion:
 
-- [`qwen-gguf-observability`](https://github.com/Edge-Computing-LLM/qwen-gguf-observability)
-  provides read-only Qwen runtime contract checks and sanitized evidence. It
+- [`gguf-observability`](https://github.com/Edge-Computing-LLM/gguf-observability)
+  provides read-only, model-selectable runtime contract checks and sanitized evidence. It
   does not replace this repository's Helm, Modelfile, or benchmark assets.
 
 Dashboard presentation is now owned by the Helm-provisioned Grafana JSON in
@@ -31,6 +32,9 @@ Dashboard presentation is now owned by the Helm-provisioned Grafana JSON in
 browser-side Kubernetes access path.
 
 ## Core Guides
+
+- [MULTI-MODEL-LOW-VRAM.md](MULTI-MODEL-LOW-VRAM.md)
+  - Sequential Qwen, Gemma, and Llama deployment with a 900 MiB observed VRAM ceiling.
 
 - [QUICKSTART.md](QUICKSTART.md)
   - Fast local setup for k3s, values files, image build/import, install, and first validation.

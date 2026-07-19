@@ -1,0 +1,41 @@
+# Apply after values.geforce-940m-k3s.yaml to select the local Gemma GGUF.
+ollamaModel:
+  name: gemma3-1b-it-gguf-local
+  gguf:
+    enabled: true
+    filename: gemma-3-1b-it-Q4_K_M.gguf
+  modelfile:
+    file: Modelfile.gemma-3-1b-it-gguf
+
+ollama:
+  ollama:
+    models:
+      pull: []
+      run:
+        - gemma3-1b-it-gguf-local
+      runPrompt: "Reply with exactly: model ready"
+      create:
+        - name: gemma3-1b-it-gguf-local
+          configMapRef: ollama-local-modelfile
+          configMapKeyRef: Modelfile
+
+open-webui:
+  extraEnvVars:
+    - name: OLLAMA_BASE_URL
+      value: http://ollama:11434
+    - name: ENABLE_PERSISTENT_CONFIG
+      value: "False"
+    - name: WEBUI_AUTH
+      value: "False"
+    - name: ENABLE_VERSION_UPDATE_CHECK
+      value: "False"
+    - name: RAG_EMBEDDING_ENGINE
+      value: ollama
+    - name: RAG_EMBEDDING_MODEL
+      value: gemma3-1b-it-gguf-local
+    - name: RAG_EMBEDDING_MODEL_AUTO_UPDATE
+      value: "False"
+    - name: RAG_RERANKING_MODEL_AUTO_UPDATE
+      value: "False"
+    - name: WHISPER_MODEL_AUTO_UPDATE
+      value: "False"

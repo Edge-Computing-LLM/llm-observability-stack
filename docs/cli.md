@@ -8,7 +8,7 @@ primary organization-level CLI for end-to-end installs and uninstalls.
 - `k3s-nvidia-edge` owns the local Linux, k3s, k3s containerd, NVIDIA runtime, GPU Operator, NVIDIA device plugin, DCGM exporter, Node Feature Discovery, `RuntimeClass/nvidia`, and `nvidia.com/gpu` validation layer.
 - `llm-observability-stack` owns Ollama, Open WebUI, Open WebUI Redis, OpenTelemetry Collector, optional Prometheus/Grafana, the optional native Go Ollama gateway, benchmark tooling, notebooks, and local model configuration.
 - `edge-cli` owns cross-repository ordering: infra first, observability second.
-- `qwen-gguf-observability` optionally consumes the deployed state for read-only
+- `gguf-observability` optionally consumes the deployed state for read-only
   contract checks and evidence; it owns no install or uninstall workflow.
 - The CLI does not import `k3s-nvidia-edge/internal/...`.
 

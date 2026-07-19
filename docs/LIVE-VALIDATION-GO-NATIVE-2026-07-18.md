@@ -43,7 +43,7 @@ expected k3s/containerd restart triggered by NVIDIA toolkit reconciliation.
 
 - `go test ./...` and `go vet ./...` for all four first-party repositories.
 - Go builds for `edge`, `k3s-nvidia-edge`, `llm-observability`,
-  `ollama-gateway`, `edge-toolbox`, and `qwen-observe`.
+  `ollama-gateway`, `edge-toolbox`, and the now-renamed `gguf-observe`.
 - `helm lint` for both project charts.
 - Helm rendering for default, CPU, enterprise, full-NVIDIA, local, and GeForce
   profiles.

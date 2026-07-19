@@ -180,13 +180,14 @@ func baseReady(ctx context.Context, r *edgebase.Runner, opts Options) error {
 func baseReadySteps(opts Options) []edgebase.Step {
 	steps := []edgebase.Step{
 		{Name: "Kubernetes connectivity", Command: "kubectl cluster-info"},
+		{Name: "k3s node address", Command: edgebase.NodeAddressHealthCheck()},
 		{Name: "k3s nodes", Command: "kubectl get nodes -o wide"},
 	}
 	if GPUProfile(opts.Profile) {
 		steps = append(steps,
 			edgebase.Step{Name: "NVIDIA RuntimeClass", Command: "kubectl get runtimeclass nvidia"},
 			edgebase.Step{Name: "NVIDIA GPU allocatable", Command: edgebase.GPUCapacityCheck()},
-			edgebase.Step{Name: "GPU Operator namespace", Command: "kubectl get pods -n gpu-operator -o wide"},
+			edgebase.Step{Name: "GPU Operator health", Command: edgebase.GPUOperatorHealthCheck()},
 		)
 	}
 	return steps

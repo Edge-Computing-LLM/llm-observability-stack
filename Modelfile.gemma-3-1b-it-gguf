@@ -1,4 +1,10 @@
-# Modelfile for local GGUF (Gemma-3-1B-It Q4_K_M)
+# Modelfile for local GGUF (Gemma-3-1B-It Q4_K_M).
+#
+# The 1 GiB GeForce 940M profile uses a small context and batch with an explicit
+# partial layer offload. Ollama/llama.cpp keeps remaining layers in system RAM.
+# num_gpu controls layers, not bytes; live validation enforces the 900 MiB total
+# observed VRAM ceiling. This profile measured 450 MiB total device use with a
+# 62% CPU / 38% GPU processor split on July 19, 2026.
 
 FROM /models/gguf/gemma-3-1b-it-Q4_K_M.gguf
 
@@ -23,8 +29,10 @@ PARAMETER min_p 0.01
 PARAMETER repeat_penalty 1
 PARAMETER top_k 64
 PARAMETER top_p 0.95
-PARAMETER num_predict 32768
+PARAMETER num_predict 128
 PARAMETER stop <end_of_turn>
 PARAMETER stop <eos>
 PARAMETER temperature 1
-PARAMETER num_ctx 1024
+PARAMETER num_gpu 23
+PARAMETER num_ctx 256
+PARAMETER num_batch 1
